@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "700822480963",
+    "project_id": "safety-project-8e673",
+    "storage_bucket": "safety-project-8e673.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:700822480963:android:ace129218e0379a0280cf6",
+        "android_client_info": {
+          "package_name": "com.example.safetyproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "700822480963-9t3akciu01tnbgm2bh3v45doj4k3dpl0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.safetyproject",
+            "certificate_hash": "3144bf8f0518f6d41b8e2911a59a2e5659afad83"
+          }
+        },
+        {
+          "client_id": "700822480963-3u5og3hn0dookfnvb8f4skbmkclp1dgm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZhEuE9dERnhI6TusigcA_IHPzE3mtLeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "700822480963-3u5og3hn0dookfnvb8f4skbmkclp1dgm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
