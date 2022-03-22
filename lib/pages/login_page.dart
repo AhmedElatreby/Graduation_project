@@ -20,13 +20,13 @@ class _LogingPageState extends State<LogingPage> {
         children: [
           Container(
             width: width,
-            height: 200,
+            height: height*0.3,
             decoration: BoxDecoration(
               image: const DecorationImage(
-                image: AssetImage(
-                  "assests/images/loginimg.png"
-                ),
-                fit: BoxFit.cover
+                  image: AssetImage(
+                      "assests/images/loginimg.png"
+                  ),
+                  fit: BoxFit.cover
               ),
             ),
           ),
@@ -37,52 +37,52 @@ class _LogingPageState extends State<LogingPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text("Hello",
-                style: TextStyle(
-                  fontSize:50,
-                  fontWeight: FontWeight.bold
-                ),
+                  style: TextStyle(
+                      fontSize:50,
+                      fontWeight: FontWeight.bold
+                  ),
                 ),
                 Text("Sign into your account",
                   style: const TextStyle(
                       fontSize:20,
-                    color:Colors.grey
+                      color:Colors.grey
                   ),
                 ),
                 const SizedBox(height: 30,),
                 Container(
                   decoration: BoxDecoration(
-                    color:Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                    BoxShadow(
-                    blurRadius: 10,
-                    spreadRadius: 6,
-                    offset: Offset(1, 1),
-                    color: Colors.grey.withOpacity(0.2)
-                  ),
-                    ]
+                      color:Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                            blurRadius: 10,
+                            spreadRadius: 6,
+                            offset: Offset(1, 1),
+                            color: Colors.grey.withOpacity(0.2)
+                        ),
+                      ]
                   ),
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: "Email",
                       prefixIcon: const Icon(Icons.email, color:Colors.deepOrangeAccent),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(
-                          color: Colors.white,
-                          width: 1.0,
-                        )
-                      ),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide(
                             color: Colors.white,
-                            width: 1.0
+                            width: 1.0,
                           )
-                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide(
+                              color: Colors.white,
+                              width: 1.0
+                          )
+                      ),
 
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30)
+                          borderRadius: BorderRadius.circular(30)
                       ),
                     ),
                   ),
@@ -96,7 +96,7 @@ class _LogingPageState extends State<LogingPage> {
                         BoxShadow(
                             blurRadius: 10,
                             spreadRadius: 7,
-                            offset: const Offset(1, 1),
+                            offset: Offset(1, 1),
                             color: Colors.grey.withOpacity(0.2)
                         ),
                       ]
@@ -160,9 +160,9 @@ class _LogingPageState extends State<LogingPage> {
             child: Center(
               child: Text("Sign in",
                 style: const TextStyle(
-                    fontSize:30,
-                    fontWeight: FontWeight.bold,
-                    color:Colors.white,
+                  fontSize:30,
+                  fontWeight: FontWeight.bold,
+                  color:Colors.white,
                 ),
               ),
             ),
@@ -170,21 +170,21 @@ class _LogingPageState extends State<LogingPage> {
           ),
           SizedBox(height: width*0.2,),
           RichText(text: TextSpan(text:"Don\'t have an account?",
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 20,
-            ),
-            children: [
-              TextSpan(
-              text:"  Create",
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.grey,
                 fontSize: 20,
-                fontWeight: FontWeight.bold
               ),
-                recognizer: TapGestureRecognizer()..onTap=()=>Get.to(()=>const SignUpPage())
-              )
-            ]
+              children: [
+                TextSpan(
+                    text:"  Create",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
+                    ),
+                    recognizer: TapGestureRecognizer()..onTap=()=>Get.to(()=>const SignUpPage())
+                )
+              ]
           )
           )
         ],
@@ -192,3 +192,4 @@ class _LogingPageState extends State<LogingPage> {
     );
   }
 }
+

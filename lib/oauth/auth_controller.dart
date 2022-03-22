@@ -1,5 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import 'package:safetyproject/pages/login_page.dart';
+import 'package:safetyproject/pages/welcome_page.dart';
+
+import '../pages/login_page.dart';
 
 class AuthController extends GetxController{
   // AuthController to be accessible
@@ -13,6 +19,37 @@ class AuthController extends GetxController{
     super.onReady();
     _user = Rx<User?>(auth.currentUser);
     _user.bindStream(auth.userChanges());
+    ever(_user, _initialScreen);
   }
 
+  _initialScreen(User? user){
+    if(user==null){
+      print("login page");
+      Get.offAll(()=>LogingPage());
+    }else{
+      Get.offAll(()=>WelcomePage());
+    }
+  }
+  Future<void> register(String email, password) async {
+    try{
+      await auth.createUserWithEmailAndPassword(email: email, password: password);
+    }catch(e){
+      Get.snackbar("About User", "User message",
+          backgroundColor: Colors.redAccent,
+          snackPosition: SnackPosition.BOTTOM,
+          titleText: Text(
+            "Account creation failed",
+            style: TextStyle(
+                color: Colors.white38
+            ),
+          ),
+          messageText: Text(
+            e.toString(),
+            style: TextStyle(
+                color: Colors.white38
+            ),
+          )
+      );
+    }
+  }
 }
