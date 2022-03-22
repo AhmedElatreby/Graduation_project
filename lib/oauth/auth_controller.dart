@@ -40,13 +40,13 @@ class AuthController extends GetxController{
           titleText: Text(
             "Account creation failed",
             style: TextStyle(
-                color: Colors.white38
+                color: Colors.white
             ),
           ),
           messageText: Text(
             e.toString(),
             style: TextStyle(
-                color: Colors.white38
+                color: Colors.white
             ),
           )
       );

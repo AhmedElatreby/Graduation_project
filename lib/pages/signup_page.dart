@@ -115,7 +115,7 @@ class SignUpPage extends StatelessWidget {
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: "Password",
-                      prefixIcon: const Icon(Icons.password_outlined, color:Colors.deepOrangeAccent),
+                      prefixIcon: const Icon(Icons.password, color:Colors.deepOrangeAccent),
                       focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: const BorderSide(
@@ -130,7 +130,6 @@ class SignUpPage extends StatelessWidget {
                               width: 1.0
                           )
                       ),
-
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30)
                       ),
@@ -138,20 +137,6 @@ class SignUpPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height:50),
-                // Row(
-                //   children: [
-                //     Expanded(child: Container(),),
-                //     const Text("Forgot your Password?",
-                //       style: TextStyle(
-                //           fontSize:20,
-                //           color:Colors.grey
-                //       ),
-                //     ),
-                //
-                //   ],
-                // ),
-
-
               ],
             ),
           ),
@@ -193,7 +178,7 @@ class SignUpPage extends StatelessWidget {
               color:Colors.grey,
             ),
           ),),
-          SizedBox(height: width*0.1,),
+          SizedBox(height: width*0.08,),
           RichText(text: const TextSpan(text:"Sign up using one of the following methods",
             style: TextStyle(
               color: Colors.grey,
