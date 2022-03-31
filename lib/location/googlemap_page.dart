@@ -16,7 +16,6 @@ class GoogleMapState extends State<GoogleMapPage> {
     zoom: 14.4746,
   );
 
-
   static final Marker _kBournemouthUniversityMarker = Marker(
     markerId: MarkerId('_kBournemouthUniversity'),
     infoWindow: InfoWindow(title: 'Bournemouth University'),
@@ -37,12 +36,26 @@ class GoogleMapState extends State<GoogleMapPage> {
     position: LatLng(50.73540115356445, -1.8586000204086304),
   );
 
+  static final Polyline _kPolyline = Polyline(
+    polylineId: PolylineId('_kPolyline'),
+    points: [
+      LatLng(50.73540115356445, -1.8586000204086304),
+      LatLng(50.742347717285156, -1.894766092300415),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: GoogleMap(
         mapType: MapType.satellite,
-        markers: {_kBournemouthUniversityMarker, _kHomeMarker},
+        markers: {
+          _kBournemouthUniversityMarker,
+          _kHomeMarker,
+        },
+        polylines: {
+          _kPolyline,
+        },
         initialCameraPosition: _kBournemouthUniversity,
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
