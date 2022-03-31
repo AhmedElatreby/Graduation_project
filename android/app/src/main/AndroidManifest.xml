@@ -20,8 +20,7 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
-            <meta-data android:name="com.google.android.geo.API_KEY"
-                android:value="AIzaSyARDxZgkunFLZCjoRYVbmQYPwYlv1NrMaw"/>
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -32,6 +31,8 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+       <meta-data android:name="com.google.android.geo.API_KEY"
+           android:value="AIzaSyARDxZgkunFLZCjoRYVbmQYPwYlv1NrMaw"/>
     </application>
     <queries>
         <!-- If your app opens https URLs -->

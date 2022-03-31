@@ -7,7 +7,7 @@ import 'package:safetyproject/pages/welcome_page.dart';
 
 import '../pages/login_page.dart';
 
-class AuthController extends GetxController{
+class AuthController extends GetxController {
   // AuthController to be accessible
   static AuthController instance = Get.find();
   // access user Email, password and name
@@ -15,41 +15,60 @@ class AuthController extends GetxController{
   FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
-  void onReady(){
+  void onReady() {
     super.onReady();
     _user = Rx<User?>(auth.currentUser);
     _user.bindStream(auth.userChanges());
     ever(_user, _initialScreen);
   }
 
-  _initialScreen(User? user){
-    if(user==null){
+  _initialScreen(User? user) {
+    if (user == null) {
       print("login page");
-      Get.offAll(()=>LogingPage());
-    }else{
-      Get.offAll(()=>WelcomePage());
+      Get.offAll(() => LogingPage());
+    } else {
+      Get.offAll(() => WelcomePage(email: user.email!));
     }
   }
+
   Future<void> register(String email, password) async {
-    try{
-      await auth.createUserWithEmailAndPassword(email: email, password: password);
-    }catch(e){
+    try {
+      await auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+    } catch (e) {
       Get.snackbar("About User", "User message",
           backgroundColor: Colors.redAccent,
           snackPosition: SnackPosition.BOTTOM,
           titleText: Text(
             "Account creation failed",
-            style: TextStyle(
-                color: Colors.white
-            ),
+            style: TextStyle(color: Colors.white),
           ),
           messageText: Text(
             e.toString(),
-            style: TextStyle(
-                color: Colors.white
-            ),
-          )
-      );
+            style: TextStyle(color: Colors.white),
+          ));
     }
+  }
+
+  Future<void> login(String email, password) async {
+    try {
+      await auth.signInWithEmailAndPassword(email: email, password: password);
+    } catch (e) {
+      Get.snackbar("About Login", "Login message",
+          backgroundColor: Colors.redAccent,
+          snackPosition: SnackPosition.BOTTOM,
+          titleText: Text(
+            "Login failed",
+            style: TextStyle(color: Colors.white),
+          ),
+          messageText: Text(
+            e.toString(),
+            style: TextStyle(color: Colors.white),
+          ));
+    }
+  }
+
+  Future<void> logOut() async {
+    await auth.signOut();
   }
 }
