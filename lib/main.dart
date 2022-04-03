@@ -1,6 +1,8 @@
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:safetyproject/pages/splash_screen.dart';
 import '../pages/login_page.dart';
 import 'oauth/auth_controller.dart';
 
@@ -17,11 +19,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
+        title: 'Flutter Demo',        theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
         debugShowCheckedModeBanner: false,
-        home: LoginPage());
+      home: AnimatedSplashScreen(
+          duration: 3000,
+          splash: const SplashScreen(),
+          nextScreen: LoginPage(),
+          splashTransition: SplashTransition.fadeTransition,
+          backgroundColor: Colors.white),
+    );
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:safetyproject/location/googlemap_page.dart';
+import 'package:safetyproject/location/location_service.dart';
 import 'package:safetyproject/oauth/auth_controller.dart';
 import 'package:safetyproject/pages/sos.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,10 +25,10 @@ class _WelcomePageState extends State<WelcomePage> {
     LocationPage(),
     SosPage(),
     LocationPage(),
-    LocationPage(),
+    GoogleMapPage(),
   ];
 
-  int currentIndex = 0;
+  int currentIndex = 1;
   void onTap(int index){
     setState(() {
       currentIndex = index;

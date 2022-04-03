@@ -50,8 +50,16 @@ dependencies:
   # A flutter package to detect phone shakes.
   shake: ^2.0.0
 
-  # A Flutter plugin for iOS and Android for detecting various hardware buttons.
-  hardware_buttons: ^1.0.0
+  # plugin for iOS and Android for detecting various hardware buttons.
+#  hardware_buttons: ^1.0.0
+
+  #  animated splash screen
+  animated_splash_screen:
+
+  # plugin to call number directly from app, without going to phone dialer.
+  flutter_phone_direct_caller: ^2.0.0
+#  flutter_contacts:
+
 
 
 

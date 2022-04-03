@@ -1,6 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -24,39 +25,30 @@ class SosPage extends StatelessWidget {
             },
             child: Column(
               children: [
-                TextButton(
-                    onPressed: () async {
-                      if (!await launch('tel:+447562596358')) {
-                        throw 'Could not launch';
-                      }
-                    },
-                    child: const Text(
-                      'Call',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )),
-                const Center(
-                  child: Text(
-                    "SOS",
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                const SizedBox(
+                  height: 300,
+                ),
+                Center(
+                  child: ElevatedButton(
+                      onPressed: () {
+                        FlutterPhoneDirectCaller.callNumber('+447562596358');
+                        },
+                      child: const Text(
+                        'SOS',
+                        style: TextStyle(
+                          fontSize: 90,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )),
                 ),
               ],
             ),
           ),
-
         ],
       ),
     );
   }
 }
-
 class _MapActivityState {
 }
 
