@@ -10,7 +10,7 @@ class LocationPage extends StatefulWidget {
 
 class _HomeState extends State<LocationPage> {
 
-  String? lat, long, country, adminArea;
+  String? lat, long, country, city, adminArea;
 
   @override
   void initState() {
@@ -22,7 +22,7 @@ class _HomeState extends State<LocationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Location Example'),
+        title: const Text('Current Location'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -37,6 +37,8 @@ class _HomeState extends State<LocationPage> {
             const SizedBox(height: 20,),
             Text('Country: ${country ?? 'Loading ...'}', style: getStyle(),),
             const SizedBox(height: 20,),
+            // Text('city: ${city ?? 'Loading ...'}', style: getStyle(),),
+            // const SizedBox(height: 20,),
             Text('Admin Area: ${adminArea ?? 'Loading ...'}', style: getStyle(),),
             const SizedBox(height: 20,),
           ],

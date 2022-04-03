@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:safetyproject/pages/login_page.dart';
-import 'package:safetyproject/pages/welcome_page.dart';
-
 import '../pages/login_page.dart';
+import '../pages/welcome_page1.dart';
 
 class AuthController extends GetxController {
   // AuthController to be accessible
@@ -25,7 +22,7 @@ class AuthController extends GetxController {
   _initialScreen(User? user) {
     if (user == null) {
       print("login page");
-      Get.offAll(() => LogingPage());
+      Get.offAll(() => LoginPage());
     } else {
       Get.offAll(() => WelcomePage(email: user.email!));
     }
@@ -49,7 +46,6 @@ class AuthController extends GetxController {
           ));
     }
   }
-
   Future<void> login(String email, password) async {
     try {
       await auth.signInWithEmailAndPassword(email: email, password: password);
@@ -67,7 +63,6 @@ class AuthController extends GetxController {
           ));
     }
   }
-
   Future<void> logOut() async {
     await auth.signOut();
   }

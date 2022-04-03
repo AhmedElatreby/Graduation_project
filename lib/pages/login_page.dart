@@ -1,16 +1,16 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import 'package:safetyproject/oauth/auth_controller.dart';
 import 'package:safetyproject/pages/signup_page.dart';
 
-class LogingPage extends StatefulWidget {
+class LoginPage extends StatefulWidget {
+
   @override
-  _LogingPageState createState() => _LogingPageState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class _LogingPageState extends State<LogingPage> {
+class _LoginPageState extends State<LoginPage> {
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
 
@@ -85,7 +85,6 @@ class _LogingPageState extends State<LogingPage> {
                               width: 1.0
                           )
                       ),
-
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30)
                       ),
@@ -107,10 +106,11 @@ class _LogingPageState extends State<LogingPage> {
                       ]
                   ),
                   child: TextField(
+                    obscureText: true,
                     controller: passwordController,
                     decoration: InputDecoration(
                       hintText: "Password",
-                      prefixIcon: const Icon(Icons.password, color:Colors.deepOrangeAccent),
+                      prefixIcon: const Icon(Icons.password_outlined, color:Colors.deepOrangeAccent),
                       focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide(
@@ -125,7 +125,6 @@ class _LogingPageState extends State<LogingPage> {
                               width: 1.0
                           )
                       ),
-
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30)
                       ),
@@ -142,11 +141,8 @@ class _LogingPageState extends State<LogingPage> {
                           color:Colors.grey
                       ),
                     ),
-
                   ],
                 ),
-
-
               ],
             ),
           ),
@@ -176,7 +172,6 @@ class _LogingPageState extends State<LogingPage> {
                   ),
                 ),
               ),
-
             ),
           ),
           SizedBox(height: width*0.2,),

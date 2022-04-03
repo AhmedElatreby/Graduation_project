@@ -1,49 +1,100 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:safetyproject/oauth/auth_controller.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:flutter_sms/flutter_sms.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:safetyproject/oauth/auth_controller.dart';
+import 'package:safetyproject/pages/sos.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import 'location_page.dart';
+import '../pages/location_page.dart';
 
-class WelcomePage extends StatelessWidget {
-  _MapActivityState createState() => _MapActivityState();
-  List<String> recipents = ["+447562596358", "+447562596358"];
+class WelcomePage extends StatefulWidget {
   String email;
+
   WelcomePage({Key? key, required this.email}) : super(key: key);
+
+  @override
+  State<WelcomePage> createState() => _WelcomePageState();
+}
+
+class _WelcomePageState extends State<WelcomePage> {
+  _MapActivityState createState() => _MapActivityState();
+
+  int currentIndex = 0;
+
+  final screens = [
+    LocationPage(),
+    SosPage(),
+    LocationPage(),
+    LocationPage(),
+  ];
+
+  List<String> recipents = ["+447562596358", "+447562596358"];
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+    screens[currentIndex];
+    bottomNavigationBar:
+    BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: Colors.blue,
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white70,
+      iconSize: 30,
+      currentIndex: currentIndex,
+      onTap: (index) => setState(() => currentIndex = index),
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+          // backgroundColor: Colors.blue,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.call),
+          label: 'SOS',
+          // backgroundColor: Colors.grey,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.mail),
+          label: 'Mail',
+          // backgroundColor: Colors.deepPurpleAccent,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.map),
+          label: 'Map',
+          // backgroundColor: Colors.deepPurpleAccent,
+        ),
+      ],
+    );
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          Container(
-            width: width,
-            height: height * 0.3,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage("assests/images/signup.png"),
-                  fit: BoxFit.cover),
-            ),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: height * 0.18,
-                ),
-                const CircleAvatar(
-                  backgroundColor: Colors.white38,
-                  radius: 40,
-                  backgroundImage:
-                      AssetImage("assests/images/profile1.png"),
-                ),
-              ],
-            ),
-          ),
+          // Container(
+          //   width: width,
+          //   height: height * 0.3,
+          //   decoration: const BoxDecoration(
+          //     image: DecorationImage(
+          //         image: AssetImage("assests/images/signup.png"),
+          //         fit: BoxFit.cover),
+          //   ),
+          //   child: Column(
+          //     children: [
+          //       SizedBox(
+          //         height: height * 0.18,
+          //       ),
+          //       const CircleAvatar(
+          //         backgroundColor: Colors.white38,
+          //         radius: 40,
+          //         backgroundImage:
+          //             AssetImage("assests/images/profile1.png"),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           const SizedBox(
             height: 70,
           ),
@@ -65,7 +116,7 @@ class WelcomePage extends StatelessWidget {
                         color: Colors.black54),
                   ),
                   Text(
-                    email,
+                    widget.email,
                     style: const TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                 ],
@@ -175,7 +226,6 @@ class WelcomePage extends StatelessWidget {
   }
 }
 
-
 void _sendSMS(String message, List<String> recipents) async {
   String _result = await sendSMS(message: message, recipients: recipents)
       .catchError((onError) {
@@ -183,13 +233,14 @@ void _sendSMS(String message, List<String> recipents) async {
   });
   print(_result);
 }
+
 class MapActivity extends StatefulWidget {
   @override
   _MapActivityState createState() => _MapActivityState();
 }
 
 class _MapActivityState extends State<MapActivity> {
-  late LatLng _center ;
+  late LatLng _center;
   late Position currentLocation;
 
   @override
@@ -200,8 +251,8 @@ class _MapActivityState extends State<MapActivity> {
   }
 
   Future<Position> locateUser() async {
-    return Geolocator
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    return Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
   }
 
   getUserLocation() async {
