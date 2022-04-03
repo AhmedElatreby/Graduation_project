@@ -58,7 +58,10 @@ dependencies:
 
   # plugin to call number directly from app, without going to phone dialer.
   flutter_phone_direct_caller: ^2.0.0
-#  flutter_contacts:
+
+  # plugin to access and manage the device's contacts.
+  contacts_service:
+  permission_handler:
 
 
 

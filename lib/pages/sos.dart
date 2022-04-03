@@ -30,7 +30,7 @@ class SosPage extends StatelessWidget {
                 ),
                 Center(
                   child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         FlutterPhoneDirectCaller.callNumber('+447562596358');
                         },
                       child: const Text(
