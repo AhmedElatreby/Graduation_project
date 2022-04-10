@@ -1,8 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:safetyproject/oauth/auth_controller.dart';
-import 'package:safetyproject/pages/signup_page.dart';
+
+
+import '../oauth/auth_controller.dart';
+import '../pages/signup_page.dart';
 
 class LoginPage extends StatefulWidget {
 

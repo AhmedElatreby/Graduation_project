@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../location/location_service.dart';
 import '../oauth/auth_controller.dart';
 
+
 class LocationPage extends StatefulWidget {
   const LocationPage({Key? key}) : super(key: key);
 
