@@ -24,7 +24,7 @@ class AuthController extends GetxController {
       print("login page");
       Get.offAll(() => LoginPage());
     } else {
-      Get.offAll(() => WelcomePage(email: user.email!));
+      Get.offAll(() => NavBarPage(email: user.email!));
     }
   }
 

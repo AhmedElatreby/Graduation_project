@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:safetyproject/contact/contact_page.dart';
+import 'package:safetyproject/location/googlemap_page.dart';
 import 'package:safetyproject/pages/location_page.dart';
-import '../location/googlemap_page.dart';
-import '../navigation_bar/my_page.dart';
 import '../pages/sos.dart';
-import '../location/welcome_page.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../oauth/auth_controller.dart';
-import 'bar_item_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -23,8 +17,8 @@ class _MainPageState extends State<MainPage> {
   final screens = [
     LocationPage(),
     SosPage(),
-    LocationPage(),
-    LocationPage(),
+    GoogleMapPage(),
+    ContactPage(),
   ];
 
   @override
@@ -46,13 +40,13 @@ class _MainPageState extends State<MainPage> {
             // backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.call),
+            icon: Icon(Icons.call_made),
             label: 'SOS',
             // backgroundColor: Colors.grey,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.mail),
-            label: 'Mail',
+            icon: Icon(Icons.contact_phone),
+            label: 'Add contact',
             // backgroundColor: Colors.deepPurpleAccent,
           ),
           BottomNavigationBarItem(

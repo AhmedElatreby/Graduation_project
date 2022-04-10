@@ -73,28 +73,6 @@ class _WelcomePageState extends State<WelcomePage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Container(
-          //   width: width,
-          //   height: height * 0.3,
-          //   decoration: const BoxDecoration(
-          //     image: DecorationImage(
-          //         image: AssetImage("assests/images/signup.png"),
-          //         fit: BoxFit.cover),
-          //   ),
-          //   child: Column(
-          //     children: [
-          //       SizedBox(
-          //         height: height * 0.18,
-          //       ),
-          //       const CircleAvatar(
-          //         backgroundColor: Colors.white38,
-          //         radius: 40,
-          //         backgroundImage:
-          //             AssetImage("assests/images/profile1.png"),
-          //       ),
-          //     ],
-          //   ),
-          // ),
           const SizedBox(
             height: 70,
           ),

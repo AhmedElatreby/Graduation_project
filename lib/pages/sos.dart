@@ -91,7 +91,3 @@ void _sendSMS(String message, List<String> recipents) async {
   });
   print(_result);
 }
-// class MapActivity extends StatefulWidget {
-//   @override
-//   _MapActivityState createState() => _MapActivityState();
-// }

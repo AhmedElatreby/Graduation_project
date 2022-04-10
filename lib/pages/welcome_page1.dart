@@ -1,35 +1,31 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:safetyproject/contact/contact_page.dart';
 import 'package:safetyproject/location/googlemap_page.dart';
-import 'package:safetyproject/location/location_service.dart';
-import 'package:safetyproject/oauth/auth_controller.dart';
 import 'package:safetyproject/pages/sos.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'location_page.dart';
 
-class WelcomePage extends StatefulWidget {
+class NavBarPage extends StatefulWidget {
   String email;
-  WelcomePage({Key? key, required this.email}) : super(key: key);
+  NavBarPage({Key? key, required this.email}) : super(key: key);
 
   @override
-  State<WelcomePage> createState() => _WelcomePageState();
+  State<NavBarPage> createState() => _NavBarPageState();
 }
 
-class _WelcomePageState extends State<WelcomePage> {
+class _NavBarPageState extends State<NavBarPage> {
   _MapActivityState createState() => _MapActivityState();
 
   final screens = [
-    LocationPage(),
+    const LocationPage(),
     SosPage(),
-    LocationPage(),
+    const ContactPage(),
     GoogleMapPage(),
   ];
 
   int currentIndex = 1;
-  void onTap(int index){
+  void onTap(int index) {
     setState(() {
       currentIndex = index;
     });
@@ -37,7 +33,6 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: screens[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -58,13 +53,13 @@ class _WelcomePageState extends State<WelcomePage> {
             // backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.call),
+            icon: Icon(Icons.emergency),
             label: 'SOS',
             // backgroundColor: Colors.grey,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.mail),
-            label: 'Mail',
+            icon: Icon(Icons.contact_page),
+            label: 'Contact',
             // backgroundColor: Colors.deepPurpleAccent,
           ),
           BottomNavigationBarItem(
@@ -78,10 +73,4 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 }
 
-class _MapActivityState {
-}
-
-
-
-
-
+class _MapActivityState {}
