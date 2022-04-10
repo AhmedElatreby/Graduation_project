@@ -25,8 +25,8 @@ class _LoginPageState extends State<LoginPage> {
           Container(
             width: width,
             height: height*0.3,
-            decoration: BoxDecoration(
-              image: const DecorationImage(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
                   image: AssetImage(
                       "assests/images/loginimg.png"
                   ),
@@ -46,8 +46,8 @@ class _LoginPageState extends State<LoginPage> {
                       fontWeight: FontWeight.bold
                   ),
                 ),
-                Text("Sign into your account",
-                  style: const TextStyle(
+                const Text("Sign into your account",
+                  style: TextStyle(
                       fontSize:20,
                       color:Colors.grey
                   ),
@@ -73,14 +73,14 @@ class _LoginPageState extends State<LoginPage> {
                       prefixIcon: const Icon(Icons.email, color:Colors.deepOrangeAccent),
                       focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.white,
                             width: 1.0,
                           )
                       ),
                       enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                               color: Colors.white,
                               width: 1.0
                           )
@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                         BoxShadow(
                             blurRadius: 10,
                             spreadRadius: 7,
-                            offset: Offset(1, 1),
+                            offset: const Offset(1, 1),
                             color: Colors.grey.withOpacity(0.2)
                         ),
                       ]
@@ -113,14 +113,14 @@ class _LoginPageState extends State<LoginPage> {
                       prefixIcon: const Icon(Icons.password_outlined, color:Colors.deepOrangeAccent),
                       focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.white,
                             width: 1.0,
                           )
                       ),
                       enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                               color: Colors.white,
                               width: 1.0
                           )
@@ -135,8 +135,8 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   children: [
                     Expanded(child: Container(),),
-                    Text("Forgot your Password?",
-                      style: const TextStyle(
+                    const Text("Forgot your Password?",
+                      style: TextStyle(
                           fontSize:20,
                           color:Colors.grey
                       ),
@@ -163,9 +163,9 @@ class _LoginPageState extends State<LoginPage> {
                     fit: BoxFit.cover
                 ),
               ),
-              child: Center(
+              child: const Center(
                 child: Text("Sign in",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize:30,
                     fontWeight: FontWeight.bold,
                     color:Colors.white,
@@ -176,14 +176,14 @@ class _LoginPageState extends State<LoginPage> {
           ),
           SizedBox(height: width*0.2,),
           RichText(text: TextSpan(text:"Don\'t have an account?",
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.grey,
                 fontSize: 20,
               ),
               children: [
                 TextSpan(
                     text:"  Create",
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.black,
                         fontSize: 20,
                         fontWeight: FontWeight.bold
