@@ -9,7 +9,7 @@ class GoogleMapPage extends StatefulWidget {
 }
 
 class GoogleMapState extends State<GoogleMapPage> {
-  Completer<GoogleMapController> _controller = Completer();
+  final Completer<GoogleMapController> _controller = Completer();
 
   static const CameraPosition _kBournemouthUniversity = CameraPosition(
     target: LatLng(50.742347717285156, -1.894766092300415),
@@ -30,10 +30,10 @@ class GoogleMapState extends State<GoogleMapPage> {
       zoom: 19.151926040649414);
 
   static final Marker _kHomeMarker = Marker(
-    markerId: MarkerId('_kHomeMarker'),
-    infoWindow: InfoWindow(title: 'Home'),
+    markerId: const MarkerId('_kHomeMarker'),
+    infoWindow: const InfoWindow(title: 'Home'),
     icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-    position: LatLng(50.73540115356445, -1.8586000204086304),
+    position: const LatLng(50.73540115356445, -1.8586000204086304),
   );
 
   static const Polyline _kPolyline = Polyline(
