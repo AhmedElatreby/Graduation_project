@@ -11,19 +11,19 @@ class GoogleMapPage extends StatefulWidget {
 class GoogleMapState extends State<GoogleMapPage> {
   Completer<GoogleMapController> _controller = Completer();
 
-  static final CameraPosition _kBournemouthUniversity = CameraPosition(
+  static const CameraPosition _kBournemouthUniversity = CameraPosition(
     target: LatLng(50.742347717285156, -1.894766092300415),
     zoom: 14.4746,
   );
 
-  static final Marker _kBournemouthUniversityMarker = Marker(
+  static const Marker _kBournemouthUniversityMarker = Marker(
     markerId: MarkerId('_kBournemouthUniversity'),
     infoWindow: InfoWindow(title: 'Bournemouth University'),
     icon: BitmapDescriptor.defaultMarker,
     position: LatLng(50.742347717285156, -1.894766092300415),
   );
 
-  static final CameraPosition _kHome = CameraPosition(
+  static const CameraPosition _kHome = CameraPosition(
       bearing: 192.8334901395799,
       target: LatLng(50.73540115356445, -1.8586000204086304),
       tilt: 59.440717697143555,
@@ -36,7 +36,7 @@ class GoogleMapState extends State<GoogleMapPage> {
     position: LatLng(50.73540115356445, -1.8586000204086304),
   );
 
-  static final Polyline _kPolyline = Polyline(
+  static const Polyline _kPolyline = Polyline(
     polylineId: PolylineId('_kPolyline'),
     points: [
       LatLng(50.73540115356445, -1.8586000204086304),
@@ -47,19 +47,23 @@ class GoogleMapState extends State<GoogleMapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
-        mapType: MapType.satellite,
-        markers: {
-          _kBournemouthUniversityMarker,
-          _kHomeMarker,
-        },
-        polylines: {
-          _kPolyline,
-        },
-        initialCameraPosition: _kBournemouthUniversity,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
+      appBar: AppBar(title: const Text('Map'),),
+      body: Padding(
+        padding: const EdgeInsets.all(0.1),
+        child: GoogleMap(
+          mapType: MapType.satellite,
+          markers: {
+            _kBournemouthUniversityMarker,
+            _kHomeMarker,
+          },
+          polylines: {
+            _kPolyline,
+          },
+          initialCameraPosition: _kBournemouthUniversity,
+          onMapCreated: (GoogleMapController controller) {
+            _controller.complete(controller);
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goMyLocation,
