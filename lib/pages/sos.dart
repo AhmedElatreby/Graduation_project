@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_sms/flutter_sms.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+// import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 import '../oauth/auth_controller.dart';
 
@@ -30,10 +32,10 @@ class SosPage extends StatelessWidget {
                 AuthController.instance.logOut();
               },
               child: Container(
-                width: width * 0.4,
-                height: height * 0.07,
+                width: width * 0.2,
+                height: height * 0.05,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
+                  borderRadius: BorderRadius.circular(30),
                   image: const DecorationImage(
                       image: AssetImage("assests/images/loginbtn.png"),
                       fit: BoxFit.cover),
@@ -42,7 +44,7 @@ class SosPage extends StatelessWidget {
                   child: Text(
                     "Sign out",
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -57,7 +59,7 @@ class SosPage extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(
-                    height: 300,
+                    height: 150,
                   ),
                   Center(
                     child: ElevatedButton(
@@ -71,6 +73,41 @@ class SosPage extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         )),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 50,
+            ),
+            GestureDetector(
+              onTap: () {
+                AuthController.instance.logOut();
+              },
+              child: Column(
+                children: [
+                  TextButton(
+                      onPressed: () async {
+                        String message = "This is a test message!";
+                        _sendSMS(message, recipents);
+                      },
+                      child: const Text(
+                        'SMS',
+                        style: TextStyle(
+                          fontSize: 50,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepOrange,
+                        ),
+                      )),
+                  const Center(
+                    child: Text(
+                      "SOS",
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -91,3 +128,4 @@ void _sendSMS(String message, List<String> recipents) async {
   });
   print(_result);
 }
+

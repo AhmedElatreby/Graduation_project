@@ -57,8 +57,9 @@ dependencies:
   animated_splash_screen:
 
   # plugin to call number directly from app, without going to phone dialer.
-  flutter_phone_direct_caller: ^2.0.0
+  flutter_phone_direct_caller:
   flutter_contacts:
+#  stream_chat_flutter:
 
   # plugin to access and manage the device's contacts.
 #  contacts_service:

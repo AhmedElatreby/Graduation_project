@@ -1,86 +1,114 @@
-import 'dart:typed_data';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-void main() async {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: ContactPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class ContactPage extends StatefulWidget {
+
   const ContactPage({Key? key}) : super(key: key);
 
+
   @override
-  _ContactPageState createState() => _ContactPageState();
+  _ContactPageState createState() =>
+      _ContactPageState();
 }
 
 class _ContactPageState extends State<ContactPage> {
-  List<Contact>? contacts;
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    getContact();
-  }
+  static List<String> emergencyContactsName = [];
+  static List<String> emergencyContactsInitials = [];
+  static List<String> emergencyContactsNo = [];
 
-  void getContact() async {
-    if (await FlutterContacts.requestPermission()) {
-      contacts = await FlutterContacts.getContacts(
-          withProperties: true, withPhoto: true);
-      print(contacts);
-      setState(() {});
-    }
+  final TextEditingController _textFieldController1 = TextEditingController();
+  final TextEditingController _textFieldController2 = TextEditingController();
+
+  void _addContact(String name, String no) {
+    setState(() {
+      var nameParts = name.split(" ");
+      if (nameParts.length > 1) {
+        emergencyContactsInitials
+            .add(nameParts[0][0].toUpperCase() + nameParts[1][0].toUpperCase());
+      } else {
+        emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
+      }
+      emergencyContactsName.add(name);
+      emergencyContactsNo.add(no);
+    });
+    _textFieldController1.clear();
+    _textFieldController2.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Safety App",
-            style: TextStyle(color: Colors.blue),
+      body: Scrollbar(
+          child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: emergencyContactsName.length,
+              itemBuilder: (BuildContext context, index) {
+                return SizedBox(
+                    height: 100,
+                    child: Card(
+                        elevation: 4,
+                        child: InkWell(
+                            onTap: () async {
+                              var phoneNo = emergencyContactsNo[index];
+                              await FlutterPhoneDirectCaller.callNumber(
+                                  phoneNo);
+                            },
+                            child: ListTile(
+                                title: Text(emergencyContactsName[index]),
+                                subtitle: Text(emergencyContactsNo[index]),
+                                dense: true,
+                                leading: CircleAvatar(
+                                    child: Text(
+                                        emergencyContactsInitials[index]))))));
+              })),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showDialog<String>(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text('Add Contact Details'),
+            content: SizedBox(
+                width: 300,
+                height: 200,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _textFieldController1,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: "Enter Contact Name",
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    TextFormField(
+                      controller: _textFieldController2,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: "Enter Phone No.",
+                      ),
+                    ),
+                  ],
+                )),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'Cancel'),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => {
+                  _addContact(
+                      _textFieldController1.text, _textFieldController2.text),
+                  Navigator.pop(context, 'Add')
+                },
+                child: const Text('Add'),
+              ),
+            ],
           ),
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
         ),
-        body: (contacts) == null
-            ? Center(child: CircularProgressIndicator())
-            : ListView.builder(
-          itemCount: contacts!.length,
-          itemBuilder: (BuildContext context, int index) {
-            Uint8List? image = contacts![index].photo;
-            String num = (contacts![index].phones.isNotEmpty) ? (contacts![index].phones.first.number) : "--";
-            return ListTile(
-                leading: (contacts![index].photo == null)
-                    ? const CircleAvatar(child: Icon(Icons.person))
-                    : CircleAvatar(backgroundImage: MemoryImage(image!)),
-                title: Text(
-                    "${contacts![index].name.first} ${contacts![index].name.last}"),
-                subtitle: Text(num),
-                onTap: () {
-                  if (contacts![index].phones.isNotEmpty) {
-                    launch('tel: ${num}');
-                  }
-                });
-          },
-        ));
+        tooltip: 'Add Contacts',
+        child: const Icon(Icons.add),
+      ),
+    );
   }
 }
