@@ -12,7 +12,7 @@ class SplashScreen extends StatelessWidget {
           "Safety App",
           textAlign: TextAlign.center,
           style: TextStyle(
-              fontSize: 42,
+              fontSize: 50,
               color: Colors.redAccent,
               fontWeight: FontWeight.w600,
               fontStyle: FontStyle.italic),

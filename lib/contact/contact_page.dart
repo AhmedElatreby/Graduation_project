@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'personal_contacts.dart';
+import 'db_helper.dart';
 
 class ContactPage extends StatefulWidget {
-
   const ContactPage({Key? key}) : super(key: key);
 
-
   @override
-  _ContactPageState createState() =>
-      _ContactPageState();
+  _ContactPageState createState() => _ContactPageState();
 }
 
 class _ContactPageState extends State<ContactPage> {
+  final GlobalKey<FormState> _formStateKey = GlobalKey<FormState>();
+  static Future<List<PersonalContacts>>? contacts;
+
+  late DBHelper dbHelper;
+
   static List<String> emergencyContactsName = [];
   static List<String> emergencyContactsInitials = [];
   static List<String> emergencyContactsNo = [];
@@ -19,20 +23,49 @@ class _ContactPageState extends State<ContactPage> {
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
 
+  void getInitial(String name) {
+    var nameParts = name.split(" ");
+    if (nameParts.length > 1) {
+      emergencyContactsInitials
+          .add(nameParts[0][0].toUpperCase() + nameParts[1][0].toUpperCase());
+    } else {
+      emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
+    }
+  }
+
   void _addContact(String name, String no) {
-    setState(() {
-      var nameParts = name.split(" ");
-      if (nameParts.length > 1) {
-        emergencyContactsInitials
-            .add(nameParts[0][0].toUpperCase() + nameParts[1][0].toUpperCase());
-      } else {
-        emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
-      }
-      emergencyContactsName.add(name);
-      emergencyContactsNo.add(no);
-    });
+    dbHelper.add(PersonalContacts(name, no));
     _textFieldController1.clear();
     _textFieldController2.clear();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    dbHelper = DBHelper();
+    emergencyContactsName = [];
+    emergencyContactsInitials = [];
+    emergencyContactsNo = [];
+    refreshContacts();
+  }
+
+  void getData(List<PersonalContacts> contacts) {
+    contacts.forEach((contact) {
+      print(contact.contactNo);
+      getInitial(contact.name.toString());
+      emergencyContactsName.add(contact.name.toString());
+      emergencyContactsNo.add(contact.contactNo.toString());
+    });
+  }
+
+  refreshContacts() {
+    setState(() {
+      emergencyContactsName = [];
+      emergencyContactsInitials = [];
+      emergencyContactsNo = [];
+
+      contacts = dbHelper.getContacts();
+    });
   }
 
   @override

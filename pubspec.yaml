@@ -60,7 +60,11 @@ dependencies:
   # plugin to call number directly from app, without going to phone dialer.
   flutter_phone_direct_caller:
   flutter_contacts:
-#  stream_chat_flutter:
+# DB operation executed in a background thread
+  sqflite:
+  path_provider:
+
+  #  stream_chat_flutter:
 
   # plugin to access and manage the device's contacts.
 #  contacts_service:
