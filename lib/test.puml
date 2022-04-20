@@ -1,0 +1,323 @@
+@startuml
+set namespaceSeparator ::
+class "safetyproject::contact::contact_page.dart::ContactPage" {
+  +_ContactPageState createState()
+}
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "safetyproject::contact::contact_page.dart::ContactPage"
+
+class "safetyproject::contact::contact_page.dart::_ContactPageState" {
+  -GlobalKey<FormState> _formStateKey
+  {static} +Future<List<PersonalContacts>>? contacts
+  +DBHelper dbHelper
+  {static} +List<String> emergencyContactsName
+  {static} +List<String> emergencyContactsInitials
+  {static} +List<String> emergencyContactsNo
+  -TextEditingController _textFieldController1
+  -TextEditingController _textFieldController2
+  +void getInitial()
+  -void _addContact()
+  +void initState()
+  +void getData()
+  +dynamic refreshContacts()
+  +Widget build()
+}
+
+"safetyproject::contact::contact_page.dart::_ContactPageState" o-- "flutter::src::widgets::framework.dart::GlobalKey<FormState>"
+"safetyproject::contact::contact_page.dart::_ContactPageState" o-- "safetyproject::contact::db_helper.dart::DBHelper"
+"safetyproject::contact::contact_page.dart::_ContactPageState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- "safetyproject::contact::contact_page.dart::_ContactPageState"
+
+class "safetyproject::contact::db_helper.dart::DBHelper" {
+  {static} -Database? _db
+  +Future<Database> db
+  +dynamic initDatabase()
+  -dynamic _onCreate()
+  +Future<PersonalContacts> add()
+  +Future<List<PersonalContacts>> getContacts()
+  +Future<int> delete()
+  +Future<int> update()
+  +Future<dynamic> close()
+}
+
+"safetyproject::contact::db_helper.dart::DBHelper" o-- "sqflite_common::sqlite_api.dart::Database"
+
+class "safetyproject::contact::personal_contacts.dart::PersonalContacts" {
+  +int id
+  +String name
+  +String contactNo
+  +Map<String, dynamic> toMap()
+}
+
+class "safetyproject::location::googlemap_page.dart::GoogleMapPage" {
+  +_GoogleMapPageState createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "safetyproject::location::googlemap_page.dart::GoogleMapPage"
+
+class "safetyproject::location::googlemap_page.dart::_GoogleMapPageState" {
+  -CameraPosition _initialLocation
+  +GoogleMapController mapController
+  -Position _currentPosition
+  -String _currentAddress
+  +TextEditingController startAddressController
+  +TextEditingController destinationAddressController
+  +FocusNode startAddressFocusNode
+  +FocusNode desrinationAddressFocusNode
+  -String _startAddress
+  -String _destinationAddress
+  -String? _placeDistance
+  +Set<Marker> markers
+  +PolylinePoints polylinePoints
+  +Map<PolylineId, Polyline> polylines
+  +List<LatLng> polylineCoordinates
+  -GlobalKey<ScaffoldState> _scaffoldKey
+  -Widget _textField()
+  -dynamic _getCurrentLocation()
+  -dynamic _getAddress()
+  -Future<bool> _calculateDistance()
+  -double _coordinateDistance()
+  -dynamic _createPolylines()
+  +void initState()
+  +Widget build()
+}
+
+"safetyproject::location::googlemap_page.dart::_GoogleMapPageState" o-- "google_maps_flutter_platform_interface::src::types::camera.dart::CameraPosition"
+"safetyproject::location::googlemap_page.dart::_GoogleMapPageState" o-- "google_maps_flutter::google_maps_flutter.dart::GoogleMapController"
+"safetyproject::location::googlemap_page.dart::_GoogleMapPageState" o-- "geolocator_platform_interface::src::models::position.dart::Position"
+"safetyproject::location::googlemap_page.dart::_GoogleMapPageState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"safetyproject::location::googlemap_page.dart::_GoogleMapPageState" o-- "flutter::src::widgets::focus_manager.dart::FocusNode"
+"safetyproject::location::googlemap_page.dart::_GoogleMapPageState" o-- "flutter_polyline_points::flutter_polyline_points.dart::PolylinePoints"
+"safetyproject::location::googlemap_page.dart::_GoogleMapPageState" o-- "flutter::src::widgets::framework.dart::GlobalKey<ScaffoldState>"
+"flutter::src::widgets::framework.dart::State" <|-- "safetyproject::location::googlemap_page.dart::_GoogleMapPageState"
+
+class "safetyproject::location::location_page_tracker.dart::LocationProvider" {
+  -BitmapDescriptor? _pinLocationIcon
+  -Map<MarkerId, Marker>? _marker
+  +MarkerId markerId
+  -Location? _location
+  -LatLng? _locationPosition
+  +bool locationServiceActive
+  +BitmapDescriptor? pinLocationIcon
+  +Map<MarkerId, Marker>? marker
+  +Location? location
+  +LatLng? locationPosition
+  +dynamic initialization()
+  +dynamic getUserLocation()
+  +dynamic setCustomMapPin()
+}
+
+"safetyproject::location::location_page_tracker.dart::LocationProvider" o-- "google_maps_flutter_platform_interface::src::types::bitmap.dart::BitmapDescriptor"
+"safetyproject::location::location_page_tracker.dart::LocationProvider" o-- "google_maps_flutter_platform_interface::src::types::marker.dart::MarkerId"
+"safetyproject::location::location_page_tracker.dart::LocationProvider" o-- "location::location.dart::Location"
+"safetyproject::location::location_page_tracker.dart::LocationProvider" o-- "google_maps_flutter_platform_interface::src::types::location.dart::LatLng"
+"flutter::src::foundation::change_notifier.dart::ChangeNotifier" <|-- "safetyproject::location::location_page_tracker.dart::LocationProvider"
+
+class "safetyproject::location::location_service.dart::LocationService" {
+  -Location _location
+  -bool _serviceEnabled
+  -PermissionStatus? _grantedPermission
+  -Future<bool> _checkPermission()
+  -Future<bool> _checkService()
+  +Future<LocationData?> getLocation()
+  +Future<Placemark?> getPlaceMark()
+}
+
+"safetyproject::location::location_service.dart::LocationService" o-- "location::location.dart::Location"
+"safetyproject::location::location_service.dart::LocationService" o-- "location_platform_interface::location_platform_interface.dart::PermissionStatus"
+
+class "safetyproject::location::welcome_page.dart::WelcomePage" {
+  +String email
+  +State<WelcomePage> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "safetyproject::location::welcome_page.dart::WelcomePage"
+
+class "safetyproject::location::welcome_page.dart::_WelcomePageState" {
+  +int currentIndex
+  +List<Widget> screens
+  +List<String> recipents
+  +_MapActivityState createState()
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- "safetyproject::location::welcome_page.dart::_WelcomePageState"
+
+class "safetyproject::location::welcome_page.dart::MapActivity" {
+  +_MapActivityState createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "safetyproject::location::welcome_page.dart::MapActivity"
+
+class "safetyproject::location::welcome_page.dart::_MapActivityState" {
+  -LatLng _center
+  +Position currentLocation
+  +void initState()
+  +Future<Position> locateUser()
+  +dynamic getUserLocation()
+  +Widget build()
+}
+
+"safetyproject::location::welcome_page.dart::_MapActivityState" o-- "safetyproject::location::welcome_page.dart::LatLng"
+"safetyproject::location::welcome_page.dart::_MapActivityState" o-- "geolocator_platform_interface::src::models::position.dart::Position"
+"flutter::src::widgets::framework.dart::State" <|-- "safetyproject::location::welcome_page.dart::_MapActivityState"
+
+class "safetyproject::location::welcome_page.dart::LatLng" {
+}
+
+class "safetyproject::main.dart::MyApp" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "safetyproject::main.dart::MyApp"
+
+class "safetyproject::navigation_bar::main_page.dart::MainPage" {
+  +State<MainPage> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "safetyproject::navigation_bar::main_page.dart::MainPage"
+
+class "safetyproject::navigation_bar::main_page.dart::_MainPageState" {
+  +int currentIndex
+  +List<Widget> screens
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- "safetyproject::navigation_bar::main_page.dart::_MainPageState"
+
+class "safetyproject::oauth::auth_controller.dart::AuthController" {
+  {static} +AuthController instance
+  -Rx<User?> _user
+  +FirebaseAuth auth
+  +void onReady()
+  -dynamic _initialScreen()
+  +Future<void> register()
+  +Future<void> login()
+  +Future<void> logOut()
+}
+
+"safetyproject::oauth::auth_controller.dart::AuthController" o-- "safetyproject::oauth::auth_controller.dart::AuthController"
+"safetyproject::oauth::auth_controller.dart::AuthController" o-- "get::get_rx::src::rx_types::rx_types.dart::Rx<User>"
+"safetyproject::oauth::auth_controller.dart::AuthController" o-- "firebase_auth::firebase_auth.dart::FirebaseAuth"
+"get::get_state_manager::src::simple::get_controllers.dart::GetxController" <|-- "safetyproject::oauth::auth_controller.dart::AuthController"
+
+class "safetyproject::pages::location_page.dart::LocationPage" {
+  +_HomeState createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "safetyproject::pages::location_page.dart::LocationPage"
+
+class "safetyproject::pages::location_page.dart::_HomeState" {
+  +String? lat
+  +String? long
+  +String? country
+  +String? city
+  +String? adminArea
+  +void initState()
+  +Widget build()
+  +TextStyle getStyle()
+  +void getLocation()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- "safetyproject::pages::location_page.dart::_HomeState"
+
+class "safetyproject::pages::location_page.dart::LocationProvider" {
+  -BitmapDescriptor? _pinLocationIcon
+  -Map<MarkerId, Marker>? _marker
+  +MarkerId markerId
+  -Location? _location
+  -LatLng? _locationPosition
+  +bool locationServiceActive
+  +BitmapDescriptor? pinLocationIcon
+  +Map<MarkerId, Marker>? marker
+  +Location? location
+  +LatLng? locationPosition
+  +dynamic initialization()
+  +dynamic getUserLocation()
+  +dynamic setCustomMapPin()
+}
+
+"safetyproject::pages::location_page.dart::LocationProvider" o-- "google_maps_flutter_platform_interface::src::types::bitmap.dart::BitmapDescriptor"
+"safetyproject::pages::location_page.dart::LocationProvider" o-- "google_maps_flutter_platform_interface::src::types::marker.dart::MarkerId"
+"safetyproject::pages::location_page.dart::LocationProvider" o-- "location::location.dart::Location"
+"safetyproject::pages::location_page.dart::LocationProvider" o-- "google_maps_flutter_platform_interface::src::types::location.dart::LatLng"
+"flutter::src::foundation::change_notifier.dart::ChangeNotifier" <|-- "safetyproject::pages::location_page.dart::LocationProvider"
+
+class "safetyproject::pages::login_page.dart::LoginPage" {
+  +_LoginPageState createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "safetyproject::pages::login_page.dart::LoginPage"
+
+class "safetyproject::pages::login_page.dart::_LoginPageState" {
+  +TextEditingController emailController
+  +TextEditingController passwordController
+  +Widget build()
+}
+
+"safetyproject::pages::login_page.dart::_LoginPageState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- "safetyproject::pages::login_page.dart::_LoginPageState"
+
+class "safetyproject::pages::signup_page.dart::SignUpPage" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "safetyproject::pages::signup_page.dart::SignUpPage"
+
+class "safetyproject::pages::sos.dart::SosPage" {
+  +List<String> recipents
+  +_MapActivityState createState()
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "safetyproject::pages::sos.dart::SosPage"
+
+class "safetyproject::pages::sos.dart::_MapActivityState" {
+}
+
+class "safetyproject::pages::splash_screen.dart::SplashScreen" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "safetyproject::pages::splash_screen.dart::SplashScreen"
+
+class "safetyproject::pages::welcome_page1.dart::NavBarPage" {
+  +String email
+  +State<NavBarPage> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "safetyproject::pages::welcome_page1.dart::NavBarPage"
+
+class "safetyproject::pages::welcome_page1.dart::_NavBarPageState" {
+  +List<Widget> screens
+  +int currentIndex
+  +_MapActivityState createState()
+  +void onTap()
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- "safetyproject::pages::welcome_page1.dart::_NavBarPageState"
+
+class "safetyproject::pages::welcome_page1.dart::_MapActivityState" {
+}
+
+class "safetyproject::secrets.dart::Secrets" {
+  {static} +String API_KEY
+}
+
+class "safetyproject::shake::shakee.dart::ShakeDetector" {
+  +void Function() onPhoneShake
+  +double shakeThresholdGravity
+  +int shakeSlopTimeMS
+  +int shakeCountResetTime
+  +int mShakeTimestamp
+  +int mShakeCount
+  +StreamSubscription<dynamic>? streamSubscription
+  +void startListening()
+  +void stopListening()
+}
+
+"safetyproject::shake::shakee.dart::ShakeDetector" o-- "safetyproject::shake::shakee.dart::void Function()"
+"safetyproject::shake::shakee.dart::ShakeDetector" o-- "dart::async::StreamSubscription<dynamic>"
+
+
+@enduml

@@ -1,7 +1,12 @@
 class PersonalContacts {
   late int id;
   late String name, contactNo;
-  PersonalContacts(this.name, this.contactNo);
+  // PersonalContacts(this.name, this.contactNo);
+  PersonalContacts( String name, String contactNo) {
+
+    this.name = name;
+    this.contactNo = contactNo;
+  }
 
   // EmergencyContacts(this.initials, this.name, this.contactNo);
 

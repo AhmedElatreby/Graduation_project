@@ -63,6 +63,8 @@ dependencies:
 # DB operation executed in a background thread
   sqflite:
   path_provider:
+  # generate a class (UML or similar) diagram from a Dart package.
+  dcdg: ^4.0.1
 
   #  stream_chat_flutter:
 

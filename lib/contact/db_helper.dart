@@ -32,8 +32,8 @@ class DBHelper {
     var name = contacts.name;
     var contactNo = contacts.contactNo;
     dbClient.rawInsert(
-        "INSERT into contacts(name,contactNo)"
-            "VALUES(?, ?)",[name,contactNo]);
+        "INSERT into contacts( name,contactNo)"
+            "VALUES(?, ?)",[ name,contactNo]);
     return contacts;
   }
 
@@ -47,8 +47,9 @@ class DBHelper {
         contacts.add(PersonalContacts.fromMap(maps[i]));
       }
     }
-
+    print(maps);
     return contacts;
+
   }
 
   Future<int> delete(int id) async {
