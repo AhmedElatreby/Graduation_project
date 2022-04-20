@@ -21,12 +21,13 @@ class AuthController extends GetxController {
 
   _initialScreen(User? user) {
     if (user == null) {
-      print("login page");
+      // print("login page");
       Get.offAll(() => LoginPage());
     } else {
       Get.offAll(() => NavBarPage(email: user.email!));
     }
   }
+
 
   Future<void> register(String email, password) async {
     try {
@@ -34,8 +35,9 @@ class AuthController extends GetxController {
           email: email, password: password);
     } catch (e) {
       Get.snackbar("About User", "User message",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Colors.teal,
           snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
           titleText: const Text(
             "Account creation failed",
             style: TextStyle(color: Colors.white),
@@ -51,8 +53,11 @@ class AuthController extends GetxController {
       await auth.signInWithEmailAndPassword(email: email, password: password);
     } catch (e) {
       Get.snackbar("About Login", "Login message",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Colors.teal,
           snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+          isDismissible: true,
+          forwardAnimationCurve: Curves.easeOutBack,
           titleText: const Text(
             "Login failed",
             style: TextStyle(color: Colors.white),

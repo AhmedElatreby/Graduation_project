@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
                           BoxShadow(
                               blurRadius: 10,
                               spreadRadius: 6,
-                              offset: Offset(1, 1),
+                              offset: const Offset(1, 1),
                               color: Colors.grey.withOpacity(0.2)),
                         ]),
                     child: TextFormField(

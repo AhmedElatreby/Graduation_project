@@ -57,7 +57,12 @@ class SignUpPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 40,),
+                  const SizedBox(height: 30,),
+                  const Text(
+                    "Create an account",
+                    style: TextStyle(fontSize: 20, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 30,),
                   Container(
                     decoration: BoxDecoration(
                         color:Colors.white,
@@ -112,8 +117,8 @@ class SignUpPage extends StatelessWidget {
                         ]
                     ),
                     child: TextFormField(
-                      controller: passwordController,
                       obscureText: true,
+                      controller: passwordController,
                       decoration: InputDecoration(
                         hintText: "Password",
                         prefixIcon: const Icon(Icons.password, color:Colors.deepOrangeAccent),
@@ -170,11 +175,11 @@ class SignUpPage extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 10,),
+            const SizedBox(height: 10,),
             RichText(text: TextSpan(
               recognizer: TapGestureRecognizer()..onTap=()=>Get.back(),
               text:"Have an account",
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 color:Colors.grey,
               ),

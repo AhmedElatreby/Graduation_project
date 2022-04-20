@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_sms/flutter_sms.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 import '../oauth/auth_controller.dart';
 
@@ -59,17 +62,21 @@ class SosPage extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(
-                    height: 150,
+                    height: 40,
                   ),
                   Center(
                     child: ElevatedButton(
                         onPressed: () async {
                           FlutterPhoneDirectCaller.callNumber('+447562596358');
                         },
+                        style: ElevatedButton.styleFrom(
+                          fixedSize: const Size(150, 150),
+                          shape: const CircleBorder(),primary: Colors.red
+                        ),
                         child: const Text(
                           'SOS',
                           style: TextStyle(
-                            fontSize: 90,
+                            fontSize: 50,
                             fontWeight: FontWeight.bold,
                           ),
                         )),
@@ -78,38 +85,34 @@ class SosPage extends StatelessWidget {
               ),
             ),
             const SizedBox(
-              height: 50,
+              height: 100,
             ),
             GestureDetector(
               onTap: () {
                 AuthController.instance.logOut();
               },
-              child: Column(
-                children: [
-                  TextButton(
-                      onPressed: () async {
-                        String message = "This is a test message!";
-                        _sendSMS(message, recipents);
-                      },
-                      child: const Text(
-                        'SMS',
-                        style: TextStyle(
-                          fontSize: 50,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepOrange,
+              child: Center(
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                        onPressed: () async {
+                          String message = "This is a test message!";
+                          _sendSMS(message, recipents);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          fixedSize: const Size(150, 150),
+                          shape: const CircleBorder()
                         ),
-                      )),
-                  const Center(
-                    child: Text(
-                      "SOS",
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
+                        child: const Text(
+                          'SMS',
+                          style: TextStyle(
+                            fontSize: 50,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )),
+                  ],
+                ),
               ),
             ),
           ],
@@ -121,11 +124,10 @@ class SosPage extends StatelessWidget {
 
 class _MapActivityState {}
 
-void _sendSMS(String message, List<String> recipents) async {
+void _sendSMS(String message, List<String> recipents, ) async {
   String _result = await sendSMS(message: message, recipients: recipents)
       .catchError((onError) {
     print(onError);
   });
   print(_result);
 }
-
