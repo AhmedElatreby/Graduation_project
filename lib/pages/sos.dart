@@ -22,7 +22,7 @@ class SosPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('SOS'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
