@@ -62,6 +62,7 @@ dependencies:
   flutter_contacts:
 # DB operation executed in a background thread
   sqflite:
+  firebase_database:
   path_provider:
   # generate a class (UML or similar) diagram from a Dart package.
   dcdg: ^4.0.1
