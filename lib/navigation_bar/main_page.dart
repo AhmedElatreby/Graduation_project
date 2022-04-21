@@ -4,6 +4,7 @@ import 'package:safetyproject/contact/contact_page.dart';
 import 'package:safetyproject/location/googlemap_page.dart';
 import 'package:safetyproject/pages/sos.dart';
 
+import '../contact/list.dart';
 import '../pages/location_page.dart';
 
 class NavBarPage extends StatefulWidget {
@@ -20,7 +21,7 @@ class _NavBarPageState extends State<NavBarPage> {
   final screens = [
     const LocationPage(),
     SosPage(),
-    const ContactPage(),
+    const ListScreen(),
     GoogleMapPage(),
   ];
 

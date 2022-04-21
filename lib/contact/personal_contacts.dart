@@ -1,23 +1,24 @@
 class PersonalContacts {
   late int id;
   late String name, contactNo;
-  // PersonalContacts(this.name, this.contactNo);
-  PersonalContacts( String name, String contactNo) {
 
-    this.name = name;
-    this.contactNo = contactNo;
-  }
-
-  // EmergencyContacts(this.initials, this.name, this.contactNo);
+  PersonalContacts(this.name, this.contactNo);
 
   Map<String, dynamic> toMap() {
-    var map = <String, dynamic>{'id': id, 'name': name, 'contactNo': contactNo};
-    return map;
+    return {
+      'id': id,
+      'name': name,
+      'contactNo': contactNo,
+    };
   }
 
-  PersonalContacts.fromMap(Map<dynamic, dynamic> map) {
-    id = map['id'];
-    name = map['name'];
-    contactNo = map['contactNo'];
+  PersonalContacts.fromMap(Map<String, dynamic> map)
+      : id = map["id"],
+        name = map["name"],
+        contactNo = map["contactNo"];
+
+  @override
+  String toString() {
+    return 'contacts{ name: $name, contactNo: $contactNo}';
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'personal_contacts.dart';
+import 'personal_contactss.dart';
 import 'db_helper.dart';
 
 class ContactPage extends StatefulWidget {
@@ -12,7 +12,7 @@ class ContactPage extends StatefulWidget {
 
 class _ContactPageState extends State<ContactPage> {
   final GlobalKey<FormState> _formStateKey = GlobalKey<FormState>();
-  static Future<List<PersonalContacts>>? contacts;
+  static Future<List<PersonalContactss>>? contacts;
 
   late DBHelper dbHelper;
 
@@ -34,7 +34,7 @@ class _ContactPageState extends State<ContactPage> {
   }
 
   void _addContact(String name, String no) {
-    dbHelper.add(PersonalContacts(name, no));
+    dbHelper.add(PersonalContactss(name, no));
     _textFieldController1.clear();
     _textFieldController2.clear();
   }
@@ -49,7 +49,7 @@ class _ContactPageState extends State<ContactPage> {
     refreshContacts();
   }
 
-  void getData(List<PersonalContacts> contacts) {
+  void getData(List<PersonalContactss> contacts) {
     contacts.forEach((contact) {
       print(contact.contactNo);
       getInitial(contact.name.toString());
@@ -64,7 +64,7 @@ class _ContactPageState extends State<ContactPage> {
       emergencyContactsInitials = [];
       emergencyContactsNo = [];
 
-      contacts = dbHelper.getContacts();
+      contacts = dbHelper.getContacts() as Future<List<PersonalContactss>>?;
     });
   }
 
