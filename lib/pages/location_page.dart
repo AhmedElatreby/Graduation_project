@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sms/flutter_sms.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import '../location/location_service.dart';
@@ -13,6 +14,8 @@ class LocationPage extends StatefulWidget {
 }
 
 class _HomeState extends State<LocationPage> {
+  List<String> recipents = ["+447562596358", "+447562596358"];
+
 
   String? lat, long, country, city, adminArea;
 
@@ -32,7 +35,7 @@ class _HomeState extends State<LocationPage> {
       appBar: AppBar(
         title: const Text('Current Location'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -64,26 +67,59 @@ class _HomeState extends State<LocationPage> {
 
               ),
             ),
-            Container(
-              margin: const EdgeInsets.only(left: 20, right: 20),
-              width: width,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Location Info:', style: getStyle(size: 24),),
-                  const SizedBox(height: 20,),
-                  Text('Latitude: ${lat ?? 'Loading ...'}', style: getStyle(),),
-                  const SizedBox(height: 20,),
-                  Text('Longitude: ${long ?? 'Loading ...'}', style: getStyle(),),
-                  const SizedBox(height: 20,),
-                  Text('Country: ${country ?? 'Loading ...'}', style: getStyle(),),
-                  const SizedBox(height: 20,),
-                  Text('Admin Area: ${adminArea ?? 'Loading ...'}', style: getStyle(),),
+            Center(
+              child: Container(
 
-                ],
+                margin: const EdgeInsets.only(left: 20, right: 20),
+                width: width,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Location Info:', style: getStyle(size: 24),),
+                    const SizedBox(height: 20,),
+                    Text('Latitude: ${lat ?? 'Loading ...'}', style: getStyle(),),
+                    const SizedBox(height: 20,),
+                    Text('Longitude: ${long ?? 'Loading ...'}', style: getStyle(),),
+                    const SizedBox(height: 20,),
+                    Text('Country: ${country ?? 'Loading ...'}', style: getStyle(),),
+                    const SizedBox(height: 20,),
+                    Text('Admin Area: ${adminArea ?? 'Loading ...'}', style: getStyle(),),
+
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20,),
+            GestureDetector(
+              onLongPressUp: ()  {
+                String message = "This is a test message!";
+                _sendSMS(message, recipents);
+              },
+              child: Center(
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                        onPressed: () async {
+                          String message = "This is a test message!";
+                          _sendSMS(message, recipents);
+                        },
+                        style: ElevatedButton.styleFrom(
+                            fixedSize: const Size(150, 150),
+                            shape: const CircleBorder()
+                        ),
+                        child: const Text(
+                          'SMS',
+                          style: TextStyle(
+                            fontSize: 50,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+
+            ),
           ],
         ),
       ),
@@ -188,4 +224,12 @@ class LocationProvider with ChangeNotifier {
       'assets/pin1.png',
     );
   }
+}
+
+void _sendSMS(String message, List<String> recipents, ) async {
+  String _result = await sendSMS(message: message, recipients: recipents)
+      .catchError((onError) {
+    print(onError);
+  });
+  print(_result);
 }
