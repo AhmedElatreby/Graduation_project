@@ -20,7 +20,7 @@ class _NavBarPageState extends State<NavBarPage> {
   final screens = [
     const LocationPage(),
     SosPage(),
-    ContactPage(),
+    ContactPage(key: null, title: '',),
     GoogleMapPage(),
   ];
 

@@ -4,7 +4,7 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 
 class ContactDetails extends StatefulWidget {
-  ContactDetails(this.contact, {this.onContactUpdate, this.onContactDelete});
+  ContactDetails(this.contact, {required this.onContactUpdate, required this.onContactDelete});
 
   final EmergencyContacts contact;
   final Function(EmergencyContacts) onContactUpdate;
@@ -12,6 +12,15 @@ class ContactDetails extends StatefulWidget {
   @override
   _ContactDetailsState createState() => _ContactDetailsState();
 }
+// class ContactDetails extends StatefulWidget {
+//   ContactDetails(this.contact, this.onContactDictionary);
+//
+//   final EmergencyContacts contact;
+//   final Function(EmergencyContacts) onContactDictionary.onContactUpdate;
+//   final Function(EmergencyContacts) onContactDictionary.onContactDelete;
+//   @override
+//   _ContactDetailsState createState() => _ContactDetailsState();
+// }
 
 class _ContactDetailsState extends State<ContactDetails> {
 
@@ -138,7 +147,7 @@ class _ContactDetailsState extends State<ContactDetails> {
                   children: <Widget>[
                     ListTile(title: Text("Phones")),
                     Column(
-                      children: widget.contact.info.phones
+                      children: widget.contact.info.phones!
                         .map(
                           (i) => Padding(
                             padding:
