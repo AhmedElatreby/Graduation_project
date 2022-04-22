@@ -44,7 +44,7 @@ dependencies:
   location: ^4.2.0
   google_maps_flutter: ^2.1.3
   provider: ^6.0.2
-  geocoder: ^0.2.1
+#  geocoder: ^0.2.1
   flutter_polyline_points: ^1.0.0
   http: ^0.13.4
 
@@ -70,7 +70,7 @@ dependencies:
   #  stream_chat_flutter:
 
   # plugin to access and manage the device's contacts.
-#  contacts_service:
+  contacts_service: ^0.6.3
   permission_handler: ^9.2.0
 
 
