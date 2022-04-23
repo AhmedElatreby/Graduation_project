@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/Components/db_helper.dart';
-import 'package:flutter_application_1/Components/personal_emergency_contacts_model.dart';
+import './db_helper.dart';
+import './personal_emergency_contacts_model.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class PersonalEmergencyContacts extends StatefulWidget {
