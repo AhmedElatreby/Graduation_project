@@ -39,9 +39,11 @@ class DBHelper {
   }
 
   Future<List<PersonalEmergency>> getContacts() async {
-    var dbClient = await db;
+    final dbClient = await db;
     List<Map> maps =
-        await dbClient.query('contacts', columns: ['id', 'name', 'contactNo']);
+        await dbClient.query('contacts',
+            orderBy: 'id DESC',
+            columns: ['id', 'name', 'contactNo']);
     List<PersonalEmergency> contacts = [];
     if (maps.isNotEmpty) {
       for (int i = 0; i < maps.length; i++) {
@@ -52,12 +54,12 @@ class DBHelper {
     return contacts;
   }
 
-  Future<int> delete(int id) async {
-    var dbClient = await db;
-    return await dbClient.delete(
+  Future<void> delete(PersonalEmergency contacts, int id) async {
+    final dbClient = await db;
+    await dbClient.delete(
       'contacts',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'id == ?',
+      whereArgs: [contacts.id],
     );
   }
 

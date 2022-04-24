@@ -26,7 +26,6 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
 
-
   void getInitial(String name) {
     var nameParts = name.split(" ");
     if (nameParts.length > 1) {
@@ -43,9 +42,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     _textFieldController2.clear();
   }
 
-  Future<int> delete(int id) async {
-
-    return await dbHelper.delete(id);
+  Future<DBHelper> delete(int id) async {
+    return await dbHelper;
   }
 
   @override
@@ -86,41 +84,47 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
               return (const Center(child: CircularProgressIndicator()));
             } else {
               getData(snapshot.data);
-              return Scrollbar(
-                  child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: emergencyContactsName.length,
-                      itemBuilder: (BuildContext context, index) {
-                        return SizedBox(
-                            height: 100,
-                            child: Card(
-                                elevation: 4,
-                                child: InkWell(
-                                    onTap: () async {
-                                      var phoneNo = emergencyContactsNo[index];
-                                      await FlutterPhoneDirectCaller.callNumber(
-                                          phoneNo);
-                                    },
-                                    child: ListTile(
-                                        title:
-                                            Text(emergencyContactsName[index]),
-                                        subtitle:
-                                            Text(emergencyContactsNo[index]),
-                                        dense: true,
-                                        trailing: GestureDetector(
-                                          child: const Icon(
-                                            Icons.delete,
-                                            color: Colors.grey,
+              return Scaffold(
+                backgroundColor: Colors.white,
+                appBar: AppBar(
+                  title: const Text('Emergency Contacts'),
+                ),
+                body: Scrollbar(
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: emergencyContactsName.length,
+                        itemBuilder: (BuildContext context, index) {
+                          return SizedBox(
+                              height: 100,
+                              child: Card(
+                                  elevation: 4,
+                                  child: InkWell(
+                                      onTap: () async {
+                                        var phoneNo = emergencyContactsNo[index];
+                                        await FlutterPhoneDirectCaller.callNumber(
+                                            phoneNo);
+                                      },
+                                      child: ListTile(
+                                          title:
+                                              Text(emergencyContactsName[index]),
+                                          subtitle:
+                                              Text(emergencyContactsNo[index]),
+                                          dense: true,
+                                          trailing: GestureDetector(
+                                            child: const Icon(
+                                              Icons.delete,
+                                              color: Colors.grey,
+                                            ),
+                                            onTap: () async {
+                                              await delete(index);
+                                            },
                                           ),
-                                          onTap: () async  {
-                                            await delete(index);
-                                          },
-                                        ),
-                                        leading: CircleAvatar(
-                                            child: Text(
-                                                emergencyContactsInitials[
-                                                    index]))))));
-                      }));
+                                          leading: CircleAvatar(
+                                              child: Text(
+                                                  emergencyContactsInitials[
+                                                      index]))))));
+                        })),
+              );
             }
           }),
       floatingActionButton: FloatingActionButton(
