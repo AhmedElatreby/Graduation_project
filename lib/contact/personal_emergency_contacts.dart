@@ -27,7 +27,6 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   final TextEditingController _textFieldController2 = TextEditingController();
 
 
-
   void getInitial(String name) {
     var nameParts = name.split(" ");
     if (nameParts.length > 1) {
@@ -43,10 +42,12 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     _textFieldController1.clear();
     _textFieldController2.clear();
   }
+
   Future<int> delete(int id) async {
+
     return await dbHelper.delete(id);
-    refreshContacts();
   }
+
   @override
   void initState() {
     super.initState();
@@ -106,10 +107,15 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                         subtitle:
                                             Text(emergencyContactsNo[index]),
                                         dense: true,
-                                        trailing: GestureDetector(child: Icon(Icons.delete, color:Colors.grey,),
-                                        onTap: ()
-                                        {delete([id]);
-                                          },),
+                                        trailing: GestureDetector(
+                                          child: const Icon(
+                                            Icons.delete,
+                                            color: Colors.grey,
+                                          ),
+                                          onTap: () async  {
+                                            await delete(index);
+                                          },
+                                        ),
                                         leading: CircleAvatar(
                                             child: Text(
                                                 emergencyContactsInitials[
