@@ -6,7 +6,8 @@ import './personal_emergency_contacts_model.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class PersonalEmergencyContacts extends StatefulWidget {
-  const PersonalEmergencyContacts({Key? key}) : super(key: key);
+  final Function deleteFunction;
+  const PersonalEmergencyContacts({required this.deleteFunction,Key? key}) : super(key: key);
 
   @override
   _PersonalEmergencyContactsState createState() =>
@@ -42,8 +43,12 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     _textFieldController2.clear();
   }
 
-  Future<DBHelper> delete(int id) async {
-    return await dbHelper;
+  void deleteFunction(int id) async {
+     var dbClient;
+     await dbClient.delete(contacts);
+     setState(() {
+
+     });
   }
 
   @override
@@ -115,8 +120,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                               Icons.delete,
                                               color: Colors.grey,
                                             ),
-                                            onTap: () async {
-                                              await delete(index);
+                                            onTap: ()  {
+                                              widget.deleteFunction;
                                             },
                                           ),
                                           leading: CircleAvatar(

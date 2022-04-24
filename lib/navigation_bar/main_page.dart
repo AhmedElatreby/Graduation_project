@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts.dart';
 import 'package:safetyproject/location/googlemap_page.dart';
 import 'package:safetyproject/pages/sos.dart';
@@ -20,7 +21,7 @@ class _NavBarPageState extends State<NavBarPage> {
   final screens = [
     const LocationPage(),
     SosPage(),
-    const PersonalEmergencyContacts(),
+    const PersonalEmergencyContacts(deleteFunction: delete),
     GoogleMapPage(),
   ];
 
