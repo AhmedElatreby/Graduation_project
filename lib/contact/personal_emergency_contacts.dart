@@ -26,6 +26,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
 
+
+
   void getInitial(String name) {
     var nameParts = name.split(" ");
     if (nameParts.length > 1) {
@@ -41,7 +43,10 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     _textFieldController1.clear();
     _textFieldController2.clear();
   }
-
+  Future<int> delete(int id) async {
+    return await dbHelper.delete(id);
+    refreshContacts();
+  }
   @override
   void initState() {
     super.initState();
@@ -66,7 +71,6 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
       emergencyContactsName = [];
       emergencyContactsInitials = [];
       emergencyContactsNo = [];
-
       contacts = dbHelper.getContacts();
     });
   }
@@ -76,8 +80,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     return Scaffold(
       body: FutureBuilder(
           future: contacts,
-          builder: (context, AsyncSnapshot snapshot) {
-            if (!snapshot.hasData) {
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
               return (const Center(child: CircularProgressIndicator()));
             } else {
               getData(snapshot.data);
@@ -102,7 +106,10 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                         subtitle:
                                             Text(emergencyContactsNo[index]),
                                         dense: true,
-                                        trailing: const Icon(Icons.delete),
+                                        trailing: GestureDetector(child: Icon(Icons.delete, color:Colors.grey,),
+                                        onTap: ()
+                                        {delete([id]);
+                                          },),
                                         leading: CircleAvatar(
                                             child: Text(
                                                 emergencyContactsInitials[

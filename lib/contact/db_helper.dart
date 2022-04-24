@@ -33,7 +33,8 @@ class DBHelper {
     var contactNo = contacts.contactNo;
     dbClient.rawInsert(
         "INSERT into contacts(name,contactNo)"
-            "VALUES(?, ?)",[name,contactNo]);
+        "VALUES(?, ?)",
+        [name, contactNo]);
     return contacts;
   }
 
