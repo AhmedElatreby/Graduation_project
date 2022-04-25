@@ -80,8 +80,9 @@ class _HomeState extends State<LocationPage> {
           ),
           GestureDetector(
             onLongPressUp: () {
+              print(_locationSubscription)
               String message = "$_getLocation   || This is a test message!";
-              _sendSMS(message, recipents,_getLocation);
+              _sendSMS(message, recipents, _getLocation);
             },
             child: Center(
               child: Column(
@@ -214,7 +215,7 @@ class _HomeState extends State<LocationPage> {
 }
 
 void _sendSMS(String message, List<String> recipents, _getLocation) async {
-  String _result = await sendSMS(message: message, recipients: recipents)
+  String _result = await sendSMS(message: _getLocation, recipients: recipents)
       .catchError((onError) {
     print(onError);
   });

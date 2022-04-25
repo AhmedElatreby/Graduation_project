@@ -35,17 +35,16 @@ class _SosPageState extends State<SosPage> {
       dbHelper = DBHelper();
     }
 
-  void recipientList() async {
+  void setRecipientList() async {
     List<PersonalEmergency> contacts;
     contacts = await dbHelper.getContacts();
-    print(contacts);
     contacts.forEach((contact) {
       recipients.add(contact.contactNo);
     });
   }
 
   void sendMessageToContacts() {
-    recipientList();
+    setRecipientList();
     recipients.forEach((number) {
       _sendSingleText(number);
     });
@@ -161,15 +160,9 @@ class _MapActivityState {}
 
 void _sendSingleText(String number) async {
   final Telephony telephony = Telephony.instance;
-  bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
-
-  final SmsSendStatusListener listener = (SendStatus status) {
-    print(status);
-  };
 
   telephony.sendSms(
       to: number,
       message: "May the force be with you!",
-      statusListener: listener
   );
 }
