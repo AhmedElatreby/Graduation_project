@@ -3,11 +3,10 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sms/flutter_sms.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:safetyproject/contact/emergency_contacts.dart';
-import 'package:safetyproject/contact/personal_emergency_contacts.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:telephony/telephony.dart';
+
+import '../contact/personal_emergency_contacts.dart';
 import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
 import '../location/mymap.dart';
@@ -25,16 +24,17 @@ class LocationPage extends StatefulWidget {
 class _HomeState extends State<LocationPage> {
   final loc.Location location = loc.Location();
   StreamSubscription<loc.LocationData>? _locationSubscription;
-  late DBHelper dbHelper;
+  DBHelper? dbHelper;
 
   late List<String> recipients = [];
 
   List<String> recipents = ["+447562596358", "+447562596358"];
 
   void recipientList() async {
-    List<PersonalEmergency> contacts;
-    contacts = await dbHelper.getContacts();
-    for (var contact in contacts) {
+    List<PersonalEmergency>? contacts;
+    contacts = await dbHelper?.getContacts();
+    for (var contact in contacts!) {
+
       recipients.add(contact.contactNo);
     }
   }
