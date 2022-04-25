@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import './db_helper.dart';
 import './personal_emergency_contacts_model.dart';
+import './contact_list.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class PersonalEmergencyContacts extends StatefulWidget {
@@ -22,10 +23,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
 
   late DBHelper dbHelper;
 
-  static List<String> emergencyContactsName = [];
-  static List<String> emergencyContactsInitials = [];
-  static List<String> emergencyContactsNo = [];
-  static List<int> emergencyContactsId = [];
+  final ContactList cl = ContactList();
 
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
@@ -33,10 +31,10 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   void getInitial(String name) {
     var nameParts = name.split(" ");
     if (nameParts.length > 1) {
-      emergencyContactsInitials
+      cl.emergencyContactsInitials
           .add(nameParts[0][0].toUpperCase() + nameParts[1][0].toUpperCase());
     } else {
-      emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
+      cl.emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
     }
   }
 
@@ -55,9 +53,10 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   void initState() {
     super.initState();
     dbHelper = DBHelper();
-    emergencyContactsName = [];
-    emergencyContactsInitials = [];
-    emergencyContactsNo = [];
+    cl.emergencyContactsName = [];
+    cl.emergencyContactsInitials = [];
+    cl.emergencyContactsNo = [];
+    cl.emergencyContactsId = [];
     refreshContacts();
   }
 
@@ -65,17 +64,18 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     contacts.forEach((contact) {
       print(contact.contactNo);
       getInitial(contact.name.toString());
-      emergencyContactsName.add(contact.name.toString());
-      emergencyContactsNo.add(contact.contactNo.toString());
-      emergencyContactsId.add(contact.id);
+      cl.emergencyContactsName.add(contact.name.toString());
+      cl.emergencyContactsNo.add(contact.contactNo.toString());
+      cl.emergencyContactsId.add(contact.id);
     });
   }
 
   refreshContacts() {
     setState(() {
-      emergencyContactsName = [];
-      emergencyContactsInitials = [];
-      emergencyContactsNo = [];
+      cl.emergencyContactsName = [];
+      cl.emergencyContactsInitials = [];
+      cl.emergencyContactsNo = [];
+      cl.emergencyContactsId = [];
       contacts = dbHelper.getContacts();
     });
   }
@@ -98,7 +98,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                 body: Scrollbar(
                     child: ListView.builder(
                         shrinkWrap: true,
-                        itemCount: emergencyContactsName.length,
+                        itemCount: cl.emergencyContactsName.length,
                         itemBuilder: (BuildContext context, index) {
                           return SizedBox(
                             height: 100,
@@ -106,13 +106,13 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                               elevation: 4,
                               child: InkWell(
                                 onTap: () async {
-                                  var phoneNo = emergencyContactsNo[index];
+                                  var phoneNo = cl.emergencyContactsNo[index];
                                   await FlutterPhoneDirectCaller.callNumber(
                                       phoneNo);
                                 },
                                 child: ListTile(
-                                  title: Text(emergencyContactsName[index]),
-                                  subtitle: Text(emergencyContactsNo[index]),
+                                  title: Text(cl.emergencyContactsName[index]),
+                                  subtitle: Text(cl.emergencyContactsNo[index]),
                                   dense: true,
                                   trailing: GestureDetector(
                                     child: const Icon(
@@ -120,12 +120,12 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                       color: Colors.grey,
                                     ),
                                     onTap: () async {
-                                      deleteFunction(emergencyContactsId[index]);
+                                      deleteFunction(cl.emergencyContactsId[index]);
                                     },
                                   ),
                                   leading: CircleAvatar(
                                     child: Text(
-                                      emergencyContactsInitials[index],
+                                      cl.emergencyContactsInitials[index],
                                     ),
                                   ),
                                 ),
