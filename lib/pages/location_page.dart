@@ -4,6 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:safetyproject/contact/emergency_contacts.dart';
+import 'package:safetyproject/contact/personal_emergency_contacts.dart';
+import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import '../oauth/auth_controller.dart';
 import '../location/mymap.dart';
 
@@ -47,7 +50,6 @@ class _HomeState extends State<LocationPage> {
           const SizedBox(
             height: 20,
           ),
-
           GestureDetector(
             onTap: () {
               AuthController.instance.logOut();
@@ -78,8 +80,8 @@ class _HomeState extends State<LocationPage> {
           ),
           GestureDetector(
             onLongPressUp: () {
-              // String message = "$_locationPosition This is a test message!";
-              // _sendSMS(message, recipents,_locationPosition);
+              String message = "$_getLocation   || This is a test message!";
+              _sendSMS(message, recipents,_getLocation);
             },
             child: Center(
               child: Column(
@@ -169,7 +171,7 @@ class _HomeState extends State<LocationPage> {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
         'latitude': _locationResult.latitude,
         'longitude': _locationResult.longitude,
-        'name': 'john'
+        'name': PersonalEmergencyContacts
       }, SetOptions(merge: true));
     } catch (e) {
       print(e);
@@ -211,7 +213,7 @@ class _HomeState extends State<LocationPage> {
   }
 }
 
-void _sendSMS(String message, List<String> recipents) async {
+void _sendSMS(String message, List<String> recipents, _getLocation) async {
   String _result = await sendSMS(message: message, recipients: recipents)
       .catchError((onError) {
     print(onError);

@@ -1,13 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite/sqflite.dart';
 import './db_helper.dart';
 import './personal_emergency_contacts_model.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class PersonalEmergencyContacts extends StatefulWidget {
   final Function deleteFunction;
-  const PersonalEmergencyContacts({required this.deleteFunction,Key? key}) : super(key: key);
+  const PersonalEmergencyContacts({required this.deleteFunction, Key? key})
+      : super(key: key);
 
   @override
   _PersonalEmergencyContactsState createState() =>
@@ -27,6 +30,10 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
 
+  get database => null;
+
+  get id => null;
+
   void getInitial(String name) {
     var nameParts = name.split(" ");
     if (nameParts.length > 1) {
@@ -44,11 +51,9 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   }
 
   void deleteFunction(int id) async {
-     var dbClient;
-     await dbClient.delete(contacts);
-     setState(() {
-
-     });
+    var dbClient;
+    await dbClient.rawDelete('DELETE FROM contacts WHERE name = ?', [id]);
+    setState(() {});
   }
 
   @override
@@ -105,13 +110,14 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                   elevation: 4,
                                   child: InkWell(
                                       onTap: () async {
-                                        var phoneNo = emergencyContactsNo[index];
-                                        await FlutterPhoneDirectCaller.callNumber(
-                                            phoneNo);
+                                        var phoneNo =
+                                            emergencyContactsNo[index];
+                                        await FlutterPhoneDirectCaller
+                                            .callNumber(phoneNo);
                                       },
                                       child: ListTile(
-                                          title:
-                                              Text(emergencyContactsName[index]),
+                                          title: Text(
+                                              emergencyContactsName[index]),
                                           subtitle:
                                               Text(emergencyContactsNo[index]),
                                           dense: true,
@@ -120,8 +126,10 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                               Icons.delete,
                                               color: Colors.grey,
                                             ),
-                                            onTap: ()  {
-                                              widget.deleteFunction;
+                                            onTap: () async {
+                                              await database.rawDelete(
+                                                  'DELETE FROM contacts WHERE name = ?',
+                                                  id);
                                             },
                                           ),
                                           leading: CircleAvatar(
