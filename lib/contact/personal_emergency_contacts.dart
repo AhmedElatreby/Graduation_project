@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/sqflite.dart';
 import './db_helper.dart';
 import './personal_emergency_contacts_model.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
@@ -105,37 +104,39 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                         itemCount: emergencyContactsName.length,
                         itemBuilder: (BuildContext context, index) {
                           return SizedBox(
-                              height: 100,
-                              child: Card(
-                                  elevation: 4,
-                                  child: InkWell(
-                                      onTap: () async {
-                                        var phoneNo =
-                                            emergencyContactsNo[index];
-                                        await FlutterPhoneDirectCaller
-                                            .callNumber(phoneNo);
-                                      },
-                                      child: ListTile(
-                                          title: Text(
-                                              emergencyContactsName[index]),
-                                          subtitle:
-                                              Text(emergencyContactsNo[index]),
-                                          dense: true,
-                                          trailing: GestureDetector(
-                                            child: const Icon(
-                                              Icons.delete,
-                                              color: Colors.grey,
-                                            ),
-                                            onTap: () async {
-                                              await database.rawDelete(
-                                                  'DELETE FROM contacts WHERE name = ?',
-                                                  id);
-                                            },
-                                          ),
-                                          leading: CircleAvatar(
-                                              child: Text(
-                                                  emergencyContactsInitials[
-                                                      index]))))));
+                            height: 100,
+                            child: Card(
+                              elevation: 4,
+                              child: InkWell(
+                                onTap: () async {
+                                  var phoneNo = emergencyContactsNo[index];
+                                  await FlutterPhoneDirectCaller.callNumber(
+                                      phoneNo);
+                                },
+                                child: ListTile(
+                                  title: Text(emergencyContactsName[index]),
+                                  subtitle: Text(emergencyContactsNo[index]),
+                                  dense: true,
+                                  trailing: GestureDetector(
+                                    child: const Icon(
+                                      Icons.delete,
+                                      color: Colors.grey,
+                                    ),
+                                    onTap: () async {
+                                      await database.rawDelete(
+                                          'DELETE FROM contacts WHERE name = ?',
+                                          id);
+                                    },
+                                  ),
+                                  leading: CircleAvatar(
+                                    child: Text(
+                                      emergencyContactsInitials[index],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
                         })),
               );
             }
@@ -178,7 +179,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                 onPressed: () => {
                   _addContact(
                       _textFieldController1.text, _textFieldController2.text),
-                  Navigator.pop(context, 'Add')
+                  Navigator.pop(context, 'Add'),
+                  refreshContacts()
                 },
                 child: const Text('Add'),
               ),
