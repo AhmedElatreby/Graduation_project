@@ -1,4 +1,4 @@
-import './personal_emergency_contacts_model.dart';
+import '../contact/personal_emergency_contacts_model.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 import 'dart:io' as io;

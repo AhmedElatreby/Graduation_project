@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
-import './db_helper.dart';
+import '../database/db_helper.dart';
 import './personal_emergency_contacts_model.dart';
 import './contact_list.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
@@ -53,11 +53,15 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   void initState() {
     super.initState();
     dbHelper = DBHelper();
+    resetContactListValues();
+    refreshContacts();
+  }
+
+  void resetContactListValues() {
     cl.emergencyContactsName = [];
     cl.emergencyContactsInitials = [];
     cl.emergencyContactsNo = [];
     cl.emergencyContactsId = [];
-    refreshContacts();
   }
 
   void getData(List<PersonalEmergency> contacts) {
@@ -72,10 +76,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
 
   refreshContacts() {
     setState(() {
-      cl.emergencyContactsName = [];
-      cl.emergencyContactsInitials = [];
-      cl.emergencyContactsNo = [];
-      cl.emergencyContactsId = [];
+      resetContactListValues();
       contacts = dbHelper.getContacts();
     });
   }

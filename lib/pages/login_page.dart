@@ -177,7 +177,7 @@ class _LoginPageState extends State<LoginPage> {
                           fontSize: 20,
                           fontWeight: FontWeight.bold),
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => Get.to(() => const SignUpPage()))
+                        ..onTap = () => Get.to(() => SignUpPage()))
                 ]))
           ],
         ),

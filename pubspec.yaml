@@ -73,6 +73,7 @@ dependencies:
   # plugin to access and manage the device's contacts.
   contacts_service: ^0.6.3
   permission_handler: ^9.2.0
+  telephony: ^0.1.4
 
 
 

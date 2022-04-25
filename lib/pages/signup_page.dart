@@ -5,13 +5,19 @@ import 'package:get/get.dart';
 import '../oauth/auth_controller.dart';
 
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
 
   @override
+  _SignUpPageState createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  var emailController = TextEditingController();
+  var passwordController = TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
-    var emailController = TextEditingController();
-    var passwordController = TextEditingController();
 
     List images =[
       "g.png",

@@ -6,14 +6,50 @@ import 'package:flutter_sms/flutter_sms.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+import 'package:safetyproject/contact/emergency_contacts.dart';
+import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../database/db_helper.dart';
+import 'package:telephony/telephony.dart';
 import '../oauth/auth_controller.dart';
 
-class SosPage extends StatelessWidget {
-  SosPage({Key? key}) : super(key: key);
+class SosPage extends StatefulWidget {
+  const SosPage({Key? key})
+      : super(key: key);
 
+  @override
+  _SosPageState createState() =>
+      _SosPageState();
+}
+
+class _SosPageState extends State<SosPage> {
   _MapActivityState createState() => _MapActivityState();
-  List<String> recipents = ["+447562596358", "+447562596358"];
+
+  late DBHelper dbHelper;
+
+  late List<String> recipients = [];
+
+  @override
+  void initState() {
+    super.initState();
+      dbHelper = DBHelper();
+    }
+
+  void recipientList() async {
+    List<PersonalEmergency> contacts;
+    contacts = await dbHelper.getContacts();
+    print(contacts);
+    contacts.forEach((contact) {
+      recipients.add(contact.contactNo);
+    });
+  }
+
+  void sendMessageToContacts() {
+    recipientList();
+    recipients.forEach((number) {
+      _sendSingleText(number);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,8 +132,7 @@ class SosPage extends StatelessWidget {
                   children: [
                     ElevatedButton(
                         onPressed: () async {
-                          String message = "This is a test message!";
-                          _sendSMS(message, recipents);
+                          sendMessageToContacts();
                         },
                         style: ElevatedButton.styleFrom(
                           fixedSize: const Size(150, 150),
@@ -124,10 +159,17 @@ class SosPage extends StatelessWidget {
 
 class _MapActivityState {}
 
-void _sendSMS(String message, List<String> recipents, ) async {
-  String _result = await sendSMS(message: message, recipients: recipents)
-      .catchError((onError) {
-    print(onError);
-  });
-  print(_result);
+void _sendSingleText(String number) async {
+  final Telephony telephony = Telephony.instance;
+  bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+
+  final SmsSendStatusListener listener = (SendStatus status) {
+    print(status);
+  };
+
+  telephony.sendSms(
+      to: number,
+      message: "May the force be with you!",
+      statusListener: listener
+  );
 }
