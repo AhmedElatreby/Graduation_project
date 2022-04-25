@@ -25,13 +25,10 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   static List<String> emergencyContactsName = [];
   static List<String> emergencyContactsInitials = [];
   static List<String> emergencyContactsNo = [];
+  static List<int> emergencyContactsId = [];
 
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
-
-  get database => null;
-
-  get id => null;
 
   void getInitial(String name) {
     var nameParts = name.split(" ");
@@ -50,9 +47,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
   }
 
   void deleteFunction(int id) async {
-    var dbClient;
-    await dbClient.rawDelete('DELETE FROM contacts WHERE name = ?', [id]);
-    setState(() {});
+    await dbHelper.delete(id);
+    refreshContacts();
   }
 
   @override
@@ -71,6 +67,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
       getInitial(contact.name.toString());
       emergencyContactsName.add(contact.name.toString());
       emergencyContactsNo.add(contact.contactNo.toString());
+      emergencyContactsId.add(contact.id);
     });
   }
 
@@ -123,9 +120,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                       color: Colors.grey,
                                     ),
                                     onTap: () async {
-                                      await database.rawDelete(
-                                          'DELETE FROM contacts WHERE name = ?',
-                                          id);
+                                      deleteFunction(emergencyContactsId[index]);
                                     },
                                   ),
                                   leading: CircleAvatar(

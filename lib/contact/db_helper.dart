@@ -54,12 +54,12 @@ class DBHelper {
     return contacts;
   }
 
-  Future<void> delete(PersonalEmergency contacts, int id) async {
-    final dbClient = await db;
+  Future<void> delete(int id) async {
+    var dbClient = await db;
     await dbClient.delete(
       'contacts',
       where: 'id == ?',
-      whereArgs: [contacts.id],
+      whereArgs: [id],
     );
   }
 
