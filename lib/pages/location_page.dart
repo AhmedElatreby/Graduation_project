@@ -7,6 +7,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safetyproject/contact/emergency_contacts.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
+import 'package:telephony/telephony.dart';
+import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
 import '../location/mymap.dart';
 
@@ -23,8 +25,19 @@ class LocationPage extends StatefulWidget {
 class _HomeState extends State<LocationPage> {
   final loc.Location location = loc.Location();
   StreamSubscription<loc.LocationData>? _locationSubscription;
+  late DBHelper dbHelper;
+
+  late List<String> recipients = [];
 
   List<String> recipents = ["+447562596358", "+447562596358"];
+
+  void recipientList() async {
+    List<PersonalEmergency> contacts;
+    contacts = await dbHelper.getContacts();
+    for (var contact in contacts) {
+      recipients.add(contact.contactNo);
+    }
+  }
 
   @override
   void initState() {
@@ -79,10 +92,11 @@ class _HomeState extends State<LocationPage> {
             height: 20,
           ),
           GestureDetector(
-            onLongPressUp: () {
-              print(_locationSubscription)
-              String message = "$_getLocation   || This is a test message!";
-              _sendSMS(message, recipents, _getLocation);
+            onLongPressUp: () async {
+              recipientList();
+              loc.LocationData currentLocation = await location.getLocation();
+              String message = "$currentLocation['latitude'].toString() , $currentLocation['longitude'].toString()  || This is my lat. and long. co-ordinates, i need help.";
+              sendMessageToContacts(recipients, message);
             },
             child: Center(
               child: Column(
@@ -130,7 +144,7 @@ class _HomeState extends State<LocationPage> {
                 FirebaseFirestore.instance.collection('location').snapshots(),
             builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (!snapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
               return ListView.builder(
                   itemCount: snapshot.data?.docs.length,
@@ -142,7 +156,7 @@ class _HomeState extends State<LocationPage> {
                         children: [
                           Text(snapshot.data!.docs[index]['latitude']
                               .toString()),
-                          SizedBox(
+                          const SizedBox(
                             width: 20,
                           ),
                           Text(snapshot.data!.docs[index]['longitude']
@@ -150,7 +164,7 @@ class _HomeState extends State<LocationPage> {
                         ],
                       ),
                       trailing: IconButton(
-                        icon: Icon(Icons.directions),
+                        icon: const Icon(Icons.directions),
                         onPressed: () {
                           Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) =>
@@ -220,4 +234,20 @@ void _sendSMS(String message, List<String> recipents, _getLocation) async {
     print(onError);
   });
   print(_result);
+}
+
+void sendMessageToContacts(List<String> recipients, String message) {
+  recipients.forEach((number) {
+    _sendSingleText(number, message);
+  });
+}
+
+void _sendSingleText(String number, String message) async {
+  final Telephony telephony = Telephony.instance;
+  bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+
+  telephony.sendSms(
+      to: number,
+      message: message
+  );
 }

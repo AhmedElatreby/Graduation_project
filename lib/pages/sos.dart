@@ -1,25 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:safetyproject/contact/emergency_contacts.dart';
-import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../database/db_helper.dart';
 import 'package:telephony/telephony.dart';
+
+import '../contact/personal_emergency_contacts_model.dart';
+import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
 
 class SosPage extends StatefulWidget {
-  const SosPage({Key? key})
-      : super(key: key);
+  const SosPage({Key? key}) : super(key: key);
 
   @override
-  _SosPageState createState() =>
-      _SosPageState();
+  _SosPageState createState() => _SosPageState();
 }
 
 class _SosPageState extends State<SosPage> {
@@ -32,8 +24,8 @@ class _SosPageState extends State<SosPage> {
   @override
   void initState() {
     super.initState();
-      dbHelper = DBHelper();
-    }
+    dbHelper = DBHelper();
+  }
 
   void setRecipientList() async {
     List<PersonalEmergency> contacts;
@@ -43,7 +35,7 @@ class _SosPageState extends State<SosPage> {
     });
   }
 
-  void sendMessageToContacts() {
+  void sendMessageToContacts(List<String> recipients, String s) {
     setRecipientList();
     recipients.forEach((number) {
       _sendSingleText(number);
@@ -105,9 +97,9 @@ class _SosPageState extends State<SosPage> {
                           FlutterPhoneDirectCaller.callNumber('+447562596358');
                         },
                         style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(150, 150),
-                          shape: const CircleBorder(),primary: Colors.red
-                        ),
+                            fixedSize: const Size(150, 150),
+                            shape: const CircleBorder(),
+                            primary: Colors.red),
                         child: const Text(
                           'SOS',
                           style: TextStyle(
@@ -131,12 +123,12 @@ class _SosPageState extends State<SosPage> {
                   children: [
                     ElevatedButton(
                         onPressed: () async {
-                          sendMessageToContacts();
+                          recipientList();
+                          sendMessageToContacts(recipients, 'Help me');
                         },
                         style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(150, 150),
-                          shape: const CircleBorder()
-                        ),
+                            fixedSize: const Size(150, 150),
+                            shape: const CircleBorder()),
                         child: const Text(
                           'SMS',
                           style: TextStyle(
@@ -154,6 +146,8 @@ class _SosPageState extends State<SosPage> {
       ),
     );
   }
+
+  void recipientList() {}
 }
 
 class _MapActivityState {}
@@ -162,7 +156,7 @@ void _sendSingleText(String number) async {
   final Telephony telephony = Telephony.instance;
 
   telephony.sendSms(
-      to: number,
-      message: "May the force be with you!",
+    to: number,
+    message: "May the force be with you!",
   );
 }
