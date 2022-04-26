@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:html';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +13,7 @@ import '../location/mymap.dart';
 
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 
 class LocationPage extends StatefulWidget {
   const LocationPage({Key? key}) : super(key: key);
@@ -25,30 +25,80 @@ class LocationPage extends StatefulWidget {
 class _HomeState extends State<LocationPage> {
   final loc.Location location = loc.Location();
   StreamSubscription<loc.LocationData>? _locationSubscription;
-  DBHelper? dbHelper;
+  late DBHelper dbHelper;
+  FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
+
+  String? _linkMessage;
+  bool _isCreatingLink = false;
+
+  final String DynamicLink = 'https://ahmedsafetyapp.page.link/map/user1';
+  final String Link = 'https://ahmedsafetyapp.page.link/map/user1';
+
 
   late List<String> recipients = [];
 
-  List<String> recipents = ["+447562596358", "+447562596358"];
-
-  void recipientList() async {
-    List<PersonalEmergency>? contacts;
-    contacts = await dbHelper?.getContacts();
-    for (var contact in contacts!) {
-
-      recipients.add(contact.contactNo);
-    }
+  Future<void> initDynamicLinks() async {
+    dynamicLinks.onLink.listen((dynamicLinkData) {
+      Navigator.pushNamed(context, dynamicLinkData.link.path);
+    }).onError((error) {
+      print('onLink error');
+      print(error.message);
+    });
   }
 
   @override
   void initState() {
     super.initState();
+    dbHelper = DBHelper();
     _requestPermission();
+    initDynamicLinks();
     location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
     location.enableBackgroundMode(enable: true);
   }
 
+  void recipientList() async {
+    List<PersonalEmergency> contacts;
+    contacts = await dbHelper.getContacts();
+    contacts.forEach((contact) {
+      recipients.add(contact.contactNo);
+    });
+  }
 
+  Future<void> _createDynamicLink(bool short) async {
+    setState(() {
+      _isCreatingLink = true;
+    });
+
+    final DynamicLinkParameters parameters = DynamicLinkParameters(
+      uriPrefix: 'https://ahmedsafetyapp.page.link/map/',
+      longDynamicLink: Uri.parse(
+        'https://ahmedsafetyapp.page.link/map/user1',
+      ),
+      link: Uri.parse(Link),
+      androidParameters: const AndroidParameters(
+        packageName: 'io.flutter.plugins.firebase.dynamiclinksexample',
+        minimumVersion: 0,
+      ),
+      iosParameters: const IOSParameters(
+        bundleId: 'io.invertase.testing',
+        minimumVersion: '0',
+      ),
+    );
+
+    Uri url;
+    if (short) {
+      final ShortDynamicLink shortLink =
+      await dynamicLinks.buildShortLink(parameters);
+      url = shortLink.shortUrl;
+    } else {
+      url = await dynamicLinks.buildLink(parameters);
+    }
+
+    setState(() {
+      _linkMessage = url.toString();
+      _isCreatingLink = false;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -96,8 +146,9 @@ class _HomeState extends State<LocationPage> {
           GestureDetector(
             onLongPressUp: () async {
               recipientList();
-              var code = 'user1';
-              String message = "I need help, please find me with the following code: $code.";
+              await _createDynamicLink(false);
+              print(_linkMessage);
+              String message = "I need help, please find me with the following code: $_linkMessage.";
               sendMessageToContacts(recipients, message);
             },
             child: Center(
