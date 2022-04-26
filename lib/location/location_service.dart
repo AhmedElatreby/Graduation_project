@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:location/location.dart';
 import 'package:geocoding/geocoding.dart' as goa;
 
+import 'package:hypertrack_plugin/hypertrack.dart';
 class LocationService {
   late Location _location;
   bool _serviceEnabled = false;
@@ -61,4 +62,5 @@ class LocationService {
   }
   
 }
+
 

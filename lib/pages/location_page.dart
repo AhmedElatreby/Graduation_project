@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:html';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,7 @@ class _HomeState extends State<LocationPage> {
     location.enableBackgroundMode(enable: true);
   }
 
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -94,8 +96,8 @@ class _HomeState extends State<LocationPage> {
           GestureDetector(
             onLongPressUp: () async {
               recipientList();
-              loc.LocationData currentLocation = await location.getLocation();
-              String message = "$currentLocation['latitude'].toString() , $currentLocation['longitude'].toString()  || This is my lat. and long. co-ordinates, i need help.";
+              var code = 'user1';
+              String message = "I need help, please find me with the following code: $code.";
               sendMessageToContacts(recipients, message);
             },
             child: Center(
@@ -186,7 +188,7 @@ class _HomeState extends State<LocationPage> {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
         'latitude': _locationResult.latitude,
         'longitude': _locationResult.longitude,
-        'name': PersonalEmergencyContacts
+        'name': 'PersonalEmergencyContacts'
       }, SetOptions(merge: true));
     } catch (e) {
       print(e);
@@ -206,6 +208,7 @@ class _HomeState extends State<LocationPage> {
         'longitude': currentlocation.longitude,
         'name': 'john'
       }, SetOptions(merge: true));
+      _locationSubscription?.pause(Future.delayed(const Duration(milliseconds: 10000), () => { _locationSubscription?.resume() }));
     });
   }
 
@@ -226,14 +229,6 @@ class _HomeState extends State<LocationPage> {
       openAppSettings();
     }
   }
-}
-
-void _sendSMS(String message, List<String> recipents, _getLocation) async {
-  String _result = await sendSMS(message: _getLocation, recipients: recipents)
-      .catchError((onError) {
-    print(onError);
-  });
-  print(_result);
 }
 
 void sendMessageToContacts(List<String> recipients, String message) {
