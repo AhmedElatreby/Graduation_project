@@ -32,7 +32,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     var nameParts = name.split(" ");
     if (nameParts.length > 1) {
       cl.emergencyContactsInitials
-          .add(nameParts[0][0].toUpperCase() + nameParts[1][0].toUpperCase());
+          .add(nameParts[0][0].toUpperCase() + nameParts[0][0].toUpperCase());
     } else {
       cl.emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
     }

@@ -14,7 +14,7 @@
 
 
     <application
-        android:label="safetyproject"
+        android:label="Safety App"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
        <!-- api key -->
