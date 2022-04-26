@@ -52,7 +52,7 @@ dependencies:
   # A flutter package to detect phone shakes.
   shake: ^2.0.0
 
-  stream_chat_flutter:
+
 
 
   # plugin for iOS and Android for detecting various hardware buttons.
@@ -60,6 +60,7 @@ dependencies:
 
   #  animated splash screen
   animated_splash_screen:
+  share_plus:
 
   # plugin to call number directly from app, without going to phone dialer.
   flutter_phone_direct_caller:

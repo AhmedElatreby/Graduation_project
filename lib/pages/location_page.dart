@@ -1,19 +1,27 @@
 import 'dart:async';
-import 'dart:html';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sms/flutter_sms.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:telephony/telephony.dart';
 
-import '../contact/personal_emergency_contacts.dart';
 import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
 import '../location/mymap.dart';
 
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
+
+import 'package:hypertrack_plugin/hypertrack.dart';
+import '../database/network_helper.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:url_launcher/url_launcher.dart';
+
+const String publishableKey = 'ljI6s3JPB5eCMzVzdnbvbB3UzCd4oG7NNk6ptdfejhOprahOZG-RaD3WSffWVCKFXoNQoJLL1eU759JBtASLFQ';
 
 class LocationPage extends StatefulWidget {
   const LocationPage({Key? key}) : super(key: key);
@@ -26,6 +34,13 @@ class _HomeState extends State<LocationPage> {
   final loc.Location location = loc.Location();
   StreamSubscription<loc.LocationData>? _locationSubscription;
   DBHelper? dbHelper;
+
+  late HyperTrack sdk;
+  late String deviceId;
+  late NetworkHelper helper;
+  String result = '';
+  bool isLink = false;
+  bool isLoading = false;
 
   late List<String> recipients = [];
 
@@ -44,9 +59,68 @@ class _HomeState extends State<LocationPage> {
   void initState() {
     super.initState();
     _requestPermission();
+    initializeSdk();
     location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
     location.enableBackgroundMode(enable: true);
   }
+
+  Future<void> initializeSdk() async {
+    sdk = await HyperTrack.initialize(publishableKey);
+    deviceId = await sdk.getDeviceId();
+    sdk.setDeviceName('Eman');
+    helper = NetworkHelper(
+      url: 'https://v3.api.hypertrack.com',
+      auth:
+      'Basic Rzl4VnQ1TVR6anBsQ2FhTnktckRqVTk5UUlZOmdhMG5hamZyMHR2dU9zdUxWZS1oMUFXRk9RcVkzM01xc09scHJlbU1GdGtRV1JfM1AyLUtIZw==',
+      id: deviceId,
+    );
+    print(deviceId);
+  }
+
+  void shareLink() async {
+    setState(() {
+      isLoading = true;
+      result = '';
+    });
+    var data = await helper.getData();
+    setState(() {
+      result = data['views']['share_url'];
+      isLink = true;
+      isLoading = false;
+    });
+  }
+
+  void startTracking() async {
+    setState(() {
+      isLoading = true;
+      result = '';
+    });
+    var startTrack = await helper.startTracing();
+    setState(() {
+      result = (startTrack['message']);
+      isLink = false;
+      isLoading = false;
+    });
+  }
+
+  void endTracking() async {
+    setState(() {
+      isLoading = true;
+      result = '';
+    });
+    var endTrack = await helper.endTracing();
+    setState(() {
+      result = (endTrack['message']);
+      isLink = false;
+      isLoading = false;
+    });
+  }
+
+  void lunchUrl() async {
+    await launch(result);
+  }
+
+
 
 
   @override
@@ -97,6 +171,7 @@ class _HomeState extends State<LocationPage> {
             onLongPressUp: () async {
               recipientList();
               var code = 'user1';
+              isLink ? lunchUrl : null;
               String message = "I need help, please find me with the following code: $code.";
               sendMessageToContacts(recipients, message);
             },
@@ -127,19 +202,19 @@ class _HomeState extends State<LocationPage> {
 
           TextButton(
               onPressed: () {
-                _getLocation();
+                startTracking();
               },
-              child: Text('add my location')),
+              child: Text('Strat Tracking my Location')),
           TextButton(
               onPressed: () {
-                _listenLocation();
+                shareLink();
               },
-              child: Text('enable live location')),
+              child: Text('get my Location Link')),
           TextButton(
               onPressed: () {
-                _stopListening();
+                endTracking();
               },
-              child: Text('stop live location')),
+              child: Text('End Tracking my Location')),
           Expanded(
               child: StreamBuilder(
             stream:
@@ -230,6 +305,9 @@ class _HomeState extends State<LocationPage> {
     }
   }
 }
+
+
+
 
 void sendMessageToContacts(List<String> recipients, String message) {
   recipients.forEach((number) {
