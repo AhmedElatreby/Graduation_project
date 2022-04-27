@@ -49,11 +49,11 @@ class _HomeState extends State<LocationPage> {
   void recipientList() async {
     List<PersonalEmergency>? contacts;
     contacts = await dbHelper?.getContacts();
-    for (var contact in contacts!) {
-
+    contacts?.forEach((contact) {
       recipients.add(contact.contactNo);
-    }
+    });
   }
+
 
   @override
   void initState() {
