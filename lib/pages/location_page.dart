@@ -17,7 +17,6 @@ import 'package:hypertrack_plugin/hypertrack.dart';
 import '../database/network_helper.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -67,7 +66,7 @@ class _HomeState extends State<LocationPage> {
   Future<void> initializeSdk() async {
     sdk = await HyperTrack.initialize(publishableKey);
     deviceId = await sdk.getDeviceId();
-    sdk.setDeviceName('Eman');
+    sdk.setDeviceName('Ahmed');
     helper = NetworkHelper(
       url: 'https://v3.api.hypertrack.com',
       auth:
@@ -103,18 +102,28 @@ class _HomeState extends State<LocationPage> {
     });
   }
 
-  void endTracking() async {
+  // void endTracking() async {
+  //   setState(() {
+  //     isLoading = true;
+  //     result = '';
+  //   });
+  //   var endTrack = await helper.endTracing();
+  //   setState(() {
+  //     result = (endTrack['message']);
+  //     isLink = false;
+  //     isLoading = false;
+  //   });
+  // }
+
+  _stopListening() {
+    _locationSubscription?.cancel();
     setState(() {
-      isLoading = true;
-      result = '';
-    });
-    var endTrack = await helper.endTracing();
-    setState(() {
-      result = (endTrack['message']);
-      isLink = false;
-      isLoading = false;
+      _locationSubscription = null;
     });
   }
+
+
+
 
   void lunchUrl() async {
     await launch(result);
@@ -170,9 +179,7 @@ class _HomeState extends State<LocationPage> {
           GestureDetector(
             onLongPressUp: () async {
               recipientList();
-              var code = 'user1';
-              isLink ? lunchUrl : null;
-              String message = "I need help, please find me with the following code: $code.";
+              String message = "I need help, please find me with the following code:";
               sendMessageToContacts(recipients, message);
             },
             child: Center(
@@ -204,15 +211,15 @@ class _HomeState extends State<LocationPage> {
               onPressed: () {
                 startTracking();
               },
-              child: Text('Strat Tracking my Location')),
+              child: Text('Start Tracking my Location')),
           TextButton(
               onPressed: () {
-                shareLink();
+                _listenLocation();
               },
-              child: Text('get my Location Link')),
+              child: Text('Get my Location Link')),
           TextButton(
               onPressed: () {
-                endTracking();
+                stopListening();
               },
               child: Text('End Tracking my Location')),
           Expanded(
@@ -257,18 +264,6 @@ class _HomeState extends State<LocationPage> {
     );
   }
 
-  _getLocation() async {
-    try {
-      final loc.LocationData _locationResult = await location.getLocation();
-      await FirebaseFirestore.instance.collection('location').doc('user1').set({
-        'latitude': _locationResult.latitude,
-        'longitude': _locationResult.longitude,
-        'name': 'PersonalEmergencyContacts'
-      }, SetOptions(merge: true));
-    } catch (e) {
-      print(e);
-    }
-  }
 
   Future<void> _listenLocation() async {
     _locationSubscription = location.onLocationChanged.handleError((onError) {
@@ -281,13 +276,13 @@ class _HomeState extends State<LocationPage> {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
         'latitude': currentlocation.latitude,
         'longitude': currentlocation.longitude,
-        'name': 'john'
+        'name': 'User'
       }, SetOptions(merge: true));
-      _locationSubscription?.pause(Future.delayed(const Duration(milliseconds: 10000), () => { _locationSubscription?.resume() }));
+      _locationSubscription?.pause(Future.delayed(const Duration(milliseconds: 15000), () => { _locationSubscription?.resume() }));
     });
   }
 
-  _stopListening() {
+  stopListening() {
     _locationSubscription?.cancel();
     setState(() {
       _locationSubscription = null;
