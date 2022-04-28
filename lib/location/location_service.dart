@@ -11,7 +11,7 @@ class LocationService {
   LocationService() {
     _location = Location();
   }
-  
+
 
   Future<bool> _checkPermission() async {
     if(await _checkService()){
@@ -60,7 +60,5 @@ class LocationService {
 
     return null;
   }
-  
+
 }
-
-

@@ -52,7 +52,7 @@ dependencies:
   # A flutter package to detect phone shakes.
   shake: ^2.0.0
 
-  stream_chat_flutter:
+
 
 
   # plugin for iOS and Android for detecting various hardware buttons.

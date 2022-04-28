@@ -97,43 +97,45 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                   title: const Text('Emergency Contacts'),
                 ),
                 body: Scrollbar(
-                    child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: cl.emergencyContactsName.length,
-                        itemBuilder: (BuildContext context, index) {
-                          return SizedBox(
-                            height: 100,
-                            child: Card(
-                              elevation: 4,
-                              child: InkWell(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: cl.emergencyContactsName.length,
+                    itemBuilder: (BuildContext context, index) {
+                      return SizedBox(
+                        height: 100,
+                        child: Card(
+                          elevation: 4,
+                          child: InkWell(
+                            onTap: () async {
+                              var phoneNo = cl.emergencyContactsNo[index];
+                              await FlutterPhoneDirectCaller.callNumber(
+                                  phoneNo);
+                            },
+                            child: ListTile(
+                              title: Text(cl.emergencyContactsName[index]),
+                              subtitle: Text(cl.emergencyContactsNo[index]),
+                              dense: true,
+                              trailing: GestureDetector(
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.grey,
+                                ),
                                 onTap: () async {
-                                  var phoneNo = cl.emergencyContactsNo[index];
-                                  await FlutterPhoneDirectCaller.callNumber(
-                                      phoneNo);
+                                  deleteFunction(cl.emergencyContactsId[index]);
                                 },
-                                child: ListTile(
-                                  title: Text(cl.emergencyContactsName[index]),
-                                  subtitle: Text(cl.emergencyContactsNo[index]),
-                                  dense: true,
-                                  trailing: GestureDetector(
-                                    child: const Icon(
-                                      Icons.delete,
-                                      color: Colors.grey,
-                                    ),
-                                    onTap: () async {
-                                      deleteFunction(cl.emergencyContactsId[index]);
-                                    },
-                                  ),
-                                  leading: CircleAvatar(
-                                    child: Text(
-                                      cl.emergencyContactsInitials[index],
-                                    ),
-                                  ),
+                              ),
+                              leading: CircleAvatar(
+                                child: Text(
+                                  cl.emergencyContactsInitials[index],
                                 ),
                               ),
                             ),
-                          );
-                        })),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               );
             }
           }),
