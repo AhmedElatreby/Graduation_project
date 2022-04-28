@@ -19,7 +19,7 @@ class _NavBarPageState extends State<NavBarPage> {
   _MapActivityState createState() => _MapActivityState();
 
   final screens = [
-    const LocationPage(),
+    LocationPage(),
     SosPage(),
     const PersonalEmergencyContacts(deleteFunction: delete),
     GoogleMapPage(),
