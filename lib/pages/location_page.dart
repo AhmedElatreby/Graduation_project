@@ -36,7 +36,7 @@ class _HomeState extends State<LocationPage> {
 
 
   get message =>
-  "I need help, please find me with the following code: $_linkMessage.";
+      "I need help, please find me with the following code: $_linkMessage.";
 
   get url =>  "https://ahmedelatreby.page.link";
 
@@ -220,41 +220,41 @@ class _HomeState extends State<LocationPage> {
 
           Expanded(
               child: StreamBuilder(
-            stream:
+                stream:
                 FirebaseFirestore.instance.collection('location').snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              return ListView.builder(
-                  itemCount: snapshot.data?.docs.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title:
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return ListView.builder(
+                      itemCount: snapshot.data?.docs.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title:
                           Text(snapshot.data!.docs[index]['name'].toString()),
-                      subtitle: Row(
-                        children: [
-                          Text(snapshot.data!.docs[index]['latitude']
-                              .toString()),
-                          const SizedBox(
-                            width: 20,
+                          subtitle: Row(
+                            children: [
+                              Text(snapshot.data!.docs[index]['latitude']
+                                  .toString()),
+                              const SizedBox(
+                                width: 20,
+                              ),
+                              Text(snapshot.data!.docs[index]['longitude']
+                                  .toString()),
+                            ],
                           ),
-                          Text(snapshot.data!.docs[index]['longitude']
-                              .toString()),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.directions),
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  MyMap(snapshot.data!.docs[index].id)));
-                        },
-                      ),
-                    );
-                  });
-            },
-          )),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.directions),
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      MyMap(snapshot.data!.docs[index].id)));
+                            },
+                          ),
+                        );
+                      });
+                },
+              )),
         ],
       ),
     );
@@ -290,7 +290,7 @@ class _HomeState extends State<LocationPage> {
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),
-          () => {_locationSubscription?.resume()}));
+              () => {_locationSubscription?.resume()}));
     });
   }
 
