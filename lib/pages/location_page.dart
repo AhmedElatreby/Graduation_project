@@ -33,7 +33,12 @@ class _HomeState extends State<LocationPage> {
 
   late List<String> recipients = [];
 
-  get url => null;
+
+
+  get message =>
+  "I need help, please find me with the following code: $_linkMessage.";
+
+  get url =>  "https://ahmedelatreby.page.link";
 
   void initDynamicLinks() async{
     FirebaseDynamicLinks.instance.onLink(
@@ -52,7 +57,7 @@ class _HomeState extends State<LocationPage> {
 
   void handleMyLink(Uri url){
     List<String> sepeatedLink = [];
-    /// osama.link.page/Hellow --> osama.link.page and Hellow
+    /// https://ahmedelatreby.page.link/?link=http://com.example.app --> ahmedelatreby.page. and Hellow
     sepeatedLink.addAll(url.path.split('/'));
 
     print("The Token that i'm interesed in is ${sepeatedLink[1]}");
@@ -60,30 +65,25 @@ class _HomeState extends State<LocationPage> {
 
   }
 
-  buildDynamicLinks(String title,String image,String docId) async {
-    String url = "http://osam.page.link";
+  buildDynamicLinks(String message) async {
+    String url = "https://ahmedelatreby.page.link";
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: url,
-      link: Uri.parse('$url/$docId'),
+      link: Uri.parse('$url'),
       androidParameters: AndroidParameters(
-        packageName: "com.dotcoder.dynamic_link_example",
+        packageName: "com.example.safetyproject",
         minimumVersion: 0,
       ),
       iosParameters: IosParameters(
         bundleId: "Bundle-ID",
         minimumVersion: '0',
       ),
-      socialMetaTagParameters: SocialMetaTagParameters(
-          description: '',
-          imageUrl:
-          Uri.parse("$image"),
-          title: title),
     );
     final ShortDynamicLink dynamicUrl = await parameters.buildShortLink();
 
     String? desc = '${dynamicUrl.shortUrl.toString()}';
 
-    await Share.share(desc, subject: title,);
+    await Share.share(desc, subject: message,);
 
   }
 
@@ -208,6 +208,16 @@ class _HomeState extends State<LocationPage> {
                 _stopListening();
               },
               child: Text('stop live location')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text("Share Location", style: TextStyle(fontWeight: FontWeight.bold),),
+              IconButton(onPressed: (){buildDynamicLinks(message);
+              }, icon: Icon(Icons.share)),
+            ],
+          ),
+
+
           Expanded(
               child: StreamBuilder(
             stream:
