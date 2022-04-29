@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sms/flutter_sms.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:telephony/telephony.dart';
 
-import '../contact/personal_emergency_contacts.dart';
 import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
 import '../location/mymap.dart';
@@ -33,20 +31,60 @@ class _HomeState extends State<LocationPage> {
   String? _linkMessage;
   bool _isCreatingLink = false;
 
-  final String DynamicLink = 'https://ahmedelatreby.page.link/?link=http://com.example.app';
-  final String Link = 'http://com.example.app';
-
   late List<String> recipients = [];
 
-  Future<void> initDynamicLinks() async {
-    final PendingDynamicLinkData? data =
-        await FirebaseDynamicLinks.instance.getInitialLink();
-    final Uri? deepLink = data?.link;
-    if (deepLink != null) {
-      // handling of link over here
-      Navigator.pushNamed(context, deepLink.path);
-    }
-    FirebaseDynamicLinks.instance.onLink;
+  get url => null;
+
+  void initDynamicLinks() async{
+    FirebaseDynamicLinks.instance.onLink(
+        onSuccess: (PendingDynamicLinkData? dynamicLink)async{
+          final Uri? deeplink = dynamicLink!.link;
+
+          if(deeplink != null){
+            handleMyLink(deeplink);
+          }
+        },
+        onError: (OnLinkErrorException e)async{
+          print("We got error $e");
+        }
+    );
+  }
+
+  void handleMyLink(Uri url){
+    List<String> sepeatedLink = [];
+    /// osama.link.page/Hellow --> osama.link.page and Hellow
+    sepeatedLink.addAll(url.path.split('/'));
+
+    print("The Token that i'm interesed in is ${sepeatedLink[1]}");
+    Get.to(()=>MyMap(sepeatedLink[1]));
+
+  }
+
+  buildDynamicLinks(String title,String image,String docId) async {
+    String url = "http://osam.page.link";
+    final DynamicLinkParameters parameters = DynamicLinkParameters(
+      uriPrefix: url,
+      link: Uri.parse('$url/$docId'),
+      androidParameters: AndroidParameters(
+        packageName: "com.dotcoder.dynamic_link_example",
+        minimumVersion: 0,
+      ),
+      iosParameters: IosParameters(
+        bundleId: "Bundle-ID",
+        minimumVersion: '0',
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+          description: '',
+          imageUrl:
+          Uri.parse("$image"),
+          title: title),
+    );
+    final ShortDynamicLink dynamicUrl = await parameters.buildShortLink();
+
+    String? desc = '${dynamicUrl.shortUrl.toString()}';
+
+    await Share.share(desc, subject: title,);
+
   }
 
   @override
@@ -71,65 +109,6 @@ class _HomeState extends State<LocationPage> {
     setState(() {
       _isCreatingLink = true;
     });
-
-
-
-
-
-
-
-
-
-
-
-    // final buildDynamicLinks(String title,String image,String docId) async {
-    //   String url = "ahmedelatreby.page.link";
-    //   final DynamicLinkParameters parameters = DynamicLinkParameters(
-    //     uriPrefix: url,
-    //     link: Uri.parse('$url/$docId'),
-    //     androidParameters: const AndroidParameters(
-    //         packageName: 'com.example.safetyproject',
-    //         minimumVersion: 0,
-    //       ),
-    //       iosParameters: const IOSParameters(
-    //         bundleId: 'com.google.FirebaseCppDynamcLinksTestApp.dev',
-    //         minimumVersion: '0',
-    //       ),
-    //     socialMetaTagParameters: SocialMetaTagParameters(
-    //         description: '',
-    //         imageUrl:
-    //         Uri.parse("$image"),
-    //         title: title),
-    //   );
-
-    final DynamicLinkParameters parameters = DynamicLinkParameters(
-      uriPrefix: 'https://ahmedelatreby.page.link',
-      longDynamicLink: Uri.parse(
-        'https://ahmedelatreby.page.link/location',
-      ),
-      link: Uri.parse(Link),
-      androidParameters: const AndroidParameters(
-        packageName: 'com.example.safetyproject',
-        minimumVersion: 0,
-      ),
-      iosParameters: const IOSParameters(
-        bundleId: 'com.google.FirebaseCppDynamcLinksTestApp.dev',
-        minimumVersion: '0',
-      ),
-    );
-
-
-    Uri url;
-    if (short) {
-      final ShortDynamicLink shortLink =
-          await dynamicLinks.buildShortLink(parameters);
-      url = shortLink.shortUrl;
-    } else {
-      url = await dynamicLinks.buildLink(parameters);
-    }
-
-
-
 
     setState(() {
       _linkMessage = url.toString();
@@ -285,15 +264,6 @@ class _HomeState extends State<LocationPage> {
   }
 
 
-  void handleMyLink(Uri url){
-    List<String> separatedLink = [];
-    /// osama.link.page/Hellow --> osama.link.page and Hellow
-    separatedLink.addAll(url.path.split('/'));
-
-    print("The Token that i'm interesed in is ${separatedLink[1]}");
-    Get.to(()=>MyMap(separatedLink[1]));
-
-  }
 
   Future<void> _listenLocation() async {
     _locationSubscription = location.onLocationChanged.handleError((onError) {
