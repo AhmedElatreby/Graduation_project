@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
               height: 200,
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                    image: AssetImage("assests/images/loginimg.png"),
+                    image: AssetImage("assets/images/loginimg.png"),
                     fit: BoxFit.cover),
               ),
             ),
@@ -144,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
                   image: const DecorationImage(
-                      image: AssetImage("assests/images/loginbtn.png"),
+                      image: AssetImage("assets/images/loginbtn.png"),
                       fit: BoxFit.cover),
                 ),
                 child: const Center(

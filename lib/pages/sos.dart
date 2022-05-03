@@ -67,7 +67,7 @@ class _SosPageState extends State<SosPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
                   image: const DecorationImage(
-                      image: AssetImage("assests/images/loginbtn.png"),
+                      image: AssetImage("assets/images/loginbtn.png"),
                       fit: BoxFit.cover),
                 ),
                 child: const Center(

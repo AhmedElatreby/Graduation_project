@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,13 +18,15 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:share_plus/share_plus.dart';
 
 class LocationPage extends StatefulWidget {
-
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<LocationPage> {
+  dynamic lat;
+  dynamic lng;
   final loc.Location location = loc.Location();
+  final audioPlayer = AudioCache();
   StreamSubscription<loc.LocationData>? _locationSubscription;
   late DBHelper dbHelper;
   FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
@@ -35,34 +38,36 @@ class _HomeState extends State<LocationPage> {
 
 
 
+
   get message =>
       "I need help, please find me with the following code: $_linkMessage.";
 
-  get url =>  "https://ahmedelatreby.page.link";
+  get url => "https://ahmedelatreby.page.link";
 
-  void initDynamicLinks() async{
+
+
+
+  void initDynamicLinks() async {
     FirebaseDynamicLinks.instance.onLink(
-        onSuccess: (PendingDynamicLinkData? dynamicLink)async{
-          final Uri? deeplink = dynamicLink!.link;
+        onSuccess: (PendingDynamicLinkData? dynamicLink) async {
+      final Uri? deeplink = dynamicLink!.link;
 
-          if(deeplink != null){
-            handleMyLink(deeplink);
-          }
-        },
-        onError: (OnLinkErrorException e)async{
-          print("We got error $e");
-        }
-    );
+      if (deeplink != null) {
+        handleMyLink(deeplink);
+      }
+    }, onError: (OnLinkErrorException e) async {
+      print("We got error $e");
+    });
   }
 
-  void handleMyLink(Uri url){
+  void handleMyLink(Uri url) {
     List<String> sepeatedLink = [];
+
     /// https://ahmedelatreby.page.link/?link=http://com.example.app --> ahmedelatreby.page. and Hellow
     sepeatedLink.addAll(url.path.split('/'));
 
     print("The Token that i'm interesed in is ${sepeatedLink[1]}");
-    Get.to(()=>MyMap(sepeatedLink[1]));
-
+    Get.to(() => MyMap(sepeatedLink[1]));
   }
 
   buildDynamicLinks(String message) async {
@@ -83,8 +88,10 @@ class _HomeState extends State<LocationPage> {
 
     String? desc = '${dynamicUrl.shortUrl.toString()}';
 
-    await Share.share(desc, subject: message,);
-
+    await Share.share(
+      desc,
+      subject: message,
+    );
   }
 
   @override
@@ -142,7 +149,7 @@ class _HomeState extends State<LocationPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 image: const DecorationImage(
-                    image: AssetImage("assests/images/loginbtn.png"),
+                    image: AssetImage("assets/images/loginbtn.png"),
                     fit: BoxFit.cover),
               ),
               child: const Center(
@@ -162,11 +169,13 @@ class _HomeState extends State<LocationPage> {
           ),
           GestureDetector(
             onLongPressUp: () async {
+              AudioCache player = AudioCache(prefix: 'assets/');
+              player.play('alarm.mp3');
               recipientList();
               await _createDynamicLink(false);
               print(_linkMessage);
               String message =
-                  "I need help, please find me with the following code: $_linkMessage.";
+                  "I need help, please find me with the following link: https://maps.google.com/?q=$lng.";
               sendMessageToContacts(recipients, message);
             },
             child: Center(
@@ -211,54 +220,68 @@ class _HomeState extends State<LocationPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Text("Share Location", style: TextStyle(fontWeight: FontWeight.bold),),
-              IconButton(onPressed: (){buildDynamicLinks(message);
-              }, icon: Icon(Icons.share)),
+              Text(
+                "Share Location",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                  onPressed: () {
+                    buildDynamicLinks(message);
+                  },
+                  icon: Icon(Icons.share)),
             ],
           ),
-
-
           Expanded(
-              child: StreamBuilder(
-                stream:
-                FirebaseFirestore.instance.collection('location').snapshots(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  return ListView.builder(
-                      itemCount: snapshot.data?.docs.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title:
+            child: StreamBuilder(
+              stream:
+                  FirebaseFirestore.instance.collection('location').snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return ListView.builder(
+                  itemCount: snapshot.data?.docs.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title:
                           Text(snapshot.data!.docs[index]['name'].toString()),
-                          subtitle: Row(
-                            children: [
-                              Text(snapshot.data!.docs[index]['latitude']
-                                  .toString()),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              Text(snapshot.data!.docs[index]['longitude']
-                                  .toString()),
-                            ],
+                      subtitle: Row(
+                        children: [
+                          Text(snapshot.data!.docs[index]['latitude']
+                              .toString()),
+                          const SizedBox(
+                            width: 20,
                           ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.directions),
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) =>
-                                      MyMap(snapshot.data!.docs[index].id)));
-                            },
-                          ),
-                        );
-                      });
-                },
-              )),
+                          Text(snapshot.data!.docs[index]['longitude']
+                              .toString()),
+                        ],
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.directions),
+                        onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                                  MyMap(snapshot.data!.docs[index].id)));
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
+
+
+  Stream<List> getLatitude() => FirebaseFirestore.instance.collection('location')
+      .snapshots()
+      .map((snapshot) =>
+            snapshot.docs.map((doc) => doc.data() ).toList());
+
+
 
   _getLocation() async {
     try {
@@ -273,8 +296,6 @@ class _HomeState extends State<LocationPage> {
     }
   }
 
-
-
   Future<void> _listenLocation() async {
     _locationSubscription = location.onLocationChanged.handleError((onError) {
       print(onError);
@@ -286,11 +307,11 @@ class _HomeState extends State<LocationPage> {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
         'latitude': currentlocation.latitude,
         'longitude': currentlocation.longitude,
-        'name': 'john'
+        'name': 'PersonalEmergencyContacts'
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),
-              () => {_locationSubscription?.resume()}));
+          () => {_locationSubscription?.resume()}));
     });
   }
 

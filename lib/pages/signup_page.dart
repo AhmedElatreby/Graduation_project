@@ -37,7 +37,7 @@ class _SignUpPageState extends State<SignUpPage> {
               decoration: const BoxDecoration(
                 image: DecorationImage(
                     image: AssetImage(
-                        "assests/images/signup.png"
+                        "assets/images/signup.png"
                     ),
                     fit: BoxFit.cover
                 ),
@@ -51,7 +51,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     backgroundColor: Colors.white38,
                     radius: 40,
                     backgroundImage: const AssetImage(
-                        "assests/images/profile1.png"
+                        "assets/images/profile1.png"
                     ),
                   ),
                 ],
@@ -164,7 +164,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   borderRadius: BorderRadius.circular(30),
                   image: const DecorationImage(
                       image: AssetImage(
-                          "assests/images/loginbtn.png"
+                          "assets/images/loginbtn.png"
                       ),
                       fit: BoxFit.cover
                   ),
@@ -207,7 +207,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     child: CircleAvatar(
                       radius: 25,
                       backgroundImage: AssetImage(
-                          "assests/images/"+images[index]
+                          "assets/images/"+images[index]
                       ),
                     ),
                   ),
