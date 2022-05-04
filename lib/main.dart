@@ -8,11 +8,18 @@ import 'package:dcdg/dcdg.dart';
 
 import '../pages/splash_screen.dart';
 import '../pages/login_page.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp().then((value) => Get.put(AuthController()));
+  FlutterNativeSplash.removeAfter(initialization);
   runApp(const MyApp());
+}
+
+Future initialization(BuildContext? context) async {
+  await Future.delayed(Duration(seconds: 2));
 }
 
 class MyApp extends StatelessWidget {
@@ -27,12 +34,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: AnimatedSplashScreen(
-          duration: 3000,
-          splash: const SplashScreen(),
-          nextScreen: LoginPage(),
-          splashTransition: SplashTransition.fadeTransition,
-          backgroundColor: Colors.white),
+      home:  LoginPage(),
     );
   }
 }

@@ -53,13 +53,16 @@ dependencies:
   audioplayers:
 
 
+  animated_splash_screen:
+
+
 
 
   # plugin for iOS and Android for detecting various hardware buttons.
   #  hardware_buttons: ^1.0.0
 
-  #  animated splash screen
-  animated_splash_screen:
+
+
 
   # plugin to call number directly from app, without going to phone dialer.
   flutter_phone_direct_caller:
@@ -81,6 +84,8 @@ dependencies:
   firebase_dynamic_links: ^2.0.6
   hypertrack_plugin: ^0.3.0
   share_plus:
+  flutter_native_splash:
+
 
 
 
@@ -88,8 +93,15 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  #Flutter app's launcher icon
 
+
+flutter_native_splash:
+  color: "#a6962e"
+  image: assets/splash.png
+  android: true
+  ios: true
+
+#Flutter app's launcher icon
 flutter_icons:
   android: true
   ios: true

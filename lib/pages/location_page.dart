@@ -36,16 +36,10 @@ class _HomeState extends State<LocationPage> {
 
   late List<String> recipients = [];
 
-
-
-
   get message =>
       "I need help, please find me with the following code: $_linkMessage.";
 
-  get url => "https://ahmedelatreby.page.link";
-
-
-
+  // get url => "https://ahmedelatreby.page.link";
 
   void initDynamicLinks() async {
     FirebaseDynamicLinks.instance.onLink(
@@ -118,7 +112,7 @@ class _HomeState extends State<LocationPage> {
     });
 
     setState(() {
-      _linkMessage = url.toString();
+      // _linkMessage = url.toString();
       _isCreatingLink = false;
     });
   }
@@ -169,8 +163,6 @@ class _HomeState extends State<LocationPage> {
           ),
           GestureDetector(
             onLongPressUp: () async {
-              AudioCache player = AudioCache(prefix: 'assets/');
-              player.play('alarm.mp3');
               recipientList();
               await _createDynamicLink(false);
               print(_linkMessage);
@@ -181,6 +173,17 @@ class _HomeState extends State<LocationPage> {
             child: Center(
               child: Column(
                 children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      AudioCache player = AudioCache(prefix: 'assets/');
+                      player.play('alarm.mp3');
+                    },
+
+                    child: const Text('Alarm'),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
                   ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
@@ -195,9 +198,6 @@ class _HomeState extends State<LocationPage> {
                           color: Colors.white,
                         ),
                       )),
-                  const SizedBox(
-                    height: 20,
-                  ),
                 ],
               ),
             ),
@@ -275,13 +275,10 @@ class _HomeState extends State<LocationPage> {
     );
   }
 
-
-  Stream<List> getLatitude() => FirebaseFirestore.instance.collection('location')
+  Stream<List> getLatitude() => FirebaseFirestore.instance
+      .collection('location')
       .snapshots()
-      .map((snapshot) =>
-            snapshot.docs.map((doc) => doc.data() ).toList());
-
-
+      .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
 
   _getLocation() async {
     try {

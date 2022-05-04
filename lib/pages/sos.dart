@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
 
 import '../contact/personal_emergency_contacts_model.dart';
@@ -25,6 +26,7 @@ class _SosPageState extends State<SosPage> {
   void initState() {
     super.initState();
     dbHelper = DBHelper();
+    _requestPermission();
   }
 
   void setRecipientList() async {
@@ -35,12 +37,12 @@ class _SosPageState extends State<SosPage> {
     });
   }
 
-  void sendMessageToContacts(List<String> recipients, String s) {
-    setRecipientList();
-    recipients.forEach((number) {
-      _sendSingleText(number);
-    });
-  }
+  // void sendMessageToContacts(List<String> recipients, String s) {
+  //   setRecipientList();
+  //   recipients.forEach((number) {
+  //     _sendSingleText(number);
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +126,9 @@ class _SosPageState extends State<SosPage> {
                     ElevatedButton(
                         onPressed: () async {
                           recipientList();
-                          sendMessageToContacts(recipients, 'Help me');
+                          String message =
+                              "I need help, please find me with the following link: https://maps.google.com/?q=.";
+                          sendMessageToContacts(recipients, message);
                         },
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
@@ -147,16 +151,49 @@ class _SosPageState extends State<SosPage> {
     );
   }
 
-  void recipientList() {}
+  void recipientList() async {
+    List<PersonalEmergency> contacts;
+    contacts = await dbHelper.getContacts();
+    contacts.forEach((contact) {
+      recipients.add(contact.contactNo);
+    });
+  }
+
+  void sendMessageToContacts(List<String> recipients, String message) {
+    recipients.forEach((number) {
+      _sendSingleText(number, message);
+    });
+  }
 }
 
 class _MapActivityState {}
 
-void _sendSingleText(String number) async {
-  final Telephony telephony = Telephony.instance;
+// void _sendSingleText(String number) async {
+//   final Telephony telephony = Telephony.instance;
+//
+//   telephony.sendSms(
+//     to: number,
+//     message: "May the force be with you!",
+//   );
+// }
 
-  telephony.sendSms(
-    to: number,
-    message: "May the force be with you!",
-  );
+_requestPermission() async {
+  var status = await Permission.location.request();
+  if (status.isGranted) {
+    print('done');
+  } else if (status.isDenied) {
+    _requestPermission();
+  } else if (status.isPermanentlyDenied) {
+    openAppSettings();
+  }
+}
+
+
+
+
+void _sendSingleText(String number, String message) async {
+  final Telephony telephony = Telephony.instance;
+  bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+
+  telephony.sendSms(to: number, message: message);
 }
