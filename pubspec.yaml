@@ -32,6 +32,7 @@ dependencies:
 
   cupertino_icons: ^1.0.2
   get:
+  avatar_glow:
   firebase_auth:
   firebase_core:
   cloud_firestore:
@@ -59,7 +60,7 @@ dependencies:
 
 
   # plugin for iOS and Android for detecting various hardware buttons.
-  #  hardware_buttons: ^1.0.0
+#  hardware_buttons: ^1.0.0
 
 
 

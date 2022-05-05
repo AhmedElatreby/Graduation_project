@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:telephony/telephony.dart';
 
@@ -14,8 +12,6 @@ import '../location/mymap.dart';
 
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:share_plus/share_plus.dart';
 
 class LocationPage extends StatefulWidget {
   @override
@@ -23,77 +19,36 @@ class LocationPage extends StatefulWidget {
 }
 
 class _HomeState extends State<LocationPage> {
-  dynamic lat;
-  dynamic lng;
+  // dynamic lat;
+  // dynamic lng;
   final loc.Location location = loc.Location();
   final audioPlayer = AudioCache();
   StreamSubscription<loc.LocationData>? _locationSubscription;
   late DBHelper dbHelper;
-  FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
 
   String? _linkMessage;
   bool _isCreatingLink = false;
 
   late List<String> recipients = [];
 
+  // late List<userLoc> _userLocation = [];
+  //
+  //  List<userLoc> getUserLocation() {
+  //   return _userLocation
+  // }
+
   get message =>
       "I need help, please find me with the following code: $_linkMessage.";
 
-  // get url => "https://ahmedelatreby.page.link";
+  get lat => null;
 
-  void initDynamicLinks() async {
-    FirebaseDynamicLinks.instance.onLink(
-        onSuccess: (PendingDynamicLinkData? dynamicLink) async {
-      final Uri? deeplink = dynamicLink!.link;
 
-      if (deeplink != null) {
-        handleMyLink(deeplink);
-      }
-    }, onError: (OnLinkErrorException e) async {
-      print("We got error $e");
-    });
-  }
-
-  void handleMyLink(Uri url) {
-    List<String> sepeatedLink = [];
-
-    /// https://ahmedelatreby.page.link/?link=http://com.example.app --> ahmedelatreby.page. and Hellow
-    sepeatedLink.addAll(url.path.split('/'));
-
-    print("The Token that i'm interesed in is ${sepeatedLink[1]}");
-    Get.to(() => MyMap(sepeatedLink[1]));
-  }
-
-  buildDynamicLinks(String message) async {
-    String url = "https://ahmedelatreby.page.link";
-    final DynamicLinkParameters parameters = DynamicLinkParameters(
-      uriPrefix: url,
-      link: Uri.parse('$url'),
-      androidParameters: AndroidParameters(
-        packageName: "com.example.safetyproject",
-        minimumVersion: 0,
-      ),
-      iosParameters: IosParameters(
-        bundleId: "Bundle-ID",
-        minimumVersion: '0',
-      ),
-    );
-    final ShortDynamicLink dynamicUrl = await parameters.buildShortLink();
-
-    String? desc = '${dynamicUrl.shortUrl.toString()}';
-
-    await Share.share(
-      desc,
-      subject: message,
-    );
-  }
 
   @override
   void initState() {
     super.initState();
     dbHelper = DBHelper();
     _requestPermission();
-    initDynamicLinks();
     location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
     location.enableBackgroundMode(enable: true);
   }
@@ -103,17 +58,6 @@ class _HomeState extends State<LocationPage> {
     contacts = await dbHelper.getContacts();
     contacts.forEach((contact) {
       recipients.add(contact.contactNo);
-    });
-  }
-
-  Future<void> _createDynamicLink(bool short) async {
-    setState(() {
-      _isCreatingLink = true;
-    });
-
-    setState(() {
-      // _linkMessage = url.toString();
-      _isCreatingLink = false;
     });
   }
 
@@ -164,10 +108,9 @@ class _HomeState extends State<LocationPage> {
           GestureDetector(
             onLongPressUp: () async {
               recipientList();
-              await _createDynamicLink(false);
               print(_linkMessage);
               String message =
-                  "I need help, please find me with the following link: https://maps.google.com/?q=$lng.";
+                  "I need help, please find me with the following link: https://maps.google.com/?q=$lat.";
               sendMessageToContacts(recipients, message);
             },
             child: Center(
@@ -178,7 +121,6 @@ class _HomeState extends State<LocationPage> {
                       AudioCache player = AudioCache(prefix: 'assets/');
                       player.play('alarm.mp3');
                     },
-
                     child: const Text('Alarm'),
                   ),
                   const SizedBox(
@@ -204,7 +146,7 @@ class _HomeState extends State<LocationPage> {
           ),
           TextButton(
               onPressed: () {
-                _getLocation();
+                _addLocation();
               },
               child: Text('add my location')),
           TextButton(
@@ -217,20 +159,6 @@ class _HomeState extends State<LocationPage> {
                 _stopListening();
               },
               child: Text('stop live location')),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(
-                "Share Location",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                  onPressed: () {
-                    buildDynamicLinks(message);
-                  },
-                  icon: Icon(Icons.share)),
-            ],
-          ),
           Expanded(
             child: StreamBuilder(
               stream:
@@ -273,21 +201,43 @@ class _HomeState extends State<LocationPage> {
         ],
       ),
     );
+
   }
 
-  Stream<List> getLatitude() => FirebaseFirestore.instance
-      .collection('location')
-      .snapshots()
-      .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
-
-  _getLocation() async {
+  // Future <void> getUserLocationFromFirebase() async {
+  //
+  //   _instance = FirebaseFirestore.instance;
+  //
+  //   CollectionReference userLocation = _instance!.collection('location');
+  //
+  //   DocumentSnapshot snapshot = await userLocation.doc('user1').get();
+  //   var data = snapshot.data() as Map;
+  //   var userLocationData = data['user1'] as List<dynamic>;
+  //
+  //   userLocationData.forEach((element) { })
+  // }
+  // factory Location.fromJson(Map<String, dynamic> json) {
+  //   return Location(
+  //     // latitude: json['latitude'],
+  //     // longitude: json['longitude'],
+  //     // name: json['name'],
+  //     subCategories: SubCategory.fromJsonArray(json['subCategories'])
+  //
+  //   )
+  // }
+  Future<void> _addLocation() async {
     try {
       final loc.LocationData _locationResult = await location.getLocation();
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
-        'latitude': _locationResult.latitude,
-        'longitude': _locationResult.longitude,
-        'name': 'PersonalEmergencyContacts'
+
+          'latitude': _locationResult.latitude,
+          'longitude': _locationResult.longitude,
+          'name': 'PersonalEmergencyContacts'
+
       }, SetOptions(merge: true));
+      _locationSubscription?.pause(Future.delayed(
+          const Duration(milliseconds: 10000),
+              () => {_locationSubscription?.resume()}));
     } catch (e) {
       print(e);
     }
@@ -302,9 +252,11 @@ class _HomeState extends State<LocationPage> {
       });
     }).listen((loc.LocationData currentlocation) async {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
-        'latitude': currentlocation.latitude,
-        'longitude': currentlocation.longitude,
-        'name': 'PersonalEmergencyContacts'
+
+          'latitude': currentlocation.latitude,
+          'longitude': currentlocation.longitude,
+          'name': 'PersonalEmergencyContacts'
+
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),

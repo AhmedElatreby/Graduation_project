@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
 
 import '../contact/personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
+
+
 
 class SosPage extends StatefulWidget {
   const SosPage({Key? key}) : super(key: key);
@@ -16,10 +21,8 @@ class SosPage extends StatefulWidget {
 }
 
 class _SosPageState extends State<SosPage> {
-  _MapActivityState createState() => _MapActivityState();
 
   late DBHelper dbHelper;
-
   late List<String> recipients = [];
 
   @override
@@ -37,12 +40,6 @@ class _SosPageState extends State<SosPage> {
     });
   }
 
-  // void sendMessageToContacts(List<String> recipients, String s) {
-  //   setRecipientList();
-  //   recipients.forEach((number) {
-  //     _sendSingleText(number);
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +146,9 @@ class _SosPageState extends State<SosPage> {
         ),
       ),
     );
+
   }
+
 
   void recipientList() async {
     List<PersonalEmergency> contacts;
@@ -166,17 +165,6 @@ class _SosPageState extends State<SosPage> {
   }
 }
 
-class _MapActivityState {}
-
-// void _sendSingleText(String number) async {
-//   final Telephony telephony = Telephony.instance;
-//
-//   telephony.sendSms(
-//     to: number,
-//     message: "May the force be with you!",
-//   );
-// }
-
 _requestPermission() async {
   var status = await Permission.location.request();
   if (status.isGranted) {
@@ -187,9 +175,6 @@ _requestPermission() async {
     openAppSettings();
   }
 }
-
-
-
 
 void _sendSingleText(String number, String message) async {
   final Telephony telephony = Telephony.instance;
