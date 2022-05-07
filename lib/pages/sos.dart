@@ -1,17 +1,13 @@
 import 'package:flutter/foundation.dart';
-import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../contact/personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
-
-
 
 class SosPage extends StatefulWidget {
   const SosPage({Key? key}) : super(key: key);
@@ -21,15 +17,17 @@ class SosPage extends StatefulWidget {
 }
 
 class _SosPageState extends State<SosPage> {
-
+  TextEditingController textEditingController = TextEditingController();
   late DBHelper dbHelper;
   late List<String> recipients = [];
+  List<String> number = [];
 
   @override
   void initState() {
     super.initState();
     dbHelper = DBHelper();
     _requestPermission();
+     number = recipients;
   }
 
   void setRecipientList() async {
@@ -39,7 +37,6 @@ class _SosPageState extends State<SosPage> {
       recipients.add(contact.contactNo);
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +90,11 @@ class _SosPageState extends State<SosPage> {
                   Center(
                     child: ElevatedButton(
                         onPressed: () async {
-                          FlutterPhoneDirectCaller.callNumber('+447562596358');
+                          controller: textEditingController;
+
+                          _callNumber(textEditingController.text);
+                          _launchPhoneURL(textEditingController.text);
+                          // FlutterPhoneDirectCaller.callNumber('+447562596358');
                         },
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
@@ -146,9 +147,7 @@ class _SosPageState extends State<SosPage> {
         ),
       ),
     );
-
   }
-
 
   void recipientList() async {
     List<PersonalEmergency> contacts;
@@ -181,4 +180,19 @@ void _sendSingleText(String number, String message) async {
   bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
 
   telephony.sendSms(to: number, message: message);
+}
+
+
+_callNumber(String recipients ) async {
+  String number = recipients;
+  await FlutterPhoneDirectCaller.callNumber(number);
+}
+
+_launchPhoneURL(String recipients) async {
+  String url = 'tel:' + recipients;
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    throw 'Could not launch $url';
+  }
 }

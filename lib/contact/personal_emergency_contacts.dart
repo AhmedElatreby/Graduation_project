@@ -8,13 +8,17 @@ import './contact_list.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class PersonalEmergencyContacts extends StatefulWidget {
+
   final Function deleteFunction;
-  const PersonalEmergencyContacts({required this.deleteFunction, Key? key})
+
+  const PersonalEmergencyContacts({ required this.deleteFunction, Key? key})
       : super(key: key);
+
 
   @override
   _PersonalEmergencyContactsState createState() =>
       _PersonalEmergencyContactsState();
+
 }
 
 class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
@@ -37,10 +39,10 @@ class _HomeState extends State<LocationPage> {
   //   return _userLocation
   // }
 
-  get message =>
-      "I need help, please find me with the following code: $_linkMessage.";
+  // get message =>
+  //     "I need help, please find me with the following code: $_linkMessage.";
 
-  get lat => null;
+  get lat => lat;
 
 
 
