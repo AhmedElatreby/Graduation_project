@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
@@ -21,8 +20,6 @@ class LocationPage extends StatefulWidget {
 }
 
 class _HomeState extends State<LocationPage> {
-  // dynamic lat;
-  // dynamic lng;
   final loc.Location location = loc.Location();
   final audioPlayer = AudioCache();
   StreamSubscription<loc.LocationData>? _locationSubscription;
@@ -33,24 +30,12 @@ class _HomeState extends State<LocationPage> {
 
   late List<String> recipients = [];
 
-  // late List<userLoc> _userLocation = [];
-  //
-  //  List<userLoc> getUserLocation() {
-  //   return _userLocation
-  // }
-
-  // get message =>
-  //     "I need help, please find me with the following code: $_linkMessage.";
-
-  get lat => lat;
-
-
-
   @override
   void initState() {
     super.initState();
     dbHelper = DBHelper();
     _requestPermission();
+    _getUserLocationFromFirebase();
     location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
     location.enableBackgroundMode(enable: true);
   }
@@ -107,27 +92,25 @@ class _HomeState extends State<LocationPage> {
           const SizedBox(
             height: 20,
           ),
-          GestureDetector(
-            onLongPressUp: () async {
-              recipientList();
-              print(_linkMessage);
-              String message =
-                  "I need help, please find me with the following link: https://maps.google.com/?q=$lat.";
-              sendMessageToContacts(recipients, message);
-            },
-            child: Center(
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                AudioCache player = AudioCache(prefix: 'assets/');
+                player.play('alarm.mp3');
+              },
+              child: const Text('Alarm'),
+            ),
+          ),
+          Center(
+            child: GestureDetector(
+              onLongPressUp: () async {
+                recipientList();
+                String message =
+                    "I need help, please find me with the following link: https://maps.google.com/?q=$_lat";
+                sendMessageToContacts(recipients, message);
+              },
               child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      AudioCache player = AudioCache(prefix: 'assets/');
-                      player.play('alarm.mp3');
-                    },
-                    child: const Text('Alarm'),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
                   ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
@@ -203,43 +186,29 @@ class _HomeState extends State<LocationPage> {
         ],
       ),
     );
+  }
+var _lat='';
+   _getUserLocationFromFirebase()  {
+    FirebaseFirestore.instance.collection('location').doc('user1').get().then((value){
+      setState(() {
 
+      });
+      print('This is a test location page $_lat');
+
+    });
   }
 
-  // Future <void> getUserLocationFromFirebase() async {
-  //
-  //   _instance = FirebaseFirestore.instance;
-  //
-  //   CollectionReference userLocation = _instance!.collection('location');
-  //
-  //   DocumentSnapshot snapshot = await userLocation.doc('user1').get();
-  //   var data = snapshot.data() as Map;
-  //   var userLocationData = data['user1'] as List<dynamic>;
-  //
-  //   userLocationData.forEach((element) { })
-  // }
-  // factory Location.fromJson(Map<String, dynamic> json) {
-  //   return Location(
-  //     // latitude: json['latitude'],
-  //     // longitude: json['longitude'],
-  //     // name: json['name'],
-  //     subCategories: SubCategory.fromJsonArray(json['subCategories'])
-  //
-  //   )
-  // }
   Future<void> _addLocation() async {
     try {
       final loc.LocationData _locationResult = await location.getLocation();
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
-
-          'latitude': _locationResult.latitude,
-          'longitude': _locationResult.longitude,
-          'name': 'PersonalEmergencyContacts'
-
+        'latitude': _locationResult.latitude,
+        'longitude': _locationResult.longitude,
+        'name': 'PersonalEmergencyContacts'
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),
-              () => {_locationSubscription?.resume()}));
+          () => {_locationSubscription?.resume()}));
     } catch (e) {
       print(e);
     }
@@ -254,11 +223,9 @@ class _HomeState extends State<LocationPage> {
       });
     }).listen((loc.LocationData currentlocation) async {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
-
-          'latitude': currentlocation.latitude,
-          'longitude': currentlocation.longitude,
-          'name': 'PersonalEmergencyContacts'
-
+        'latitude': currentlocation.latitude,
+        'longitude': currentlocation.longitude,
+        'name': 'PersonalEmergencyContacts'
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),

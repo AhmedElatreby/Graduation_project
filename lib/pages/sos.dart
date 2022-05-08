@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
@@ -17,7 +18,7 @@ class SosPage extends StatefulWidget {
 }
 
 class _SosPageState extends State<SosPage> {
-  TextEditingController textEditingController = TextEditingController();
+  final textController = TextEditingController();
   late DBHelper dbHelper;
   late List<String> recipients = [];
   List<String> number = [];
@@ -28,6 +29,7 @@ class _SosPageState extends State<SosPage> {
     dbHelper = DBHelper();
     _requestPermission();
      number = recipients;
+
   }
 
   void setRecipientList() async {
@@ -40,6 +42,7 @@ class _SosPageState extends State<SosPage> {
 
   @override
   Widget build(BuildContext context) {
+    CollectionReference location = FirebaseFirestore.instance.collection('location');
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
@@ -90,10 +93,9 @@ class _SosPageState extends State<SosPage> {
                   Center(
                     child: ElevatedButton(
                         onPressed: () async {
-                          controller: textEditingController;
-
-                          _callNumber(textEditingController.text);
-                          _launchPhoneURL(textEditingController.text);
+                          controller: textController;
+                          _callNumber(textController.text);
+                          _launchPhoneURL(textController.text);
                           // FlutterPhoneDirectCaller.callNumber('+447562596358');
                         },
                         style: ElevatedButton.styleFrom(
@@ -121,24 +123,37 @@ class _SosPageState extends State<SosPage> {
               child: Center(
                 child: Column(
                   children: [
-                    ElevatedButton(
-                        onPressed: () async {
-                          recipientList();
-                          String message =
-                              "I need help, please find me with the following link: https://maps.google.com/?q=.";
-                          sendMessageToContacts(recipients, message);
-                        },
-                        style: ElevatedButton.styleFrom(
-                            fixedSize: const Size(150, 150),
-                            shape: const CircleBorder()),
-                        child: const Text(
-                          'SMS',
-                          style: TextStyle(
-                            fontSize: 50,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        )),
+                    StreamBuilder<Object>(
+                      stream: FirebaseFirestore.instance.
+                      collection('location').snapshots(),
+                      builder: (context,dynamic snapshot) {
+                        return ElevatedButton(
+                            onPressed: () async {
+                              recipientList();
+
+                              var lat = await FirebaseFirestore.instance
+                                  .collection('location')
+                                  .doc('user1')
+                                  .collection('latitude')
+                                  .get().toString();
+                              String message =
+                                  "I need help, please find me with the following link: https://maps.google.com/?q=$lat";
+                              sendMessageToContacts(recipients, message);
+                            },
+                            style: ElevatedButton.styleFrom(
+                                fixedSize: const Size(150, 150),
+                                shape: const CircleBorder()),
+                            child: const Text(
+                              'SMS',
+                              style: TextStyle(
+                                fontSize: 50,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ));
+                      }
+
+                    ),
                   ],
                 ),
               ),
@@ -196,3 +211,16 @@ _launchPhoneURL(String recipients) async {
     throw 'Could not launch $url';
   }
 }
+
+
+
+ _getUserLocationFromFirebase()  async {
+   var lat1 = await FirebaseFirestore.instance.collection('location').doc('user1').get();
+   print(lat1['latitude']);
+}
+
+_getUserLongitude()  async {
+  var lat1 = await FirebaseFirestore.instance.collection('location').doc('user1').get();
+  print(lat1['longitude']);
+}
+
