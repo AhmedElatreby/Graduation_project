@@ -142,8 +142,14 @@ class _SosPageState extends State<SosPage> {
                                     .get()
                                     .toString();
                                 String message =
-                                    "I need help, please find me with the following link: https://maps.google.com/?q=$lat";
+                                    "I need help, please find me with the following link: https://maps.google.com/?q=$_getUserLatitude,$_getUserLongitude()";
                                 sendMessageToContacts(recipients, message);
+                                print("this is the lat test 1 $lat['latitude']");
+                                print("this is the lat test 2 $_getUserLatitude['latitude']");
+                                print("this is the lat test 3 $_getUserLatitude()['latitude']");
+                                print("this is the lat test 3 $_getUserLongitude");
+                                print("this is the lat test 3 $_getUserLongitude()");
+                                print(_getUserLongitude);
                                 print("SMS pressed!");
                               },
                               style: ElevatedButton.styleFrom(
@@ -215,7 +221,7 @@ _launchPhoneURL(String recipients) async {
   }
 }
 
-void _getUserLatitude() async {
+Future<double> _getUserLatitude() async {
   var lat1 = await FirebaseFirestore.instance
       .collection('location')
       .doc('user1')
@@ -224,7 +230,7 @@ void _getUserLatitude() async {
   return lat1['latitude'];
 }
 
-void _getUserLongitude() async {
+Future<double> _getUserLongitude() async {
   var long1 = await FirebaseFirestore.instance
       .collection('location')
       .doc('user1')
