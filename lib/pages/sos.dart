@@ -28,8 +28,9 @@ class _SosPageState extends State<SosPage> {
     super.initState();
     dbHelper = DBHelper();
     _requestPermission();
-     number = recipients;
-
+    _getUserLongitude();
+    _getUserLatitude();
+    number = recipients;
   }
 
   void setRecipientList() async {
@@ -42,7 +43,8 @@ class _SosPageState extends State<SosPage> {
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference location = FirebaseFirestore.instance.collection('location');
+    CollectionReference location =
+        FirebaseFirestore.instance.collection('location');
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
@@ -93,7 +95,8 @@ class _SosPageState extends State<SosPage> {
                   Center(
                     child: ElevatedButton(
                         onPressed: () async {
-                          controller: textController;
+                          controller:
+                          textController;
                           _callNumber(textController.text);
                           _launchPhoneURL(textController.text);
                           // FlutterPhoneDirectCaller.callNumber('+447562596358');
@@ -124,36 +127,37 @@ class _SosPageState extends State<SosPage> {
                 child: Column(
                   children: [
                     StreamBuilder<Object>(
-                      stream: FirebaseFirestore.instance.
-                      collection('location').snapshots(),
-                      builder: (context,dynamic snapshot) {
-                        return ElevatedButton(
-                            onPressed: () async {
-                              recipientList();
+                        stream: FirebaseFirestore.instance
+                            .collection('location')
+                            .snapshots(),
+                        builder: (context, dynamic snapshot) {
+                          return ElevatedButton(
+                              onPressed: () async {
+                                recipientList();
 
-                              var lat = await FirebaseFirestore.instance
-                                  .collection('location')
-                                  .doc('user1')
-                                  .collection('latitude')
-                                  .get().toString();
-                              String message =
-                                  "I need help, please find me with the following link: https://maps.google.com/?q=$lat";
-                              sendMessageToContacts(recipients, message);
-                            },
-                            style: ElevatedButton.styleFrom(
-                                fixedSize: const Size(150, 150),
-                                shape: const CircleBorder()),
-                            child: const Text(
-                              'SMS',
-                              style: TextStyle(
-                                fontSize: 50,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ));
-                      }
-
-                    ),
+                                var lat = await FirebaseFirestore.instance
+                                    .collection('location')
+                                    .doc('user1')
+                                    .collection('latitude')
+                                    .get()
+                                    .toString();
+                                String message =
+                                    "I need help, please find me with the following link: https://maps.google.com/?q=$lat";
+                                sendMessageToContacts(recipients, message);
+                                print("SMS pressed!");
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  fixedSize: const Size(150, 150),
+                                  shape: const CircleBorder()),
+                              child: const Text(
+                                'SMS',
+                                style: TextStyle(
+                                  fontSize: 50,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ));
+                        }),
                   ],
                 ),
               ),
@@ -197,8 +201,7 @@ void _sendSingleText(String number, String message) async {
   telephony.sendSms(to: number, message: message);
 }
 
-
-_callNumber(String recipients ) async {
+_callNumber(String recipients) async {
   String number = recipients;
   await FlutterPhoneDirectCaller.callNumber(number);
 }
@@ -212,15 +215,20 @@ _launchPhoneURL(String recipients) async {
   }
 }
 
-
-
- _getUserLocationFromFirebase()  async {
-   var lat1 = await FirebaseFirestore.instance.collection('location').doc('user1').get();
-   print(lat1['latitude']);
+void _getUserLatitude() async {
+  var lat1 = await FirebaseFirestore.instance
+      .collection('location')
+      .doc('user1')
+      .get();
+  print(lat1['latitude']);
+  return lat1['latitude'];
 }
 
-_getUserLongitude()  async {
-  var lat1 = await FirebaseFirestore.instance.collection('location').doc('user1').get();
-  print(lat1['longitude']);
+void _getUserLongitude() async {
+  var long1 = await FirebaseFirestore.instance
+      .collection('location')
+      .doc('user1')
+      .get();
+  print(long1['longitude']);
+  return long1['longitude'];
 }
-

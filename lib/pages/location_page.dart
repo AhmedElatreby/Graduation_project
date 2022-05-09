@@ -106,8 +106,9 @@ class _HomeState extends State<LocationPage> {
               onLongPressUp: () async {
                 recipientList();
                 String message =
-                    "I need help, please find me with the following link: https://maps.google.com/?q=$_lat";
+                    "I need help, please find me with the following link: https://maps.google.com/?q=$_getUserLatitude,$_getUserLongitude";
                 sendMessageToContacts(recipients, message);
+                print("on long press up!");
               },
               child: Column(
                 children: [
@@ -187,14 +188,32 @@ class _HomeState extends State<LocationPage> {
       ),
     );
   }
-var _lat='';
-   _getUserLocationFromFirebase()  {
-    FirebaseFirestore.instance.collection('location').doc('user1').get().then((value){
-      setState(() {
 
-      });
+  _getUserLatitude() async {
+    var lat1 = await FirebaseFirestore.instance
+        .collection('location')
+        .doc('user1')
+        .get();
+    print(lat1['latitude']);
+  }
+
+  _getUserLongitude() async {
+    var lat1 = await FirebaseFirestore.instance
+        .collection('location')
+        .doc('user1')
+        .get();
+    print(lat1['longitude']);
+  }
+
+  var _lat = '';
+  _getUserLocationFromFirebase() {
+    FirebaseFirestore.instance
+        .collection('location')
+        .doc('user1')
+        .get()
+        .then((value) {
+      setState(() {});
       print('This is a test location page $_lat');
-
     });
   }
 

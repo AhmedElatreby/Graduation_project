@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Safety Appo',
+      title: 'Safety App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
