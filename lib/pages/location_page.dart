@@ -107,21 +107,16 @@ class _HomeState extends State<LocationPage> {
             child: GestureDetector(
               onLongPressUp: () async {
                 recipientList();
-
                   var lat = await FirebaseFirestore.instance
                       .collection('location')
                       .doc('user1')
                       .get();
+
                 var userLoaction = lat.data()?.values;
                 var s3 = userLoaction?.toList().last;
                 var s4 = userLoaction?.toList().first;
                 print("test s 33 $s3");
-                
-
-
-                // var s1 =  "$userLoaction".characters.replaceAll(' )'.characters, ' '.characters);
-                // var s2 =  "$userLoaction".characters.replaceAll(' ('.characters, ' '.characters);
-                var location = "$s3,$s4";
+                var location = "$s4,$s3";
 
                  print(userLoaction);
 
