@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:characters/characters.dart';
+
 import 'package:audioplayers/audioplayers.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -110,12 +112,23 @@ class _HomeState extends State<LocationPage> {
                       .collection('location')
                       .doc('user1')
                       .get();
-                  print(lat.data()?.values);
+                var userLoaction = lat.data()?.values;
+                var s3 = userLoaction?.toList().last;
+                var s4 = userLoaction?.toList().first;
+                print("test s 33 $s3");
+                
+
+
+                // var s1 =  "$userLoaction".characters.replaceAll(' )'.characters, ' '.characters);
+                // var s2 =  "$userLoaction".characters.replaceAll(' ('.characters, ' '.characters);
+                var location = "$s3,$s4";
+
+                 print(userLoaction);
 
                 String message =
-                    "I need help, please find me with the following link: https://maps.google.com/?q=${lat.data()?.values}";
+                    "I need help, please find me with the following link: https://maps.google.com/?q=${location}";
                 sendMessageToContacts(recipients, message);
-                print("on long press up!");
+                print("on long press up!".characters);
               },
               child: Column(
                 children: [
