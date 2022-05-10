@@ -107,23 +107,22 @@ class _HomeState extends State<LocationPage> {
             child: GestureDetector(
               onLongPressUp: () async {
                 recipientList();
-                  var lat = await FirebaseFirestore.instance
-                      .collection('location')
-                      .doc('user1')
-                      .get();
+                var lat = await FirebaseFirestore.instance
+                    .collection('location')
+                    .doc('user1')
+                    .get();
+                var location = lat.data()?.values;
+                var longitude = location?.toList().last;
+                var latitude = location?.toList().first;
+                var userLoaction = "$latitude,$longitude";
+                print("test user location $userLoaction");
 
-                var userLoaction = lat.data()?.values;
-                var s3 = userLoaction?.toList().last;
-                var s4 = userLoaction?.toList().first;
-                print("test s 33 $s3");
-                var location = "$s4,$s3";
-
-                 print(userLoaction);
 
                 String message =
-                    "I need help, please find me with the following link: https://maps.google.com/?q=${location}";
+                    "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
                 sendMessageToContacts(recipients, message);
-                print("on long press up!".characters);
+                print("on long press up!");
+                print(message);
               },
               child: Column(
                 children: [
@@ -172,7 +171,6 @@ class _HomeState extends State<LocationPage> {
                   itemCount: snapshot.data?.docs.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-
                       subtitle: Row(
                         children: [
                           Text(snapshot.data!.docs[index]['latitude']
@@ -203,14 +201,26 @@ class _HomeState extends State<LocationPage> {
     );
   }
 
-  _getUserLocation() async {
-    var lat = await FirebaseFirestore.instance
-        .collection('location')
-        .doc('user1')
-        .get();
-    print(lat.data()?.values);
-  }
 
+  // _getUserLocation() async {
+  //   var lat = await FirebaseFirestore.instance
+  //       .collection('location')
+  //       .doc('user1')
+  //       .get();
+  //   var location = lat.data()?.values;
+  //   var longitude = location?.toList().last;
+  //   var latitude = location?.toList().first;
+  //   var userLoaction = "$latitude,$longitude";
+  //   print("test user location $userLoaction");
+  // }
+
+  // _getUserLocation() async {
+  //   var lat = await FirebaseFirestore.instance
+  //       .collection('location')
+  //       .doc('user1')
+  //       .get();
+  //   print(lat.data()?.values);
+  // }
 
   _getUserLongitude() async {
     var lat1 = await FirebaseFirestore.instance
@@ -220,7 +230,6 @@ class _HomeState extends State<LocationPage> {
     print(lat1['longitude']);
   }
 
-
   _getUserLocationFromFirebase() {
     FirebaseFirestore.instance
         .collection('location')
@@ -228,7 +237,6 @@ class _HomeState extends State<LocationPage> {
         .get()
         .then((value) {
       setState(() {});
-
     });
   }
 
@@ -238,7 +246,6 @@ class _HomeState extends State<LocationPage> {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
         'latitude': _locationResult.latitude,
         'longitude': _locationResult.longitude,
-
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),
@@ -259,7 +266,6 @@ class _HomeState extends State<LocationPage> {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
         'latitude': currentlocation.latitude,
         'longitude': currentlocation.longitude,
-
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),

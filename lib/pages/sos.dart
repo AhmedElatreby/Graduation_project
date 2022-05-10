@@ -28,8 +28,8 @@ class _SosPageState extends State<SosPage> {
     super.initState();
     dbHelper = DBHelper();
     _requestPermission();
-    _getUserLongitude();
-    _getUserLatitude();
+    // _getUserLongitude();
+    // _getUserLatitude();
     number = recipients;
   }
 
@@ -119,53 +119,50 @@ class _SosPageState extends State<SosPage> {
             const SizedBox(
               height: 100,
             ),
+            Center(
+              child: GestureDetector(
+
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                        onPressed: () async { recipientList();
+                        var lat = await FirebaseFirestore.instance
+                            .collection('location')
+                            .doc('user1')
+                            .get();
+                        var location = lat.data()?.values;
+                        var longitude = location?.toList().last;
+                        var latitude = location?.toList().first;
+                        var userLoaction = "$latitude,$longitude";
+                        print("test user location $userLoaction");
+
+                        String message =
+                            "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
+                        sendMessageToContacts(recipients, message);
+                        print("on press");
+                        print(message);},
+                        style: ElevatedButton.styleFrom(
+                            fixedSize: const Size(150, 150),
+                            shape: const CircleBorder(),
+                            primary: Colors.blueAccent),
+                        child: const Text(
+                          'SMS',
+                          style: TextStyle(
+                            fontSize: 50,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+            ),
             GestureDetector(
               onTap: () {
                 AuthController.instance.logOut();
               },
               child: Center(
-                child: Column(
-                  children: [
-                    StreamBuilder<Object>(
-                        stream: FirebaseFirestore.instance
-                            .collection('location')
-                            .snapshots(),
-                        builder: (context, dynamic snapshot) {
-                          return ElevatedButton(
-                              onPressed: () async {
-                                recipientList();
-
-                                var lat = await FirebaseFirestore.instance
-                                    .collection('location')
-                                    .doc('user1')
-                                    .collection('latitude')
-                                    .get()
-                                    .toString();
-                                String message =
-                                    "I need help, please find me with the following link: https://maps.google.com/?q=$_getUserLatitude,$_getUserLongitude()";
-                                sendMessageToContacts(recipients, message);
-                                print("this is the lat test 1 $lat['latitude']");
-                                print("this is the lat test 2 $_getUserLatitude['latitude']");
-                                print("this is the lat test 3 $_getUserLatitude()['latitude']");
-                                print("this is the lat test 3 $_getUserLongitude");
-                                print("this is the lat test 3 $_getUserLongitude()");
-                                print(_getUserLongitude);
-                                print("SMS pressed!");
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  fixedSize: const Size(150, 150),
-                                  shape: const CircleBorder()),
-                              child: const Text(
-                                'SMS',
-                                style: TextStyle(
-                                  fontSize: 50,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ));
-                        }),
-                  ],
-                ),
+                child: Column(),
               ),
             ),
           ],
@@ -221,20 +218,20 @@ _launchPhoneURL(String recipients) async {
   }
 }
 
-Future<double> _getUserLatitude() async {
-  var lat1 = await FirebaseFirestore.instance
-      .collection('location')
-      .doc('user1')
-      .get();
-  print(lat1['latitude']);
-  return lat1['latitude'];
-}
+// Future<double> _getUserLatitude() async {
+//   var lat1 = await FirebaseFirestore.instance
+//       .collection('location')
+//       .doc('user1')
+//       .get();
+//   print(lat1['latitude']);
+//   return lat1['latitude'];
+// }
 
-Future<double> _getUserLongitude() async {
-  var long1 = await FirebaseFirestore.instance
-      .collection('location')
-      .doc('user1')
-      .get();
-  print(long1['longitude']);
-  return long1['longitude'];
-}
+// Future<double> _getUserLongitude() async {
+//   var long1 = await FirebaseFirestore.instance
+//       .collection('location')
+//       .doc('user1')
+//       .get();
+//   print(long1['longitude']);
+//   return long1['longitude'];
+// }
