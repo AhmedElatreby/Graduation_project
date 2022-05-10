@@ -1,22 +1,50 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:telephony/telephony.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../contact/personal_emergency_contacts_model.dart';
+import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
 
-class SosPage extends StatelessWidget {
-  SosPage({Key? key}) : super(key: key);
+class SosPage extends StatefulWidget {
+  const SosPage({Key? key}) : super(key: key);
 
-  _MapActivityState createState() => _MapActivityState();
-  List<String> recipents = ["+447562596358", "+447562596358"];
+  @override
+  _SosPageState createState() => _SosPageState();
+}
+
+class _SosPageState extends State<SosPage> {
+  final textController = TextEditingController();
+  late DBHelper dbHelper;
+  late List<String> recipients = [];
+  List<String> number = [];
+
+  @override
+  void initState() {
+    super.initState();
+    dbHelper = DBHelper();
+    _requestPermission();
+    // _getUserLongitude();
+    // _getUserLatitude();
+    number = recipients;
+  }
+
+  void setRecipientList() async {
+    List<PersonalEmergency> contacts;
+    contacts = await dbHelper.getContacts();
+    contacts.forEach((contact) {
+      recipients.add(contact.contactNo);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    CollectionReference location =
+        FirebaseFirestore.instance.collection('location');
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
@@ -40,7 +68,7 @@ class SosPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
                   image: const DecorationImage(
-                      image: AssetImage("assests/images/loginbtn.png"),
+                      image: AssetImage("assets/images/loginbtn.png"),
                       fit: BoxFit.cover),
                 ),
                 child: const Center(
@@ -67,12 +95,16 @@ class SosPage extends StatelessWidget {
                   Center(
                     child: ElevatedButton(
                         onPressed: () async {
-                          FlutterPhoneDirectCaller.callNumber('+447562596358');
+                          controller:
+                          textController;
+                          _callNumber(textController.text);
+                          _launchPhoneURL(textController.text);
+                          // FlutterPhoneDirectCaller.callNumber('+447562596358');
                         },
                         style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(150, 150),
-                          shape: const CircleBorder(),primary: Colors.red
-                        ),
+                            fixedSize: const Size(150, 150),
+                            shape: const CircleBorder(),
+                            primary: Colors.red),
                         child: const Text(
                           'SOS',
                           style: TextStyle(
@@ -87,22 +119,32 @@ class SosPage extends StatelessWidget {
             const SizedBox(
               height: 100,
             ),
-            GestureDetector(
-              onTap: () {
-                AuthController.instance.logOut();
-              },
-              child: Center(
+            Center(
+              child: GestureDetector(
+
                 child: Column(
                   children: [
                     ElevatedButton(
-                        onPressed: () async {
-                          String message = "This is a test message!";
-                          _sendSMS(message, recipents);
-                        },
+                        onPressed: () async { recipientList();
+                        var lat = await FirebaseFirestore.instance
+                            .collection('location')
+                            .doc('user1')
+                            .get();
+                        var location = lat.data()?.values;
+                        var longitude = location?.toList().last;
+                        var latitude = location?.toList().first;
+                        var userLoaction = "$latitude,$longitude";
+                        print("test user location $userLoaction");
+
+                        String message =
+                            "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
+                        sendMessageToContacts(recipients, message);
+                        print("on press");
+                        print(message);},
                         style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(150, 150),
-                          shape: const CircleBorder()
-                        ),
+                            fixedSize: const Size(150, 150),
+                            shape: const CircleBorder(),
+                            primary: Colors.blueAccent),
                         child: const Text(
                           'SMS',
                           style: TextStyle(
@@ -115,19 +157,81 @@ class SosPage extends StatelessWidget {
                 ),
               ),
             ),
+            GestureDetector(
+              onTap: () {
+                AuthController.instance.logOut();
+              },
+              child: Center(
+                child: Column(),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+
+  void recipientList() async {
+    List<PersonalEmergency> contacts;
+    contacts = await dbHelper.getContacts();
+    contacts.forEach((contact) {
+      recipients.add(contact.contactNo);
+    });
+  }
+
+  void sendMessageToContacts(List<String> recipients, String message) {
+    recipients.forEach((number) {
+      _sendSingleText(number, message);
+    });
+  }
 }
 
-class _MapActivityState {}
-
-void _sendSMS(String message, List<String> recipents, ) async {
-  String _result = await sendSMS(message: message, recipients: recipents)
-      .catchError((onError) {
-    print(onError);
-  });
-  print(_result);
+_requestPermission() async {
+  var status = await Permission.location.request();
+  if (status.isGranted) {
+    print('done');
+  } else if (status.isDenied) {
+    _requestPermission();
+  } else if (status.isPermanentlyDenied) {
+    openAppSettings();
+  }
 }
+
+void _sendSingleText(String number, String message) async {
+  final Telephony telephony = Telephony.instance;
+  bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+
+  telephony.sendSms(to: number, message: message);
+}
+
+_callNumber(String recipients) async {
+  String number = recipients;
+  await FlutterPhoneDirectCaller.callNumber(number);
+}
+
+_launchPhoneURL(String recipients) async {
+  String url = 'tel:' + recipients;
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    throw 'Could not launch $url';
+  }
+}
+
+// Future<double> _getUserLatitude() async {
+//   var lat1 = await FirebaseFirestore.instance
+//       .collection('location')
+//       .doc('user1')
+//       .get();
+//   print(lat1['latitude']);
+//   return lat1['latitude'];
+// }
+
+// Future<double> _getUserLongitude() async {
+//   var long1 = await FirebaseFirestore.instance
+//       .collection('location')
+//       .doc('user1')
+//       .get();
+//   print(long1['longitude']);
+//   return long1['longitude'];
+// }

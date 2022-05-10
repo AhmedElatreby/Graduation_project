@@ -5,13 +5,19 @@ import 'package:get/get.dart';
 import '../oauth/auth_controller.dart';
 
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
 
   @override
+  _SignUpPageState createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  var emailController = TextEditingController();
+  var passwordController = TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
-    var emailController = TextEditingController();
-    var passwordController = TextEditingController();
 
     List images =[
       "g.png",
@@ -31,7 +37,7 @@ class SignUpPage extends StatelessWidget {
               decoration: const BoxDecoration(
                 image: DecorationImage(
                     image: AssetImage(
-                        "assests/images/signup.png"
+                        "assets/images/signup.png"
                     ),
                     fit: BoxFit.cover
                 ),
@@ -45,7 +51,7 @@ class SignUpPage extends StatelessWidget {
                     backgroundColor: Colors.white38,
                     radius: 40,
                     backgroundImage: const AssetImage(
-                        "assests/images/profile1.png"
+                        "assets/images/profile1.png"
                     ),
                   ),
                 ],
@@ -158,7 +164,7 @@ class SignUpPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                   image: const DecorationImage(
                       image: AssetImage(
-                          "assests/images/loginbtn.png"
+                          "assets/images/loginbtn.png"
                       ),
                       fit: BoxFit.cover
                   ),
@@ -201,7 +207,7 @@ class SignUpPage extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 25,
                       backgroundImage: AssetImage(
-                          "assests/images/"+images[index]
+                          "assets/images/"+images[index]
                       ),
                     ),
                   ),

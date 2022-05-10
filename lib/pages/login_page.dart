@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
               height: 200,
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                    image: AssetImage("assests/images/loginimg.png"),
+                    image: AssetImage("assets/images/loginimg.png"),
                     fit: BoxFit.cover),
               ),
             ),
@@ -144,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
                   image: const DecorationImage(
-                      image: AssetImage("assests/images/loginbtn.png"),
+                      image: AssetImage("assets/images/loginbtn.png"),
                       fit: BoxFit.cover),
                 ),
                 child: const Center(
@@ -177,7 +177,7 @@ class _LoginPageState extends State<LoginPage> {
                           fontSize: 20,
                           fontWeight: FontWeight.bold),
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => Get.to(() => const SignUpPage()))
+                        ..onTap = () => Get.to(() => SignUpPage()))
                 ]))
           ],
         ),

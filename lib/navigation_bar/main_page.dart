@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:safetyproject/contact/contact_page.dart';
+import 'package:http/http.dart';
+import 'package:safetyproject/contact/personal_emergency_contacts.dart';
 import 'package:safetyproject/location/googlemap_page.dart';
 import 'package:safetyproject/pages/sos.dart';
 
-import '../contact/list.dart';
 import '../pages/location_page.dart';
 
 class NavBarPage extends StatefulWidget {
@@ -19,9 +19,9 @@ class _NavBarPageState extends State<NavBarPage> {
   _MapActivityState createState() => _MapActivityState();
 
   final screens = [
-    const LocationPage(),
+    LocationPage(),
     SosPage(),
-    const ListScreen(),
+    const PersonalEmergencyContacts(deleteFunction: delete),
     GoogleMapPage(),
   ];
 
