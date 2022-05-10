@@ -105,8 +105,15 @@ class _HomeState extends State<LocationPage> {
             child: GestureDetector(
               onLongPressUp: () async {
                 recipientList();
+
+                  var lat = await FirebaseFirestore.instance
+                      .collection('location')
+                      .doc('user1')
+                      .get();
+                  print(lat.data()?.values);
+
                 String message =
-                    "I need help, please find me with the following link: https://maps.google.com/?q=$_getUserLatitude,$_getUserLongitude";
+                    "I need help, please find me with the following link: https://maps.google.com/?q=${lat.data()?.values}";
                 sendMessageToContacts(recipients, message);
                 print("on long press up!");
               },
@@ -157,8 +164,7 @@ class _HomeState extends State<LocationPage> {
                   itemCount: snapshot.data?.docs.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      title:
-                          Text(snapshot.data!.docs[index]['name'].toString()),
+
                       subtitle: Row(
                         children: [
                           Text(snapshot.data!.docs[index]['latitude']
@@ -189,13 +195,14 @@ class _HomeState extends State<LocationPage> {
     );
   }
 
-  _getUserLatitude() async {
-    var lat1 = await FirebaseFirestore.instance
+  _getUserLocation() async {
+    var lat = await FirebaseFirestore.instance
         .collection('location')
         .doc('user1')
         .get();
-    print(lat1['latitude']);
+    print(lat.data()?.values);
   }
+
 
   _getUserLongitude() async {
     var lat1 = await FirebaseFirestore.instance
@@ -205,7 +212,7 @@ class _HomeState extends State<LocationPage> {
     print(lat1['longitude']);
   }
 
-  var _lat = '';
+
   _getUserLocationFromFirebase() {
     FirebaseFirestore.instance
         .collection('location')
@@ -213,7 +220,7 @@ class _HomeState extends State<LocationPage> {
         .get()
         .then((value) {
       setState(() {});
-      print('This is a test location page $_lat');
+
     });
   }
 
@@ -223,7 +230,7 @@ class _HomeState extends State<LocationPage> {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
         'latitude': _locationResult.latitude,
         'longitude': _locationResult.longitude,
-        'name': 'PersonalEmergencyContacts'
+
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),
@@ -244,7 +251,7 @@ class _HomeState extends State<LocationPage> {
       await FirebaseFirestore.instance.collection('location').doc('user1').set({
         'latitude': currentlocation.latitude,
         'longitude': currentlocation.longitude,
-        'name': 'PersonalEmergencyContacts'
+
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(
           const Duration(milliseconds: 10000),
