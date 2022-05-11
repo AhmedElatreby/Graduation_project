@@ -63,36 +63,9 @@ class _HomeState extends State<LocationPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+
           const SizedBox(
-            height: 20,
-          ),
-          GestureDetector(
-            onTap: () {
-              AuthController.instance.logOut();
-            },
-            child: Container(
-              width: width * 0.2,
-              height: height * 0.05,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                image: const DecorationImage(
-                    image: AssetImage("assets/images/loginbtn.png"),
-                    fit: BoxFit.cover),
-              ),
-              child: const Center(
-                child: Text(
-                  "Sign out",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(
-            height: 20,
+            height: 40,
           ),
           Center(
             child: ElevatedButton(
@@ -100,8 +73,20 @@ class _HomeState extends State<LocationPage> {
                 AudioCache player = AudioCache(prefix: 'assets/');
                 player.play('alarm.mp3');
               },
-              child: const Text('Alarm'),
+              child: const Text('Alarm',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  )),
+              style: ElevatedButton.styleFrom(
+                  fixedSize: const Size(80, 80),
+                  shape: const CircleBorder(),
+                  primary: Colors.yellow),
             ),
+          ),
+          const SizedBox(
+            height: 30,
           ),
           Center(
             child: GestureDetector(
@@ -117,7 +102,6 @@ class _HomeState extends State<LocationPage> {
                 var userLoaction = "$latitude,$longitude";
                 print("test user location $userLoaction");
 
-
                 String message =
                     "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
                 sendMessageToContacts(recipients, message);
@@ -131,11 +115,12 @@ class _HomeState extends State<LocationPage> {
                       style: ElevatedButton.styleFrom(
                           fixedSize: const Size(150, 150),
                           shape: const CircleBorder(),
-                          primary: Colors.redAccent),
+                          primary: Colors.deepOrange.shade800),
                       child: const Text(
-                        'SMS',
+                        'Stay with me',
                         style: TextStyle(
-                          fontSize: 50,
+                          fontSize: 20,
+
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -144,21 +129,60 @@ class _HomeState extends State<LocationPage> {
               ),
             ),
           ),
-          TextButton(
-              onPressed: () {
-                _addLocation();
-              },
-              child: Text('add my location')),
-          TextButton(
-              onPressed: () {
-                _listenLocation();
-              },
-              child: Text('enable live location')),
-          TextButton(
-              onPressed: () {
-                _stopListening();
-              },
-              child: Text('stop live location')),
+          const SizedBox(
+            height: 30,
+          ),
+          Center(
+            child: GestureDetector(
+              child: Column(
+                children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        recipientList();
+                        String message =
+                            "Please ignore my last message. I'm safe now!";
+                        sendMessageToContacts(recipients, message);
+                        print("on long press up!");
+                        print(message);
+                      },
+                      style: ElevatedButton.styleFrom(
+                          fixedSize: const Size(80, 80),
+                          shape: const CircleBorder(),
+                          primary: Colors.green),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(6.0),
+            child: Column(
+              children: [
+                TextButton(
+                    onPressed: () {
+                      _addLocation();
+                    },
+                    child: Text('add my location')),
+                TextButton(
+                    onPressed: () {
+                      _listenLocation();
+                    },
+                    child: Text('enable live location')),
+                TextButton(
+                    onPressed: () {
+                      _stopListening();
+                    },
+                    child: Text('stop live location')),
+              ],
+            ),
+          ),
           Expanded(
             child: StreamBuilder(
               stream:
@@ -201,35 +225,6 @@ class _HomeState extends State<LocationPage> {
     );
   }
 
-
-  // _getUserLocation() async {
-  //   var lat = await FirebaseFirestore.instance
-  //       .collection('location')
-  //       .doc('user1')
-  //       .get();
-  //   var location = lat.data()?.values;
-  //   var longitude = location?.toList().last;
-  //   var latitude = location?.toList().first;
-  //   var userLoaction = "$latitude,$longitude";
-  //   print("test user location $userLoaction");
-  // }
-
-  // _getUserLocation() async {
-  //   var lat = await FirebaseFirestore.instance
-  //       .collection('location')
-  //       .doc('user1')
-  //       .get();
-  //   print(lat.data()?.values);
-  // }
-
-  _getUserLongitude() async {
-    var lat1 = await FirebaseFirestore.instance
-        .collection('location')
-        .doc('user1')
-        .get();
-    print(lat1['longitude']);
-  }
-
   _getUserLocationFromFirebase() {
     FirebaseFirestore.instance
         .collection('location')
@@ -247,8 +242,7 @@ class _HomeState extends State<LocationPage> {
         'latitude': _locationResult.latitude,
         'longitude': _locationResult.longitude,
       }, SetOptions(merge: true));
-      _locationSubscription?.pause(Future.delayed(
-          const Duration(milliseconds: 10000),
+      _locationSubscription?.pause(Future.delayed(const Duration(seconds: 10),
           () => {_locationSubscription?.resume()}));
     } catch (e) {
       print(e);
@@ -267,8 +261,7 @@ class _HomeState extends State<LocationPage> {
         'latitude': currentlocation.latitude,
         'longitude': currentlocation.longitude,
       }, SetOptions(merge: true));
-      _locationSubscription?.pause(Future.delayed(
-          const Duration(milliseconds: 10000),
+      _locationSubscription?.pause(Future.delayed(const Duration(seconds: 10),
           () => {_locationSubscription?.resume()}));
     });
   }

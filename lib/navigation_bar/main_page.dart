@@ -41,7 +41,7 @@ class _NavBarPageState extends State<NavBarPage> {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Colors.black54,
-        unselectedItemColor: Colors.grey.withOpacity(0.5),
+        unselectedItemColor: Colors.grey.withOpacity(0.7),
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
@@ -49,12 +49,12 @@ class _NavBarPageState extends State<NavBarPage> {
         currentIndex: currentIndex,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.emergency),
             label: 'Home',
             // backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.emergency),
+            icon: Icon(Icons.home),
             label: 'SOS',
             // backgroundColor: Colors.grey,
           ),

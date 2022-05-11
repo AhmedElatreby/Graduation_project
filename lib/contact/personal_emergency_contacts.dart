@@ -31,6 +31,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
 
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
+  final TextEditingController _textFieldController3 = TextEditingController();
 
   void getInitial(String name) {
     var nameParts = name.split(" ");
@@ -42,8 +43,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     }
   }
 
-  void _addContact(String name, String no) {
-    dbHelper.add(PersonalEmergency(name, no));
+  void _addContact(String name, String no ) {
+    dbHelper.add(PersonalEmergency(name, no ));
     _textFieldController1.clear();
     _textFieldController2.clear();
   }
@@ -151,26 +152,28 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
             content: SizedBox(
                 width: 300,
                 height: 200,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _textFieldController1,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: "Enter Contact Name",
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _textFieldController1,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Enter Contact Name",
+                        ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    TextFormField(
-                      controller: _textFieldController2,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: "Enter Phone No.",
+                      const SizedBox(
+                        height: 20,
                       ),
-                    ),
-                  ],
+                      TextFormField(
+                        controller: _textFieldController2,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Enter Phone No.",
+                        ),
+                      ),
+                    ],
+                  ),
                 )),
             actions: <Widget>[
               TextButton(

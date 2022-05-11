@@ -14,6 +14,5 @@ class PersonalEmergency {
     id = map['id'];
     name = map['name'];
     contactNo = map['contactNo'];
-
   }
 }
