@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 
 import '../oauth/auth_controller.dart';
 
-
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
 
@@ -18,8 +17,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-
-    List images =[
+    List images = [
       "g.png",
       "t.png",
       "f.png",
@@ -33,26 +31,21 @@ class _SignUpPageState extends State<SignUpPage> {
           children: [
             Container(
               width: width,
-              height: height*0.25,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage(
-                        "assets/images/signup.png"
-                    ),
-                    fit: BoxFit.cover
-                ),
+              height: height * 0.25,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: Colors.cyan.shade400,
               ),
               child: Column(
                 children: [
                   SizedBox(
-                    height: height*0.10,
+                    height: height * 0.10,
                   ),
                   const CircleAvatar(
                     backgroundColor: Colors.white38,
-                    radius: 40,
-                    backgroundImage: const AssetImage(
-                        "assets/images/profile1.png"
-                    ),
+                    radius: 25,
+                    backgroundImage:
+                        const AssetImage("assets/images/owl-64.png"),
                   ),
                 ],
               ),
@@ -63,140 +56,139 @@ class _SignUpPageState extends State<SignUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 30,),
+                  const SizedBox(
+                    height: 30,
+                  ),
                   const Text(
                     "Create an account",
                     style: TextStyle(fontSize: 20, color: Colors.grey),
                   ),
-                  const SizedBox(height: 30,),
+                  const SizedBox(
+                    height: 30,
+                  ),
                   Container(
                     decoration: BoxDecoration(
-                        color:Colors.white,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
                               blurRadius: 10,
                               spreadRadius: 6,
                               offset: const Offset(1, 1),
-                              color: Colors.grey.withOpacity(0.2)
-                          ),
-                        ]
-                    ),
+                              color: Colors.grey.withOpacity(0.2)),
+                        ]),
                     child: TextFormField(
                       controller: emailController,
                       decoration: InputDecoration(
                         hintText: "Email",
-                        prefixIcon: const Icon(Icons.email, color:Colors.deepOrangeAccent),
+                        prefixIcon: const Icon(Icons.email, color: Colors.cyan),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
                               color: Colors.white,
                               width: 1.0,
-                            )
-                        ),
+                            )),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
-                                color: Colors.white,
-                                width: 1.0
-                            )
-                        ),
-
+                                color: Colors.white, width: 1.0)),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30)
-                        ),
+                            borderRadius: BorderRadius.circular(30)),
                       ),
                     ),
                   ),
-                  const SizedBox(height:10),
+                  const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                        color:Colors.white,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
                               blurRadius: 10,
                               spreadRadius: 7,
                               offset: const Offset(1, 1),
-                              color: Colors.grey.withOpacity(0.1)
-                          ),
-                        ]
-                    ),
+                              color: Colors.grey.withOpacity(0.1)),
+                        ]),
                     child: TextFormField(
                       obscureText: true,
                       controller: passwordController,
                       decoration: InputDecoration(
                         hintText: "Password",
-                        prefixIcon: const Icon(Icons.password, color:Colors.deepOrangeAccent),
+                        prefixIcon: const Icon(
+                          Icons.password,
+                          color: Colors.cyan,
+                        ),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
                               color: Colors.white,
                               width: 1.0,
-                            )
-                        ),
+                            )),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
-                                color: Colors.white,
-                                width: 1.0
-                            )
-                        ),
+                                color: Colors.white, width: 1.0)),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30)
-                        ),
+                            borderRadius: BorderRadius.circular(30)),
                       ),
                     ),
                   ),
-                  const SizedBox(height:10),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
-            SizedBox(height:width*0.06,),
+            SizedBox(
+              height: width * 0.06,
+            ),
             GestureDetector(
-              onTap: (){
-                AuthController.instance.register(emailController.text.trim(), passwordController.text.trim());
+              onTap: () {
+                AuthController.instance.register(emailController.text.trim(),
+                    passwordController.text.trim());
               },
               child: Container(
-                width: width*0.4,
-                height: height*0.07,
+                width: width * 0.4,
+                height: height * 0.06,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  image: const DecorationImage(
-                      image: AssetImage(
-                          "assets/images/loginbtn.png"
-                      ),
-                      fit: BoxFit.cover
-                  ),
+                  color: Colors.cyan.shade400,
                 ),
                 child: const Center(
                   child: Text(
                     "Sign up",
                     style: TextStyle(
-                      fontSize:30,
+                      fontSize: 25,
                       fontWeight: FontWeight.bold,
-                      color:Colors.white,
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 10,),
-            RichText(text: TextSpan(
-              recognizer: TapGestureRecognizer()..onTap=()=>Get.back(),
-              text:"Have an account",
-              style: const TextStyle(
-                fontSize: 20,
-                color:Colors.grey,
+            const SizedBox(
+              height: 10,
+            ),
+            RichText(
+              text: TextSpan(
+                recognizer: TapGestureRecognizer()..onTap = () => Get.back(),
+                text: "Have an account",
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: Colors.grey,
+                ),
               ),
-            ),),
-            SizedBox(height: width*0.08,),
-            RichText(text: const TextSpan(text:"Sign up using one of the following methods",
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
+            ),
+            SizedBox(
+              height: width * 0.08,
+            ),
+            RichText(
+              text: const TextSpan(
+                text: "Sign up using one of the following methods",
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
               ),
-            ),),
+            ),
             Wrap(
               children: List<Widget>.generate(3, (index) {
                 return Padding(
@@ -206,9 +198,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     backgroundColor: Colors.white38,
                     child: CircleAvatar(
                       radius: 25,
-                      backgroundImage: AssetImage(
-                          "assets/images/"+images[index]
-                      ),
+                      backgroundImage:
+                          AssetImage("assets/images/" + images[index]),
                     ),
                   ),
                 );
@@ -220,4 +211,3 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 }
-

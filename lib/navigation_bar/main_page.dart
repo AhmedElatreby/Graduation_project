@@ -40,7 +40,7 @@ class _NavBarPageState extends State<NavBarPage> {
         onTap: onTap,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: Colors.black54,
+        selectedItemColor: Colors.cyan,
         unselectedItemColor: Colors.grey.withOpacity(0.7),
         showSelectedLabels: false,
         showUnselectedLabels: false,

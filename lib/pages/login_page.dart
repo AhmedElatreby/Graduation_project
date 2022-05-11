@@ -19,17 +19,34 @@ class _LoginPageState extends State<LoginPage> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
+
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
+
         child: Column(
           children: [
             Container(
               width: width,
-              height: 200,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage("assets/images/loginimg.png"),
-                    fit: BoxFit.cover),
+              height: height*0.25,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: Colors.cyan.shade400,
+              ),
+
+
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: height*0.10,
+                  ),
+                  const CircleAvatar(
+                    backgroundColor: Colors.white38,
+                    radius: 25,
+                    backgroundImage: const AssetImage(
+                        "assets/images/owl-64.png"
+                    ),
+                  ),
+                ],
               ),
             ),
             Container(
@@ -40,7 +57,11 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const Text(
                     "Hello",
-                    style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 50,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
                   ),
                   const Text(
                     "Sign into your account",
@@ -65,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                       decoration: InputDecoration(
                         hintText: "Email",
                         prefixIcon: const Icon(Icons.email,
-                            color: Colors.deepOrangeAccent),
+                            color: Colors.cyan),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
@@ -99,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                       decoration: InputDecoration(
                         hintText: "Password",
                         prefixIcon: const Icon(Icons.password_outlined,
-                            color: Colors.deepOrangeAccent),
+                            color: Colors.cyan),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
@@ -135,23 +156,22 @@ class _LoginPageState extends State<LoginPage> {
             ),
             GestureDetector(
               onTap: () {
-                AuthController.instance.login(
-                    emailController.text.trim(), passwordController.text.trim());
+                AuthController.instance.login(emailController.text.trim(),
+                    passwordController.text.trim());
               },
               child: Container(
                 width: width * 0.4,
                 height: height * 0.06,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  image: const DecorationImage(
-                      image: AssetImage("assets/images/loginbtn.png"),
-                      fit: BoxFit.cover),
+                  color: Colors.cyan.shade400,
+
                 ),
                 child: const Center(
                   child: Text(
                     "Sign in",
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 25,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),

@@ -115,7 +115,7 @@ class _HomeState extends State<LocationPage> {
                       style: ElevatedButton.styleFrom(
                           fixedSize: const Size(150, 150),
                           shape: const CircleBorder(),
-                          primary: Colors.deepOrange.shade800),
+                          primary: Colors.cyan),
                       child: const Text(
                         'Stay with me',
                         style: TextStyle(

@@ -67,9 +67,7 @@ class _SosPageState extends State<SosPage> {
                 height: height * 0.05,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  image: const DecorationImage(
-                      image: AssetImage("assets/images/loginbtn1.png"),
-                      fit: BoxFit.cover),
+                  color: Colors.cyan
                 ),
                 child: const Center(
                   child: Text(
@@ -97,9 +95,9 @@ class _SosPageState extends State<SosPage> {
                         onPressed: () async {
                           controller:
                           textController;
-                          _callNumber(textController.text);
-                          _launchPhoneURL(textController.text);
-                          // FlutterPhoneDirectCaller.callNumber('+447562596358');
+                          // _callNumber(textController.text);
+                          // _launchPhoneURL(textController.text);
+                          FlutterPhoneDirectCaller.callNumber('+447562596358');
                         },
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
@@ -144,7 +142,7 @@ class _SosPageState extends State<SosPage> {
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
                             shape: const CircleBorder(),
-                            primary: Colors.blueAccent),
+                            primary: Colors.cyan),
                         child: const Text(
                           'SMS',
                           style: TextStyle(
