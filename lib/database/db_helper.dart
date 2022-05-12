@@ -24,17 +24,18 @@ class DBHelper {
 
   _onCreate(Database db, int version) async {
     await db.execute(
-        'CREATE TABLE contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, contactNo TEXT)');
+        'CREATE TABLE contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, contactNo TEXT, primaryContact BOOLEAN)');
   }
 
   Future<PersonalEmergency> add(PersonalEmergency contacts) async {
     var dbClient = await db;
     var name = contacts.name;
     var contactNo = contacts.contactNo;
+    var primaryContact = contacts.primaryContact;
     dbClient.rawInsert(
-        "INSERT into contacts(name,contactNo)"
-        "VALUES(?, ?)",
-        [name, contactNo]);
+        "INSERT into contacts(name,contactNo,primaryContact)"
+        "VALUES(?, ?, ?)",
+        [name, contactNo, primaryContact]);
     return contacts;
   }
 

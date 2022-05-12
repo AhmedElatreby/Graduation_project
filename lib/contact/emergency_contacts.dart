@@ -1,5 +1,5 @@
 class EmergencyContacts {
-  final String initials, name, contactNo;
+  final String initials, name, contactNo, primaryContact;
 
-  EmergencyContacts(this.initials, this.name, this.contactNo);
+  EmergencyContacts(this.initials, this.name, this.contactNo, this.primaryContact);
 }

@@ -31,7 +31,9 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
 
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
-  final TextEditingController _textFieldController3 = TextEditingController();
+
+
+   bool isChecked = false;
 
   void getInitial(String name) {
     var nameParts = name.split(" ");
@@ -43,8 +45,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     }
   }
 
-  void _addContact(String name, String no ) {
-    dbHelper.add(PersonalEmergency(name, no ));
+  void _addContact(String name, String no, bool primaryContact) {
+    dbHelper.add(PersonalEmergency(name, no, primaryContact));
     _textFieldController1.clear();
     _textFieldController2.clear();
   }
@@ -67,6 +69,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     cl.emergencyContactsInitials = [];
     cl.emergencyContactsNo = [];
     cl.emergencyContactsId = [];
+    cl.primaryContact= [];
   }
 
   void getData(List<PersonalEmergency> contacts) {
@@ -183,11 +186,19 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
               TextButton(
                 onPressed: () => {
                   _addContact(
-                      _textFieldController1.text, _textFieldController2.text),
+                      _textFieldController1.text, _textFieldController2.text, isChecked),
                   Navigator.pop(context, 'Add'),
                   refreshContacts()
                 },
                 child: const Text('Add'),
+              ),
+              Checkbox(
+                value: isChecked,
+                onChanged: (bool? value) {
+                  setState(() {
+                    isChecked = value!;
+                  });
+                },
               ),
             ],
           ),
