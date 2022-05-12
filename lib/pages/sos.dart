@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../contact/contact_list.dart';
 import '../contact/personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
 import '../oauth/auth_controller.dart';
@@ -22,6 +23,28 @@ class _SosPageState extends State<SosPage> {
   late DBHelper dbHelper;
   late List<String> recipients = [];
   List<String> number = [];
+
+  final ContactList cl = ContactList();
+
+  void getData(List<PersonalEmergency> contacts) {
+    contacts.forEach((contact) {
+      print(contact.contactNo);
+      getInitial(contact.name.toString());
+      cl.emergencyContactsName.add(contact.name.toString());
+      cl.emergencyContactsNo.add(contact.contactNo.toString());
+      cl.emergencyContactsId.add(contact.id);
+    });
+  }
+
+  void getInitial(String name) {
+    var nameParts = name.split(" ");
+    if (nameParts.length > 1) {
+      cl.emergencyContactsInitials
+          .add(nameParts[0][0].toUpperCase() + nameParts[0][0].toUpperCase());
+    } else {
+      cl.emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
+    }
+  }
 
   @override
   void initState() {
@@ -95,9 +118,10 @@ class _SosPageState extends State<SosPage> {
                         onPressed: () async {
                           controller:
                           textController;
+                          List<PersonalEmergency> contacts = await dbHelper.getContacts();
                           // _callNumber(textController.text);
                           // _launchPhoneURL(textController.text);
-                          FlutterPhoneDirectCaller.callNumber('+447562596358');
+                          FlutterPhoneDirectCaller.callNumber(contacts.toList()[0].contactNo);
                         },
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
