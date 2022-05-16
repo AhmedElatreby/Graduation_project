@@ -75,6 +75,8 @@ class _SosPageState extends State<SosPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('SOS'),
+        backgroundColor: Colors.cyan,
+
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -204,8 +206,11 @@ class _SosPageState extends State<SosPage> {
             ),
           ],
         ),
+
       ),
+
     );
+
   }
 
   void recipientList() async {
@@ -241,34 +246,5 @@ void _sendSingleText(String number, String message) async {
   telephony.sendSms(to: number, message: message);
 }
 
-_callNumber(String recipients) async {
-  String number = recipients;
-  await FlutterPhoneDirectCaller.callNumber(number);
-}
 
-_launchPhoneURL(String recipients) async {
-  String url = 'tel:' + recipients;
-  if (await canLaunch(url)) {
-    await launch(url);
-  } else {
-    throw 'Could not launch $url';
-  }
-}
 
-// Future<double> _getUserLatitude() async {
-//   var lat1 = await FirebaseFirestore.instance
-//       .collection('location')
-//       .doc('user1')
-//       .get();
-//   print(lat1['latitude']);
-//   return lat1['latitude'];
-// }
-
-// Future<double> _getUserLongitude() async {
-//   var long1 = await FirebaseFirestore.instance
-//       .collection('location')
-//       .doc('user1')
-//       .get();
-//   print(long1['longitude']);
-//   return long1['longitude'];
-// }

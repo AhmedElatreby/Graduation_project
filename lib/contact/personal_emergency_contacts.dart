@@ -122,11 +122,13 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                               dense: true,
                               trailing: GestureDetector(
                                 child: const Icon(
-                                  Icons.delete,
-                                  color: Colors.grey,
+                                  Icons.delete_forever,
+                                  size: 40.0,
+                                  color: Colors.cyan,
                                 ),
                                 onTap: () async {
-                                  deleteFunction(cl.emergencyContactsId[index]);
+                                  _showDialog(context, [index]);
+
                                 },
                               ),
                               leading: CircleAvatar(
@@ -197,4 +199,33 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
       ),
     );
   }
-}
+  _showDialog(BuildContext context, index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context, [index]) {
+        return Expanded(
+          child: AlertDialog(
+            title: Text('Delete Emergency Contact'),
+            content: Text('Are you sure you want to delete contact?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  deleteFunction(cl.emergencyContactsId[index]);
+                },
+                child: Text('YES',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('NO', style: TextStyle(color: Colors.black),),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  }

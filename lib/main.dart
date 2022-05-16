@@ -27,13 +27,14 @@ Future initialization(BuildContext? context) async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  // This widget is the root of the application.
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Safety App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.cyan,
+        iconTheme: IconThemeData(color: Colors.grey.shade600),
       ),
       debugShowCheckedModeBanner: false,
       home:  LoginPage(),
