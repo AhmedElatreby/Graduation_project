@@ -89,9 +89,8 @@ class _SosPageState extends State<SosPage> {
                 width: width * 0.2,
                 height: height * 0.05,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  color: Colors.cyan
-                ),
+                    borderRadius: BorderRadius.circular(30),
+                    color: Colors.cyan),
                 child: const Center(
                   child: Text(
                     "Sign out",
@@ -116,12 +115,19 @@ class _SosPageState extends State<SosPage> {
                   Center(
                     child: ElevatedButton(
                         onPressed: () async {
-                          controller:
                           textController;
-                          List<PersonalEmergency> contacts = await dbHelper.getContacts();
-                          // _callNumber(textController.text);
-                          // _launchPhoneURL(textController.text);
-                          FlutterPhoneDirectCaller.callNumber(contacts.toList()[0].contactNo);
+                          List<PersonalEmergency> contacts =
+                              await dbHelper.getContacts();
+                          FlutterPhoneDirectCaller.callNumber(
+                              contacts.toList()[0].contactNo);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'You are calling your emergency contact',
+                              ),
+                              backgroundColor: Colors.lightBlue.shade900,
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
@@ -143,26 +149,35 @@ class _SosPageState extends State<SosPage> {
             ),
             Center(
               child: GestureDetector(
-
                 child: Column(
                   children: [
                     ElevatedButton(
-                        onPressed: () async { recipientList();
-                        var lat = await FirebaseFirestore.instance
-                            .collection('location')
-                            .doc('user1')
-                            .get();
-                        var location = lat.data()?.values;
-                        var longitude = location?.toList().last;
-                        var latitude = location?.toList().first;
-                        var userLoaction = "$latitude,$longitude";
-                        print("test user location $userLoaction");
+                        onPressed: () async {
+                          recipientList();
+                          var lat = await FirebaseFirestore.instance
+                              .collection('location')
+                              .doc('user1')
+                              .get();
+                          var location = lat.data()?.values;
+                          var longitude = location?.toList().last;
+                          var latitude = location?.toList().first;
+                          var userLoaction = "$latitude,$longitude";
+                          print("test user location $userLoaction");
 
-                        String message =
-                            "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-                        sendMessageToContacts(recipients, message);
-                        print("on press");
-                        print(message);},
+                          String message =
+                              "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
+                          sendMessageToContacts(recipients, message);
+                          print("on press");
+                          print(message);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'A message sent to your emergency contact',
+                              ),
+                              backgroundColor: Colors.lightBlue.shade900,
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
                             shape: const CircleBorder(),
