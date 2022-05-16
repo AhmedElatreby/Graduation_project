@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:sqflite/sqflite.dart';
 import '../database/db_helper.dart';
 import './personal_emergency_contacts_model.dart';
@@ -8,17 +9,14 @@ import './contact_list.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class PersonalEmergencyContacts extends StatefulWidget {
-
   final Function deleteFunction;
 
-  const PersonalEmergencyContacts({ required this.deleteFunction, Key? key})
+  const PersonalEmergencyContacts({required this.deleteFunction, Key? key})
       : super(key: key);
-
 
   @override
   _PersonalEmergencyContactsState createState() =>
       _PersonalEmergencyContactsState();
-
 }
 
 class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
@@ -43,8 +41,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     }
   }
 
-  void _addContact(String name, String no ) {
-    dbHelper.add(PersonalEmergency(name, no ));
+  void _addContact(String name, String no) {
+    dbHelper.add(PersonalEmergency(name, no));
     _textFieldController1.clear();
     _textFieldController2.clear();
   }
@@ -127,8 +125,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                   color: Colors.cyan,
                                 ),
                                 onTap: () async {
-                                  _showDialog(context, [index]);
-
+                                  deleteFunction(cl.emergencyContactsId[index]);
                                 },
                               ),
                               leading: CircleAvatar(
@@ -199,33 +196,4 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
       ),
     );
   }
-  _showDialog(BuildContext context, index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context, [index]) {
-        return Expanded(
-          child: AlertDialog(
-            title: Text('Delete Emergency Contact'),
-            content: Text('Are you sure you want to delete contact?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  deleteFunction(cl.emergencyContactsId[index]);
-                },
-                child: Text('YES',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('NO', style: TextStyle(color: Colors.black),),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-  }
+}
