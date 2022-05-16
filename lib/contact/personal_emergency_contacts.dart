@@ -97,7 +97,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
             } else {
               getData(snapshot.data);
               return Scaffold(
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.grey.shade100,
                 appBar: AppBar(
                   title: const Text('Emergency Contacts'),
                 ),

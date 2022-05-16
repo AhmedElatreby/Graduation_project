@@ -72,7 +72,7 @@ class _SosPageState extends State<SosPage> {
     double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: const Text('SOS'),
         backgroundColor: Colors.cyan,
