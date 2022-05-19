@@ -72,6 +72,14 @@ class _HomeState extends State<LocationPage> {
               onPressed: () {
                 AudioCache player = AudioCache(prefix: 'assets/');
                 player.play('alarm.mp3');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Alarm activated! Police been informed and on their way.',
+                    ),
+                    backgroundColor: Colors.red.shade600,
+                  ),
+                );
               },
               child: const Text('Alarm',
                   style: TextStyle(
