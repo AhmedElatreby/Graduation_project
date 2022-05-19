@@ -113,8 +113,16 @@ class _HomeState extends State<LocationPage> {
                 String message =
                     "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
                 sendMessageToContacts(recipients, message);
-                print("on long press up!");
+
                 print(message);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'A message sent to your emergency contact with your location',
+                    ),
+                    backgroundColor: Colors.red.shade600,
+                  ),
+                );
               },
               child: Column(
                 children: [
@@ -125,10 +133,9 @@ class _HomeState extends State<LocationPage> {
                           shape: const CircleBorder(),
                           primary: Colors.cyan),
                       child: const Text(
-                        'Stay with me',
+                        'Long press release',
                         style: TextStyle(
                           fontSize: 20,
-
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -152,6 +159,15 @@ class _HomeState extends State<LocationPage> {
                         sendMessageToContacts(recipients, message);
                         print("on long press up!");
                         print(message);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'A message sent to your contact',
+                            ),
+                            backgroundColor: Colors.green.shade600,
+                          ),
+                        );
+
                       },
                       style: ElevatedButton.styleFrom(
                           fixedSize: const Size(80, 80),
@@ -176,16 +192,42 @@ class _HomeState extends State<LocationPage> {
                 TextButton(
                     onPressed: () {
                       _addLocation();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Your location added to the database',
+                          ),
+                          backgroundColor: Colors.red.shade600,
+                        ),
+                      );
                     },
                     child: Text('add my location')),
                 TextButton(
                     onPressed: () {
                       _listenLocation();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Your location enabled on the database',
+                          ),
+                          backgroundColor: Colors.red.shade600,
+                        ),
+                      );
+
                     },
                     child: Text('enable live location')),
                 TextButton(
                     onPressed: () {
                       _stopListening();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Your  stopped sharing your location',
+                          ),
+                          backgroundColor: Colors.red.shade600,
+                        ),
+                      );
+
                     },
                     child: Text('stop live location')),
               ],

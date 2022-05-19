@@ -127,7 +127,7 @@ class _SosPageState extends State<SosPage> {
                               content: Text(
                                 'You are calling your emergency contact',
                               ),
-                              backgroundColor: Colors.lightBlue.shade900,
+                              backgroundColor: Colors.red.shade600,
                             ),
                           );
                         },
@@ -176,7 +176,7 @@ class _SosPageState extends State<SosPage> {
                               content: Text(
                                 'A message sent to your emergency contact',
                               ),
-                              backgroundColor: Colors.lightBlue.shade900,
+                              backgroundColor: Colors.red.shade600,
                             ),
                           );
                         },

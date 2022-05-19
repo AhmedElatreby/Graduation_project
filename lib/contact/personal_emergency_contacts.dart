@@ -125,7 +125,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
                                   color: Colors.cyan,
                                 ),
                                 onTap: () async {
-                                  deleteFunction(cl.emergencyContactsId[index]);
+                                  _showMyDialog(index);
+                                  //
                                 },
                               ),
                               leading: CircleAvatar(
@@ -196,4 +197,38 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
       ),
     );
   }
+  Future<void> _showMyDialog(var id) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Contact'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to delete contact: ${cl.emergencyContactsName[id]}?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Yes'),
+              onPressed: () {
+                deleteFunction(cl.emergencyContactsId[id]);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
+
