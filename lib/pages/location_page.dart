@@ -99,30 +99,7 @@ class _HomeState extends State<LocationPage> {
           Center(
             child: GestureDetector(
               onLongPressUp: () async {
-                recipientList();
-                var lat = await FirebaseFirestore.instance
-                    .collection('location')
-                    .doc('user1')
-                    .get();
-                var location = lat.data()?.values;
-                var longitude = location?.toList().last;
-                var latitude = location?.toList().first;
-                var userLoaction = "$latitude,$longitude";
-                print("test user location $userLoaction");
-
-                String message =
-                    "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-                sendMessageToContacts(recipients, message);
-
-                print(message);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'A message sent to your emergency contact with your location',
-                    ),
-                    backgroundColor: Colors.red.shade600,
-                  ),
-                );
+                _handleAllMethodsIfNoContacts(_sendEmergencyMessageOnLongPress);
               },
               child: Column(
                 children: [
@@ -153,21 +130,7 @@ class _HomeState extends State<LocationPage> {
                 children: [
                   ElevatedButton(
                       onPressed: () {
-                        recipientList();
-                        String message =
-                            "Please ignore my last message. I'm safe now!";
-                        sendMessageToContacts(recipients, message);
-                        print("on long press up!");
-                        print(message);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'A message sent to your contact',
-                            ),
-                            backgroundColor: Colors.green.shade600,
-                          ),
-                        );
-
+                        _handleAllMethodsIfNoContacts(_sendCancelMessageToRecipients);
                       },
                       style: ElevatedButton.styleFrom(
                           fixedSize: const Size(80, 80),
@@ -332,6 +295,68 @@ class _HomeState extends State<LocationPage> {
     } else if (status.isPermanentlyDenied) {
       openAppSettings();
     }
+  }
+
+  void _handleAllMethodsIfNoContacts(Function method) async {
+    recipientList();
+    List<PersonalEmergency> contacts = await dbHelper.getContacts();
+    if (contacts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "You don't have any contacts in your contact list...",
+          ),
+          backgroundColor: Colors.red.shade600,
+        ),
+      );
+    }
+    else {
+      return method();
+    }
+  }
+
+  void _sendCancelMessageToRecipients() {
+    recipientList();
+    String message =
+        "Please ignore my last message. I'm safe now!";
+    sendMessageToContacts(recipients, message);
+    print("on long press up!");
+    print(message);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'A message sent to your contact',
+        ),
+        backgroundColor: Colors.green.shade600,
+      ),
+    );
+  }
+
+  void _sendEmergencyMessageOnLongPress() async {
+    recipientList();
+    var lat = await FirebaseFirestore.instance
+        .collection('location')
+        .doc('user1')
+        .get();
+    var location = lat.data()?.values;
+    var longitude = location?.toList().last;
+    var latitude = location?.toList().first;
+    var userLoaction = "$latitude,$longitude";
+    print("test user location $userLoaction");
+
+    String message =
+        "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
+    sendMessageToContacts(recipients, message);
+
+    print(message);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'A message sent to your emergency contact with your location',
+        ),
+        backgroundColor: Colors.red.shade600,
+      ),
+    );
   }
 }
 

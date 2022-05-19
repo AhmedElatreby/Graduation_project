@@ -117,19 +117,7 @@ class _SosPageState extends State<SosPage> {
                   Center(
                     child: ElevatedButton(
                         onPressed: () async {
-                          textController;
-                          List<PersonalEmergency> contacts =
-                              await dbHelper.getContacts();
-                          FlutterPhoneDirectCaller.callNumber(
-                              contacts.toList()[0].contactNo);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'You are calling your emergency contact',
-                              ),
-                              backgroundColor: Colors.red.shade600,
-                            ),
-                          );
+                          _handleAllMethodsIfNoContacts(_callEmergencyContact);
                         },
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
@@ -155,30 +143,7 @@ class _SosPageState extends State<SosPage> {
                   children: [
                     ElevatedButton(
                         onPressed: () async {
-                          recipientList();
-                          var lat = await FirebaseFirestore.instance
-                              .collection('location')
-                              .doc('user1')
-                              .get();
-                          var location = lat.data()?.values;
-                          var longitude = location?.toList().last;
-                          var latitude = location?.toList().first;
-                          var userLoaction = "$latitude,$longitude";
-                          print("test user location $userLoaction");
-
-                          String message =
-                              "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-                          sendMessageToContacts(recipients, message);
-                          print("on press");
-                          print(message);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'A message sent to your emergency contact',
-                              ),
-                              backgroundColor: Colors.red.shade600,
-                            ),
-                          );
+                          _handleAllMethodsIfNoContacts(_sendTextsToContacts);
                         },
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
@@ -226,6 +191,67 @@ class _SosPageState extends State<SosPage> {
       _sendSingleText(number, message);
     });
   }
+
+  void _handleAllMethodsIfNoContacts(Function method) async {
+    recipientList();
+    List<PersonalEmergency> contacts = await dbHelper.getContacts();
+    if (contacts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "You don't have any contacts in your contact list...",
+          ),
+          backgroundColor: Colors.red.shade600,
+        ),
+      );
+    }
+    else {
+      return method();
+    }
+  }
+
+  void _sendTextsToContacts() async {
+    recipientList();
+    var lat = await FirebaseFirestore.instance
+        .collection('location')
+        .doc('user1')
+        .get();
+    var location = lat.data()?.values;
+    var longitude = location?.toList().last;
+    var latitude = location?.toList().first;
+    var userLoaction = "$latitude,$longitude";
+    print("test user location $userLoaction");
+
+    String message =
+        "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
+    sendMessageToContacts(recipients, message);
+    print("on press");
+    print(message);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'A message sent to your emergency contact',
+        ),
+        backgroundColor: Colors.red.shade600,
+      ),
+    );
+  }
+
+  void _callEmergencyContact() async {
+    List<PersonalEmergency> contacts =
+    await dbHelper.getContacts();
+    FlutterPhoneDirectCaller.callNumber(
+        contacts.toList()[0].contactNo);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'You are calling your emergency contact',
+        ),
+        backgroundColor: Colors.red.shade600,
+      ),
+    );
+  }
+
 }
 
 _requestPermission() async {
@@ -245,6 +271,5 @@ void _sendSingleText(String number, String message) async {
 
   telephony.sendSms(to: number, message: message);
 }
-
 
 
