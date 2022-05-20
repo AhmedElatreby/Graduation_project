@@ -105,6 +105,16 @@ class _HomeState extends State<LocationPage> {
                 if (sendMessageOkay){
                   _handleAllMethodsIfNoContacts(_sendEmergencyMessageOnLongPress);
                 }
+                else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Emergency message send has been cancelled.",
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
                 sendMessageOkay = true;
               },
               child: Column(
