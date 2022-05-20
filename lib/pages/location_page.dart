@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:characters/characters.dart';
 
@@ -29,6 +30,8 @@ class _HomeState extends State<LocationPage> {
 
   String? _linkMessage;
   bool _isCreatingLink = false;
+  bool sendMessageOkay = true;
+
 
   late List<String> recipients = [];
 
@@ -99,7 +102,10 @@ class _HomeState extends State<LocationPage> {
           Center(
             child: GestureDetector(
               onLongPressUp: () async {
-                _handleAllMethodsIfNoContacts(_sendEmergencyMessageOnLongPress);
+                if (sendMessageOkay){
+                  _handleAllMethodsIfNoContacts(_sendEmergencyMessageOnLongPress);
+                }
+                sendMessageOkay = true;
               },
               child: Column(
                 children: [
@@ -119,6 +125,12 @@ class _HomeState extends State<LocationPage> {
                       )),
                 ],
               ),
+              onLongPressMoveUpdate: (details) async {
+                if (details.offsetFromOrigin.dy < 20) {
+                  print("here");
+                  sendMessageOkay = false;
+                }
+              },
             ),
           ),
           const SizedBox(
