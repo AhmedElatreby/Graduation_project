@@ -126,8 +126,7 @@ class _HomeState extends State<LocationPage> {
                 ],
               ),
               onLongPressMoveUpdate: (details) async {
-                if (details.offsetFromOrigin.dy < 20) {
-                  print("here");
+                if (details.offsetFromOrigin.dy < -20) {
                   sendMessageOkay = false;
                 }
               },
