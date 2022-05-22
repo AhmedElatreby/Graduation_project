@@ -1,7 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
-
-import 'package:characters/characters.dart';
 
 import 'package:audioplayers/audioplayers.dart';
 
@@ -11,7 +8,6 @@ import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:telephony/telephony.dart';
 
 import '../database/db_helper.dart';
-import '../oauth/auth_controller.dart';
 import '../location/mymap.dart';
 
 import 'package:location/location.dart' as loc;
@@ -28,8 +24,7 @@ class _HomeState extends State<LocationPage> {
   StreamSubscription<loc.LocationData>? _locationSubscription;
   late DBHelper dbHelper;
 
-  String? _linkMessage;
-  bool _isCreatingLink = false;
+
   bool sendMessageOkay = true;
 
 

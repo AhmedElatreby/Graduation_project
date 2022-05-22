@@ -29,7 +29,6 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
 
   final TextEditingController _textFieldController1 = TextEditingController();
   final TextEditingController _textFieldController2 = TextEditingController();
-  final TextEditingController _textFieldController3 = TextEditingController();
 
   void getInitial(String name) {
     var nameParts = name.split(" ");

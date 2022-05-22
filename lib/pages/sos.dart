@@ -220,7 +220,6 @@ class _SosPageState extends State<SosPage> {
     String message =
         "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
     sendMessageToContacts(recipients, message);
-    print("on press");
     print(message);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
