@@ -76,7 +76,6 @@ class _SosPageState extends State<SosPage> {
       appBar: AppBar(
         title: const Text('SOS'),
         backgroundColor: Colors.cyan,
-
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -171,11 +170,8 @@ class _SosPageState extends State<SosPage> {
             ),
           ],
         ),
-
       ),
-
     );
-
   }
 
   void recipientList() async {
@@ -204,8 +200,7 @@ class _SosPageState extends State<SosPage> {
           backgroundColor: Colors.red.shade600,
         ),
       );
-    }
-    else {
+    } else {
       return method();
     }
   }
@@ -238,10 +233,8 @@ class _SosPageState extends State<SosPage> {
   }
 
   void _callEmergencyContact() async {
-    List<PersonalEmergency> contacts =
-    await dbHelper.getContacts();
-    FlutterPhoneDirectCaller.callNumber(
-        contacts.toList()[0].contactNo);
+    List<PersonalEmergency> contacts = await dbHelper.getContacts();
+    FlutterPhoneDirectCaller.callNumber(contacts.toList()[0].contactNo);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -251,7 +244,6 @@ class _SosPageState extends State<SosPage> {
       ),
     );
   }
-
 }
 
 _requestPermission() async {
@@ -271,5 +263,3 @@ void _sendSingleText(String number, String message) async {
 
   telephony.sendSms(to: number, message: message);
 }
-
-

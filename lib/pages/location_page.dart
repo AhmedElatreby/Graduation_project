@@ -78,7 +78,7 @@ class _HomeState extends State<LocationPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Alarm activated! Police been informed and on their way.',
+                      'Alarm activated! Police have been informed and on their way.',
                     ),
                     backgroundColor: Colors.red.shade600,
                   ),
@@ -179,7 +179,7 @@ class _HomeState extends State<LocationPage> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Your location added to the database',
+                            'Your location added to the database.',
                           ),
                           backgroundColor: Colors.red.shade600,
                         ),
@@ -192,7 +192,7 @@ class _HomeState extends State<LocationPage> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Your location enabled on the database',
+                            'Your location enabled on the database.',
                           ),
                           backgroundColor: Colors.red.shade600,
                         ),
@@ -206,7 +206,7 @@ class _HomeState extends State<LocationPage> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Your  stopped sharing your location',
+                            'You stopped sharing your location on the database.',
                           ),
                           backgroundColor: Colors.red.shade600,
                         ),
