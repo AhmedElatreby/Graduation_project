@@ -83,6 +83,17 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     });
   }
 
+  _giveFeedback(content, color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          content,
+        ),
+        backgroundColor: color,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,10 +192,16 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
               ),
               TextButton(
                 onPressed: () => {
-                  _addContact(
-                      _textFieldController1.text, _textFieldController2.text),
-                  Navigator.pop(context, 'Add'),
-                  refreshContacts()
+                  if (!_textFieldController1.text.isEmpty && !_textFieldController2.text.isEmpty) {
+                    _addContact(
+                        _textFieldController1.text, _textFieldController2.text),
+                    Navigator.pop(context, 'Add'),
+                    refreshContacts(),
+                    _giveFeedback("Contact has been added", Colors.green)
+                  }
+                  else {
+                    _giveFeedback("Please enter a name and number.", Colors.red.shade600)
+                  }
                 },
                 child: const Text('Add'),
               ),
