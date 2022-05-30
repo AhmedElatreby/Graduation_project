@@ -167,6 +167,7 @@ class _HomeState extends State<LocationPage> {
           Padding(
             padding: const EdgeInsets.all(6.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextButton(
                     onPressed: () {
@@ -180,7 +181,7 @@ class _HomeState extends State<LocationPage> {
                         ),
                       );
                     },
-                    child: Text('add my location')),
+                    child: Text('Add my location')),
                 TextButton(
                     onPressed: () {
                       _listenLocation();
@@ -194,7 +195,7 @@ class _HomeState extends State<LocationPage> {
                       );
 
                     },
-                    child: Text('enable live location')),
+                    child: Text('Enable live location')),
                 TextButton(
                     onPressed: () {
                       _stopListening();
@@ -208,7 +209,7 @@ class _HomeState extends State<LocationPage> {
                       );
 
                     },
-                    child: Text('stop live location')),
+                    child: Text('Stop live location')),
               ],
             ),
           ),
