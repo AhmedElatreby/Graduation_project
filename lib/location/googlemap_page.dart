@@ -12,11 +12,11 @@ import '../secrets.dart';
 class GoogleMapPage extends StatefulWidget {
   @override
   _GoogleMapPageState createState() => _GoogleMapPageState();
-
 }
 
 class _GoogleMapPageState extends State<GoogleMapPage> {
-  final CameraPosition _initialLocation = const CameraPosition(target: LatLng(0.0, 0.0));
+  final CameraPosition _initialLocation =
+      const CameraPosition(target: LatLng(0.0, 0.0));
   late GoogleMapController mapController;
 
   late Position _currentPosition;
@@ -123,7 +123,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
       setState(() {
         _currentAddress =
-        "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
+            "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
         startAddressController.text = _currentAddress;
         _startAddress = _currentAddress;
       });
@@ -138,7 +138,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       // Retrieving placemarks from addresses
       List<Location> startPlacemark = await locationFromAddress(_startAddress);
       List<Location> destinationPlacemark =
-      await locationFromAddress(_destinationAddress);
+          await locationFromAddress(_destinationAddress);
 
       // Use the retrieved coordinates of the current position,
       // instead of the address if the start position is user's
@@ -224,7 +224,6 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
         ),
       );
 
-
       await _createPolylines(startLatitude, startLongitude, destinationLatitude,
           destinationLongitude);
 
@@ -266,11 +265,11 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
   // Create the polylines for showing the route between two places
   _createPolylines(
-      double startLatitude,
-      double startLongitude,
-      double destinationLatitude,
-      double destinationLongitude,
-      ) async {
+    double startLatitude,
+    double startLongitude,
+    double destinationLatitude,
+    double destinationLongitude,
+  ) async {
     polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
       Secrets.API_KEY, // Google Maps API Key
@@ -445,41 +444,41 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                           const SizedBox(height: 5),
                           ElevatedButton(
                             onPressed: (_startAddress != '' &&
-                                _destinationAddress != '')
+                                    _destinationAddress != '')
                                 ? () async {
-                              startAddressFocusNode.unfocus();
-                              desrinationAddressFocusNode.unfocus();
-                              setState(() {
-                                if (markers.isNotEmpty) markers.clear();
-                                if (polylines.isNotEmpty) {
-                                  polylines.clear();
-                                }
-                                if (polylineCoordinates.isNotEmpty) {
-                                  polylineCoordinates.clear();
-                                }
-                                _placeDistance = null;
-                              });
+                                    startAddressFocusNode.unfocus();
+                                    desrinationAddressFocusNode.unfocus();
+                                    setState(() {
+                                      if (markers.isNotEmpty) markers.clear();
+                                      if (polylines.isNotEmpty) {
+                                        polylines.clear();
+                                      }
+                                      if (polylineCoordinates.isNotEmpty) {
+                                        polylineCoordinates.clear();
+                                      }
+                                      _placeDistance = null;
+                                    });
 
-                              _calculateDistance().then((isCalculated) {
-                                if (isCalculated) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Distance Calculated Successfully'),
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Error Calculating Distance'),
-                                    ),
-                                  );
-                                }
-                              });
-                            }
+                                    _calculateDistance().then((isCalculated) {
+                                      if (isCalculated) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Distance Calculated Successfully'),
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Error Calculating Distance'),
+                                          ),
+                                        );
+                                      }
+                                    });
+                                  }
                                 : null,
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),

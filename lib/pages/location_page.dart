@@ -24,9 +24,7 @@ class _HomeState extends State<LocationPage> {
   StreamSubscription<loc.LocationData>? _locationSubscription;
   late DBHelper dbHelper;
 
-
   bool sendMessageOkay = true;
-
 
   late List<String> recipients = [];
 
@@ -61,7 +59,6 @@ class _HomeState extends State<LocationPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-
           const SizedBox(
             height: 40,
           ),
@@ -97,10 +94,10 @@ class _HomeState extends State<LocationPage> {
           Center(
             child: GestureDetector(
               onLongPressUp: () async {
-                if (sendMessageOkay){
-                  _handleAllMethodsIfNoContacts(_sendEmergencyMessageOnLongPress);
-                }
-                else {
+                if (sendMessageOkay) {
+                  _handleAllMethodsIfNoContacts(
+                      _sendEmergencyMessageOnLongPress);
+                } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -146,7 +143,8 @@ class _HomeState extends State<LocationPage> {
                 children: [
                   ElevatedButton(
                       onPressed: () {
-                        _handleAllMethodsIfNoContacts(_sendCancelMessageToRecipients);
+                        _handleAllMethodsIfNoContacts(
+                            _sendCancelMessageToRecipients);
                       },
                       style: ElevatedButton.styleFrom(
                           fixedSize: const Size(80, 80),
@@ -193,7 +191,6 @@ class _HomeState extends State<LocationPage> {
                           backgroundColor: Colors.red.shade600,
                         ),
                       );
-
                     },
                     child: Text('Enable live location')),
                 TextButton(
@@ -207,7 +204,6 @@ class _HomeState extends State<LocationPage> {
                           backgroundColor: Colors.red.shade600,
                         ),
                       );
-
                     },
                     child: Text('Stop live location')),
               ],
@@ -326,16 +322,14 @@ class _HomeState extends State<LocationPage> {
           backgroundColor: Colors.red.shade600,
         ),
       );
-    }
-    else {
+    } else {
       return method();
     }
   }
 
   void _sendCancelMessageToRecipients() {
     recipientList();
-    String message =
-        "Please ignore my last message. I'm safe now!";
+    String message = "Please ignore my last message. I'm safe now!";
     sendMessageToContacts(recipients, message);
     print("on long press up!");
     print(message);

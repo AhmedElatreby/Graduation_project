@@ -40,10 +40,8 @@ class DBHelper {
 
   Future<List<PersonalEmergency>> getContacts() async {
     final dbClient = await db;
-    List<Map> maps =
-        await dbClient.query('contacts',
-            orderBy: 'id DESC',
-            columns: ['id', 'name', 'contactNo']);
+    List<Map> maps = await dbClient.query('contacts',
+        orderBy: 'id DESC', columns: ['id', 'name', 'contactNo']);
     List<PersonalEmergency> contacts = [];
     if (maps.isNotEmpty) {
       for (int i = 0; i < maps.length; i++) {

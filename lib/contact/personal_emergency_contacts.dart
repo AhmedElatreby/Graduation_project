@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
-import 'package:sqflite/sqflite.dart';
 import '../database/db_helper.dart';
 import './personal_emergency_contacts_model.dart';
 import './contact_list.dart';
@@ -192,16 +190,20 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
               ),
               TextButton(
                 onPressed: () => {
-                  if (!_textFieldController1.text.isEmpty && !_textFieldController2.text.isEmpty) {
-                    _addContact(
-                        _textFieldController1.text, _textFieldController2.text),
-                    Navigator.pop(context, 'Add'),
-                    refreshContacts(),
-                    _giveFeedback("Contact has been added", Colors.green)
-                  }
-                  else {
-                    _giveFeedback("Please enter a name and number.", Colors.red.shade600)
-                  }
+                  if (!_textFieldController1.text.isEmpty &&
+                      !_textFieldController2.text.isEmpty)
+                    {
+                      _addContact(_textFieldController1.text,
+                          _textFieldController2.text),
+                      Navigator.pop(context, 'Add'),
+                      refreshContacts(),
+                      _giveFeedback("Contact has been added", Colors.green)
+                    }
+                  else
+                    {
+                      _giveFeedback("Please enter a name and number.",
+                          Colors.red.shade600)
+                    }
                 },
                 child: const Text('Add'),
               ),
@@ -213,6 +215,7 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
       ),
     );
   }
+
   Future<void> _showMyDialog(var id) async {
     return showDialog<void>(
       context: context,
@@ -223,7 +226,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Are you sure you want to delete contact: ${cl.emergencyContactsName[id]}?'),
+                Text(
+                    'Are you sure you want to delete contact: ${cl.emergencyContactsName[id]}?'),
               ],
             ),
           ),
@@ -247,4 +251,3 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
     );
   }
 }
-

@@ -1,16 +1,11 @@
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'oauth/auth_controller.dart';
 import 'package:dcdg/dcdg.dart';
 
-
-
-import '../pages/splash_screen.dart';
 import '../pages/login_page.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +31,7 @@ class MyApp extends StatelessWidget {
         iconTheme: IconThemeData(color: Colors.grey.shade600),
       ),
       debugShowCheckedModeBanner: false,
-      home:  LoginPage(),
+      home: LoginPage(),
     );
   }
 }

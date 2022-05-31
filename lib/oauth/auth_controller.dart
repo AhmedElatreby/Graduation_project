@@ -28,7 +28,6 @@ class AuthController extends GetxController {
     }
   }
 
-
   Future<void> register(String email, password) async {
     try {
       await auth.createUserWithEmailAndPassword(
@@ -48,6 +47,7 @@ class AuthController extends GetxController {
           ));
     }
   }
+
   Future<void> login(String email, password) async {
     try {
       await auth.signInWithEmailAndPassword(email: email, password: password);
@@ -68,6 +68,7 @@ class AuthController extends GetxController {
           ));
     }
   }
+
   Future<void> logOut() async {
     await auth.signOut();
   }

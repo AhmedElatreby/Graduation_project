@@ -19,32 +19,27 @@ class _LoginPageState extends State<LoginPage> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
-
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-
         child: Column(
           children: [
             Container(
               width: width,
-              height: height*0.25,
+              height: height * 0.25,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 color: Colors.cyan.shade400,
               ),
-
-
               child: Column(
                 children: [
                   SizedBox(
-                    height: height*0.10,
+                    height: height * 0.10,
                   ),
                   const CircleAvatar(
                     backgroundColor: Colors.white38,
                     radius: 25,
-                    backgroundImage: const AssetImage(
-                        "assets/images/owl-64.png"
-                    ),
+                    backgroundImage:
+                        const AssetImage("assets/images/owl-64.png"),
                   ),
                 ],
               ),
@@ -85,8 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                       controller: emailController,
                       decoration: InputDecoration(
                         hintText: "Email",
-                        prefixIcon: const Icon(Icons.email,
-                            color: Colors.cyan),
+                        prefixIcon: const Icon(Icons.email, color: Colors.cyan),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
@@ -165,7 +159,6 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
                   color: Colors.cyan.shade400,
-
                 ),
                 child: const Center(
                   child: Text(

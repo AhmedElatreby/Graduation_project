@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../contact/contact_list.dart';
 import '../contact/personal_emergency_contacts_model.dart';
