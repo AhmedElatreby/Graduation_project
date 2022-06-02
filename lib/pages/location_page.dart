@@ -1,17 +1,15 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:location/location.dart' as loc;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:telephony/telephony.dart';
 
 import '../database/db_helper.dart';
 import '../location/mymap.dart';
-
-import 'package:location/location.dart' as loc;
-import 'package:permission_handler/permission_handler.dart';
 
 class LocationPage extends StatefulWidget {
   @override
@@ -70,7 +68,7 @@ class _HomeState extends State<LocationPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Alarm activated! Police have been informed and on their way.',
+                      'Alarm activated!',
                     ),
                     backgroundColor: Colors.red.shade600,
                   ),
@@ -89,7 +87,7 @@ class _HomeState extends State<LocationPage> {
             ),
           ),
           const SizedBox(
-            height: 30,
+            height: 50,
           ),
           Center(
             child: GestureDetector(
@@ -118,7 +116,7 @@ class _HomeState extends State<LocationPage> {
                           shape: const CircleBorder(),
                           primary: Colors.cyan),
                       child: const Text(
-                        'Long press release',
+                        '''Long Press Release''',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -135,33 +133,33 @@ class _HomeState extends State<LocationPage> {
             ),
           ),
           const SizedBox(
-            height: 30,
+            height: 50,
           ),
-          Center(
-            child: GestureDetector(
-              child: Column(
-                children: [
-                  ElevatedButton(
-                      onPressed: () {
-                        _handleAllMethodsIfNoContacts(
-                            _sendCancelMessageToRecipients);
-                      },
-                      style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(80, 80),
-                          shape: const CircleBorder(),
-                          primary: Colors.green),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      )),
-                ],
-              ),
-            ),
-          ),
+          // Center(
+          //   child: GestureDetector(
+          //     child: Column(
+          //       children: [
+          //         ElevatedButton(
+          //             onPressed: () {
+          //               _handleAllMethodsIfNoContacts(
+          //                   _sendCancelMessageToRecipients);
+          //             },
+          //             style: ElevatedButton.styleFrom(
+          //                 fixedSize: const Size(80, 80),
+          //                 shape: const CircleBorder(),
+          //                 primary: Colors.green),
+          //             child: const Text(
+          //               'Cancel',
+          //               style: TextStyle(
+          //                 fontSize: 15,
+          //                 fontWeight: FontWeight.bold,
+          //                 color: Colors.white,
+          //               ),
+          //             )),
+          //       ],
+          //     ),
+          //   ),
+          // ),
           Padding(
             padding: const EdgeInsets.all(6.0),
             child: Column(
@@ -327,21 +325,21 @@ class _HomeState extends State<LocationPage> {
     }
   }
 
-  void _sendCancelMessageToRecipients() {
-    recipientList();
-    String message = "Please ignore my last message. I'm safe now!";
-    sendMessageToContacts(recipients, message);
-    print("on long press up!");
-    print(message);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'A message sent to your contact',
-        ),
-        backgroundColor: Colors.green.shade600,
-      ),
-    );
-  }
+  // void _sendCancelMessageToRecipients() {
+  //   recipientList();
+  //   String message = "Please ignore my last message. I'm safe now!";
+  //   sendMessageToContacts(recipients, message);
+  //   print("on long press up!");
+  //   print(message);
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(
+  //         'A message sent to your contact',
+  //       ),
+  //       backgroundColor: Colors.green.shade600,
+  //     ),
+  //   );
+  // }
 
   void _sendEmergencyMessageOnLongPress() async {
     recipientList();

@@ -1,12 +1,15 @@
-import '../contact/personal_emergency_contacts_model.dart';
-import 'package:path/path.dart' show join;
-import 'package:sqflite/sqflite.dart';
 import 'dart:io' as io;
+
+import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart'
     show getApplicationDocumentsDirectory;
+import 'package:sqflite/sqflite.dart';
+
+import '../contact/personal_emergency_contacts_model.dart';
 
 class DBHelper {
   static Database? _db;
+
   Future<Database> get db async {
     if (_db != null) {
       return _db!;

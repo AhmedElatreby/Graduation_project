@@ -9,6 +9,7 @@ import '../pages/location_page.dart';
 
 class NavBarPage extends StatefulWidget {
   String email;
+
   NavBarPage({Key? key, required this.email}) : super(key: key);
 
   @override
@@ -26,6 +27,7 @@ class _NavBarPageState extends State<NavBarPage> {
   ];
 
   int currentIndex = 1;
+
   void onTap(int index) {
     setState(() {
       currentIndex = index;

@@ -4,15 +4,19 @@ import 'package:location/location.dart';
 
 class LocationProvider with ChangeNotifier {
   BitmapDescriptor? _pinLocationIcon;
+
   BitmapDescriptor? get pinLocationIcon => _pinLocationIcon;
   Map<MarkerId, Marker>? _marker;
+
   Map<MarkerId, Marker>? get marker => _marker;
 
   final MarkerId markerId = const MarkerId("1");
 
   Location? _location;
+
   Location? get location => _location;
   LatLng? _locationPosition;
+
   LatLng? get locationPosition => _locationPosition;
 
   bool locationServiceActive = true;

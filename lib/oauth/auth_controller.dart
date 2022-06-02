@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../pages/login_page.dart';
+
 import '../navigation_bar/main_page.dart';
+import '../pages/login_page.dart';
 
 class AuthController extends GetxController {
   // AuthController to be accessible
   static AuthController instance = Get.find();
+
   // access user Email, password and name
   late Rx<User?> _user;
   FirebaseAuth auth = FirebaseAuth.instance;
