@@ -4,8 +4,6 @@ class PersonalEmergency {
 
   PersonalEmergency(this.name, this.contactNo);
 
-  // EmergencyContacts(this.initials, this.name, this.contactNo);
-
   Map<String, dynamic> toMap() {
     var map = <String, dynamic>{'id': id, 'name': name, 'contactNo': contactNo};
     return map;
