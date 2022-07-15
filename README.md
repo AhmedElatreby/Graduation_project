@@ -1,16 +1,9 @@
-# safetyproject
+# Graduation project
 
-A new Flutter project.
 
-## Getting Started
+## Personal Safety Application
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## This application to aid a user finding themselves in an emergency, to access support from their designated contacts. This application was created after a background study of current applications available on the market. Despite there being approximately 200 applications available, these are either costly, have limited features or are not user-friendly.
+From a background study, it was established that physical assaults are widely spreading among university students. When in an emergency, a person is often under pressure. They are unable to process vast amounts of information or often think rationally. Therefore, the design of the application needed to be simple and easy to use. Following feedback gathered from two focus groups, there were areas for improvement, and as result, a second development was created to further improve the application.
