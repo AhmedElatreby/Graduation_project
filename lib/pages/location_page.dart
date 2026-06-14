@@ -18,7 +18,7 @@ class LocationPage extends StatefulWidget {
 
 class _HomeState extends State<LocationPage> {
   final loc.Location location = loc.Location();
-  final audioPlayer = AudioCache();
+  final audioPlayer = AudioPlayer();
   StreamSubscription<loc.LocationData>? _locationSubscription;
   late DBHelper dbHelper;
 
@@ -62,9 +62,8 @@ class _HomeState extends State<LocationPage> {
           ),
           Center(
             child: ElevatedButton(
-              onPressed: () {
-                AudioCache player = AudioCache(prefix: 'assets/');
-                player.play('alarm.mp3');
+              onPressed: () async {
+                await audioPlayer.play(AssetSource('alarm.mp3'));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -295,6 +294,12 @@ class _HomeState extends State<LocationPage> {
     setState(() {
       _locationSubscription = null;
     });
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
   }
 
   _requestPermission() async {
