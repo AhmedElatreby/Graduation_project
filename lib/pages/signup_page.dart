@@ -75,7 +75,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               blurRadius: 10,
                               spreadRadius: 6,
                               offset: const Offset(1, 1),
-                              color: Colors.grey.withOpacity(0.2)),
+                              color: Colors.grey.withValues(alpha: 0.2)),
                         ]),
                     child: TextFormField(
                       controller: emailController,
@@ -107,7 +107,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               blurRadius: 10,
                               spreadRadius: 7,
                               offset: const Offset(1, 1),
-                              color: Colors.grey.withOpacity(0.1)),
+                              color: Colors.grey.withValues(alpha: 0.1)),
                         ]),
                     child: TextFormField(
                       obscureText: true,

@@ -43,7 +43,7 @@ class _NavBarPageState extends State<NavBarPage> {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Colors.cyan,
-        unselectedItemColor: Colors.grey.withOpacity(0.7),
+        unselectedItemColor: Colors.grey.withValues(alpha: 0.7),
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
