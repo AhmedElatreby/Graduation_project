@@ -92,7 +92,9 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
   // Method for retrieving the current location
   _getCurrentLocation() async {
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+    await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    )
         .then((Position position) async {
       setState(() {
         _currentPosition = position;
