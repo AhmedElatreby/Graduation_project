@@ -25,16 +25,15 @@ subprojects {
 }
 
 // AGP 8.11+ requires namespace. Set it from the manifest package for old plugins that lack it.
-subprojects {
-    afterEvaluate {
-        def androidExt = extensions.findByName("android")
-        if (androidExt != null && androidExt.namespace == null) {
-            def manifestFile = file("src/main/AndroidManifest.xml")
-            if (manifestFile.exists()) {
-                def manifest = new XmlSlurper().parse(manifestFile)
-                def pkg = manifest.@package.text()
-                if (pkg) { androidExt.namespace = pkg }
-            }
+gradle.afterProject { proj ->
+    if (proj == rootProject) return
+    def androidExt = proj.extensions.findByName("android")
+    if (androidExt != null && androidExt.namespace == null) {
+        def manifestFile = proj.file("src/main/AndroidManifest.xml")
+        if (manifestFile.exists()) {
+            def manifest = new XmlSlurper().parse(manifestFile)
+            def pkg = manifest.@package.text()
+            if (pkg) { androidExt.namespace = pkg }
         }
     }
 }
