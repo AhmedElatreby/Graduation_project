@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
-import 'package:telephony/telephony.dart';
+import 'package:flutter_sms/flutter_sms.dart';
 
 import '../database/db_helper.dart';
 import '../location/mymap.dart';
@@ -381,8 +381,5 @@ void sendMessageToContacts(List<String> recipients, String message) {
 }
 
 void _sendSingleText(String number, String message) async {
-  final Telephony telephony = Telephony.instance;
-  bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
-
-  telephony.sendSms(to: number, message: message);
+  await sendSMS(message: message, recipients: [number], sendDirect: true);
 }

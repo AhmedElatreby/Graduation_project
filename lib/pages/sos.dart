@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:telephony/telephony.dart';
+import 'package:flutter_sms/flutter_sms.dart';
 
 import '../contact/contact_list.dart';
 import '../contact/personal_emergency_contacts_model.dart';
@@ -256,8 +256,5 @@ _requestPermission() async {
 }
 
 void _sendSingleText(String number, String message) async {
-  final Telephony telephony = Telephony.instance;
-  bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
-
-  telephony.sendSms(to: number, message: message);
+  await sendSMS(message: message, recipients: [number], sendDirect: true);
 }
