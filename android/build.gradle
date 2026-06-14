@@ -25,8 +25,10 @@ subprojects {
 }
 
 // AGP 8.11+ requires namespace. Set it from the manifest package for old plugins that lack it.
+// Also enforce consistent JVM target across Java and Kotlin tasks for old plugins.
 gradle.afterProject { proj ->
     if (proj == rootProject) return
+
     def androidExt = proj.extensions.findByName("android")
     if (androidExt != null && androidExt.namespace == null) {
         def manifestFile = proj.file("src/main/AndroidManifest.xml")
@@ -35,6 +37,10 @@ gradle.afterProject { proj ->
             def pkg = manifest.@package.text()
             if (pkg) { androidExt.namespace = pkg }
         }
+    }
+
+    proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions { jvmTarget = "1.8" }
     }
 }
 
