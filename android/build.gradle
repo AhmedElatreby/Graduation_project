@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '2.0.21'
+    ext.kotlin_version = '2.2.20'
     repositories {
         google()
         mavenCentral()
@@ -22,6 +22,21 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(':app')
+}
+
+// AGP 8.11+ requires namespace. Set it from the manifest package for old plugins that lack it.
+subprojects {
+    afterEvaluate {
+        def androidExt = extensions.findByName("android")
+        if (androidExt != null && androidExt.namespace == null) {
+            def manifestFile = file("src/main/AndroidManifest.xml")
+            if (manifestFile.exists()) {
+                def manifest = new XmlSlurper().parse(manifestFile)
+                def pkg = manifest.@package.text()
+                if (pkg) { androidExt.namespace = pkg }
+            }
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
