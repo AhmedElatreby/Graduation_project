@@ -120,7 +120,7 @@ class _SosPageState extends State<SosPage> {
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
                             shape: const CircleBorder(),
-                            primary: Colors.red),
+                            backgroundColor: Colors.red),
                         child: const Text(
                           'SOS',
                           style: TextStyle(
@@ -146,7 +146,7 @@ class _SosPageState extends State<SosPage> {
                         style: ElevatedButton.styleFrom(
                             fixedSize: const Size(150, 150),
                             shape: const CircleBorder(),
-                            primary: Colors.cyan),
+                            backgroundColor: Colors.cyan),
                         child: const Text(
                           'SMS',
                           style: TextStyle(

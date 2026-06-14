@@ -83,7 +83,7 @@ class _HomeState extends State<LocationPage> {
               style: ElevatedButton.styleFrom(
                   fixedSize: const Size(80, 80),
                   shape: const CircleBorder(),
-                  primary: Colors.yellow),
+                  backgroundColor: Colors.yellow),
             ),
           ),
           const SizedBox(
@@ -114,7 +114,7 @@ class _HomeState extends State<LocationPage> {
                       style: ElevatedButton.styleFrom(
                           fixedSize: const Size(150, 150),
                           shape: const CircleBorder(),
-                          primary: Colors.cyan),
+                          backgroundColor: Colors.cyan),
                       child: const Text(
                         '''Long Press Release''',
                         style: TextStyle(
