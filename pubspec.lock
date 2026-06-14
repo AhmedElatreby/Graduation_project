@@ -399,13 +399,13 @@ packages:
     source: hosted
     version: "2.1.1"
   flutter_plugin_android_lifecycle:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: flutter_plugin_android_lifecycle
-      sha256: "5c574d21b98ec92adab05ead10afd2b13ff5856c7ca79696edb338a9dd8ed387"
+      sha256: "3854fe5e3bff0b113c658f260b90c95dea17c92db0f2addeac2e343dd9969785"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.5"
+    version: "2.0.35"
   flutter_polyline_points:
     dependency: "direct main"
     description:
@@ -418,10 +418,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_sms
-      sha256: "2fe5f584f02596343557eeca56348f9b82413fefe83a423fab880cdbdf54d8d8"
+      sha256: c0da4bc857f6386b97e1cd9a77f3f3c40b8f55d23326fb1fa3c627f52f623d0a
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.3"
+    version: "3.0.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter

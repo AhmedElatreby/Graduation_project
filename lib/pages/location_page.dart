@@ -381,5 +381,5 @@ void sendMessageToContacts(List<String> recipients, String message) {
 }
 
 void _sendSingleText(String number, String message) async {
-  await sendSMS(message: message, recipients: [number], sendDirect: true);
+  await sendSMS(message: message, recipients: [number]);
 }
