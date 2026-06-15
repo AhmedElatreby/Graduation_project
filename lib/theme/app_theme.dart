@@ -30,6 +30,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
+        fillColor: scheme.surfaceContainerHighest,
       ),
       cardTheme: const CardThemeData(elevation: 2),
     );
