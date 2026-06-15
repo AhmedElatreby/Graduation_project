@@ -1,257 +1,166 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_sms/flutter_sms.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-import '../contact/contact_list.dart';
-import '../contact/personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
-import '../oauth/auth_controller.dart';
 
 class SosPage extends StatefulWidget {
-  const SosPage({Key? key}) : super(key: key);
+  const SosPage({super.key});
 
   @override
-  _SosPageState createState() => _SosPageState();
+  State<SosPage> createState() => _SosPageState();
 }
 
 class _SosPageState extends State<SosPage> {
-  final textController = TextEditingController();
-  late DBHelper dbHelper;
-  late List<String> recipients = [];
-  List<String> number = [];
-
-  final ContactList cl = ContactList();
-
-  void getData(List<PersonalEmergency> contacts) {
-    contacts.forEach((contact) {
-      print(contact.contactNo);
-      getInitial(contact.name.toString());
-      cl.emergencyContactsName.add(contact.name.toString());
-      cl.emergencyContactsNo.add(contact.contactNo.toString());
-      cl.emergencyContactsId.add(contact.id);
-    });
-  }
-
-  void getInitial(String name) {
-    var nameParts = name.split(" ");
-    if (nameParts.length > 1) {
-      cl.emergencyContactsInitials
-          .add(nameParts[0][0].toUpperCase() + nameParts[0][0].toUpperCase());
-    } else {
-      cl.emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
-    }
-  }
+  late final DBHelper _dbHelper = DBHelper();
 
   @override
   void initState() {
     super.initState();
-    dbHelper = DBHelper();
     _requestPermission();
-    // _getUserLongitude();
-    // _getUserLatitude();
-    number = recipients;
-  }
-
-  void setRecipientList() async {
-    List<PersonalEmergency> contacts;
-    contacts = await dbHelper.getContacts();
-    contacts.forEach((contact) {
-      recipients.add(contact.contactNo);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference location =
-        FirebaseFirestore.instance.collection('location');
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: const Text('SOS'),
-        backgroundColor: Colors.cyan,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(
+                'Emergency',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              _BigCircleButton(
+                label: 'SOS\nCall',
+                color: colorScheme.error,
+                onColor: colorScheme.onError,
+                icon: Icons.phone_in_talk,
+                onPressed: () => _handleAction(_callEmergencyContact),
+              ),
+              _BigCircleButton(
+                label: 'SMS\nAlert',
+                color: colorScheme.primary,
+                onColor: colorScheme.onPrimary,
+                icon: Icons.message,
+                onPressed: () => _handleAction(_sendTextsToContacts),
+              ),
+            ],
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            GestureDetector(
-              onTap: () {
-                AuthController.instance.logOut();
-              },
-              child: Container(
-                width: width * 0.2,
-                height: height * 0.05,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    color: Colors.cyan),
-                child: const Center(
-                  child: Text(
-                    "Sign out",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
+    );
+  }
+
+  Future<void> _handleAction(Future<void> Function() action) async {
+    final contacts = await _dbHelper.getContacts();
+    if (!mounted) return;
+    if (contacts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text("Add emergency contacts first."),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ));
+      return;
+    }
+    final confirmed = await _showConfirmation();
+    if (confirmed == true) await action();
+  }
+
+  Future<bool?> _showConfirmation() => showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Confirm'),
+          content: const Text('Send an emergency alert now?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
             ),
-            GestureDetector(
-              onTap: () {
-                AuthController.instance.logOut();
-              },
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Center(
-                    child: ElevatedButton(
-                        onPressed: () async {
-                          _handleAllMethodsIfNoContacts(_callEmergencyContact);
-                        },
-                        style: ElevatedButton.styleFrom(
-                            fixedSize: const Size(150, 150),
-                            shape: const CircleBorder(),
-                            backgroundColor: Colors.red),
-                        child: const Text(
-                          'SOS',
-                          style: TextStyle(
-                            fontSize: 50,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 100,
-            ),
-            Center(
-              child: GestureDetector(
-                child: Column(
-                  children: [
-                    ElevatedButton(
-                        onPressed: () async {
-                          _handleAllMethodsIfNoContacts(_sendTextsToContacts);
-                        },
-                        style: ElevatedButton.styleFrom(
-                            fixedSize: const Size(150, 150),
-                            shape: const CircleBorder(),
-                            backgroundColor: Colors.cyan),
-                        child: const Text(
-                          'SMS',
-                          style: TextStyle(
-                            fontSize: 50,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        )),
-                  ],
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                AuthController.instance.logOut();
-              },
-              child: Center(
-                child: Column(),
-              ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Yes, send'),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void recipientList() async {
-    List<PersonalEmergency> contacts;
-    contacts = await dbHelper.getContacts();
-    contacts.forEach((contact) {
-      recipients.add(contact.contactNo);
-    });
-  }
-
-  Future<void> _sendMessageToContacts(
-      List<String> recipients, String message) async {
-    await sendSMS(message: message, recipients: recipients);
-  }
-
-  void _handleAllMethodsIfNoContacts(Function method) async {
-    recipientList();
-    List<PersonalEmergency> contacts = await dbHelper.getContacts();
-    if (contacts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "You don't have any contacts in your contact list...",
-          ),
-          backgroundColor: Colors.red.shade600,
-        ),
       );
-    } else {
-      return method();
-    }
+
+  Future<void> _callEmergencyContact() async {
+    final contacts = await _dbHelper.getContacts();
+    await FlutterPhoneDirectCaller.callNumber(contacts.first.contactNo);
   }
 
-  void _sendTextsToContacts() async {
-    recipientList();
-    var lat = await FirebaseFirestore.instance
+  Future<void> _sendTextsToContacts() async {
+    final contacts = await _dbHelper.getContacts();
+    final snap = await FirebaseFirestore.instance
         .collection('location')
         .doc('user1')
         .get();
-    var location = lat.data()?.values;
-    var longitude = location?.toList().last;
-    var latitude = location?.toList().first;
-    var userLoaction = "$latitude,$longitude";
-    print("test user location $userLoaction");
-
-    String message =
-        "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-    await _sendMessageToContacts(recipients, message);
-    print(message);
+    final vals = snap.data()?.values.toList();
+    final lat = vals?.isNotEmpty == true ? vals![0] : '?';
+    final lng = vals?.length == 2 ? vals![1] : '?';
+    final message =
+        'I need help, please find me: https://maps.google.com/?q=$lat,$lng';
+    final recipients = contacts.map((c) => c.contactNo).toList();
+    await sendSMS(message: message, recipients: recipients);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'SMS compose opened — tap Send to alert your contacts',
-        ),
-        backgroundColor: Colors.red.shade600,
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('SMS compose opened — tap Send to alert your contacts'),
+    ));
   }
+}
 
-  void _callEmergencyContact() async {
-    List<PersonalEmergency> contacts = await dbHelper.getContacts();
-    FlutterPhoneDirectCaller.callNumber(contacts.toList()[0].contactNo);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'You are calling your emergency contact',
-        ),
-        backgroundColor: Colors.red.shade600,
+class _BigCircleButton extends StatelessWidget {
+  const _BigCircleButton({
+    required this.label,
+    required this.color,
+    required this.onColor,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final Color color;
+  final Color onColor;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        fixedSize: const Size(160, 160),
+        shape: const CircleBorder(),
+        backgroundColor: color,
+        foregroundColor: onColor,
+        elevation: 6,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 36),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }
 }
 
-_requestPermission() async {
-  var status = await Permission.location.request();
-  if (status.isGranted) {
-    print('done');
-  } else if (status.isDenied) {
-    _requestPermission();
-  } else if (status.isPermanentlyDenied) {
-    openAppSettings();
-  }
+Future<void> _requestPermission() async {
+  final status = await Permission.location.request();
+  if (status.isDenied) await _requestPermission();
+  if (status.isPermanentlyDenied) await openAppSettings();
 }
-
