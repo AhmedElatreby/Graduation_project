@@ -15,6 +15,7 @@ class SosPage extends StatefulWidget {
 
 class _SosPageState extends State<SosPage> {
   late final DBHelper _dbHelper = DBHelper();
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -44,14 +45,14 @@ class _SosPageState extends State<SosPage> {
                 color: colorScheme.error,
                 onColor: colorScheme.onError,
                 icon: Icons.phone_in_talk,
-                onPressed: () => _handleAction(_callEmergencyContact),
+                onPressed: _isProcessing ? null : () => _handleAction(_callEmergencyContact),
               ),
               _BigCircleButton(
                 label: 'SMS\nAlert',
                 color: colorScheme.primary,
                 onColor: colorScheme.onPrimary,
                 icon: Icons.message,
-                onPressed: () => _handleAction(_sendTextsToContacts),
+                onPressed: _isProcessing ? null : () => _handleAction(_sendTextsToContacts),
               ),
             ],
           ),
@@ -61,17 +62,24 @@ class _SosPageState extends State<SosPage> {
   }
 
   Future<void> _handleAction(Future<void> Function() action) async {
-    final contacts = await _dbHelper.getContacts();
-    if (!mounted) return;
-    if (contacts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text("Add emergency contacts first."),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ));
-      return;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final contacts = await _dbHelper.getContacts();
+      if (!mounted) return;
+      if (contacts.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text("Add emergency contacts first."),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ));
+        return;
+      }
+      final confirmed = await _showConfirmation();
+      if (!mounted) return;
+      if (confirmed == true) await action();
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
-    final confirmed = await _showConfirmation();
-    if (confirmed == true) await action();
   }
 
   Future<bool?> _showConfirmation() => showDialog<bool>(
@@ -103,9 +111,9 @@ class _SosPageState extends State<SosPage> {
         .collection('location')
         .doc('user1')
         .get();
-    final vals = snap.data()?.values.toList();
-    final lat = vals?.isNotEmpty == true ? vals![0] : '?';
-    final lng = vals?.length == 2 ? vals![1] : '?';
+    final data = snap.data();
+    final lat = data?['latitude'] ?? '?';
+    final lng = data?['longitude'] ?? '?';
     final message =
         'I need help, please find me: https://maps.google.com/?q=$lat,$lng';
     final recipients = contacts.map((c) => c.contactNo).toList();
@@ -130,7 +138,7 @@ class _BigCircleButton extends StatelessWidget {
   final Color color;
   final Color onColor;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +168,12 @@ class _BigCircleButton extends StatelessWidget {
 }
 
 Future<void> _requestPermission() async {
-  final status = await Permission.location.request();
-  if (status.isDenied) await _requestPermission();
-  if (status.isPermanentlyDenied) await openAppSettings();
+  for (int attempt = 0; attempt < 2; attempt++) {
+    final status = await Permission.location.request();
+    if (status.isGranted) return;
+    if (status.isPermanentlyDenied) {
+      await openAppSettings();
+      return;
+    }
+  }
 }
