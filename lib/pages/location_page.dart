@@ -360,13 +360,14 @@ class _HomeState extends State<LocationPage> {
 
     String message =
         "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-    sendMessageToContacts(recipients, message);
+    await sendSMS(message: message, recipients: recipients);
 
     print(message);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'A message sent to your emergency contact with your location',
+          'SMS compose opened — tap Send to alert your contacts',
         ),
         backgroundColor: Colors.red.shade600,
       ),
@@ -374,12 +375,3 @@ class _HomeState extends State<LocationPage> {
   }
 }
 
-void sendMessageToContacts(List<String> recipients, String message) {
-  recipients.forEach((number) {
-    _sendSingleText(number, message);
-  });
-}
-
-void _sendSingleText(String number, String message) async {
-  await sendSMS(message: message, recipients: [number]);
-}

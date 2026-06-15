@@ -181,10 +181,9 @@ class _SosPageState extends State<SosPage> {
     });
   }
 
-  void sendMessageToContacts(List<String> recipients, String message) {
-    recipients.forEach((number) {
-      _sendSingleText(number, message);
-    });
+  Future<void> _sendMessageToContacts(
+      List<String> recipients, String message) async {
+    await sendSMS(message: message, recipients: recipients);
   }
 
   void _handleAllMethodsIfNoContacts(Function method) async {
@@ -218,12 +217,13 @@ class _SosPageState extends State<SosPage> {
 
     String message =
         "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-    sendMessageToContacts(recipients, message);
+    await _sendMessageToContacts(recipients, message);
     print(message);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'A message sent to your emergency contact',
+          'SMS compose opened — tap Send to alert your contacts',
         ),
         backgroundColor: Colors.red.shade600,
       ),
@@ -255,6 +255,3 @@ _requestPermission() async {
   }
 }
 
-void _sendSingleText(String number, String message) async {
-  await sendSMS(message: message, recipients: [number]);
-}

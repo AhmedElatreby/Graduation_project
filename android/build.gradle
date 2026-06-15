@@ -16,9 +16,9 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
+rootProject.layout.buildDirectory.set(file('../build'))
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    layout.buildDirectory.set(rootProject.layout.buildDirectory.dir(project.name))
 }
 subprojects {
     project.evaluationDependsOn(':app')
@@ -38,6 +38,7 @@ subprojects {
 // Also enforce consistent JVM target across Java and Kotlin tasks for old plugins.
 gradle.afterProject { proj ->
     if (proj == rootProject) return
+    if (proj.name == 'app') return  // app declares its own explicit targets
 
     def androidExt = proj.extensions.findByName("android")
     if (androidExt != null) {
@@ -56,7 +57,9 @@ gradle.afterProject { proj ->
     }
 
     proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-        kotlinOptions { jvmTarget = "17" }
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        }
     }
 }
 
