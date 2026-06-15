@@ -17,6 +17,18 @@ class NavBarPage extends StatefulWidget {
 
 class _NavBarPageState extends State<NavBarPage> {
   int _currentIndex = 1;
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      LocationPage(),
+      const SosPage(),
+      const PersonalEmergencyContacts(deleteFunction: _delete),
+      GoogleMapPage(),
+    ];
+  }
 
   static const _destinations = [
     NavigationDestination(
@@ -43,13 +55,6 @@ class _NavBarPageState extends State<NavBarPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screens = [
-      LocationPage(),
-      const SosPage(),
-      const PersonalEmergencyContacts(deleteFunction: _delete),
-      GoogleMapPage(),
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Safety App'),
@@ -61,7 +66,7 @@ class _NavBarPageState extends State<NavBarPage> {
           ),
         ],
       ),
-      body: screens[_currentIndex],
+      body: _screens[_currentIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),
