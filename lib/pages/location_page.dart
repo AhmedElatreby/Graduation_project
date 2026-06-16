@@ -47,10 +47,6 @@ class _HomeState extends State<LocationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: const Text('Track Location'),
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -271,7 +267,7 @@ class _HomeState extends State<LocationPage> {
         'longitude': _locationResult.longitude,
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(const Duration(seconds: 10),
-          () => {_locationSubscription?.resume()}));
+          () => _locationSubscription?.resume()));
     } catch (e) {
       print(e);
     }
@@ -290,7 +286,7 @@ class _HomeState extends State<LocationPage> {
         'longitude': currentlocation.longitude,
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(const Duration(seconds: 10),
-          () => {_locationSubscription?.resume()}));
+          () => _locationSubscription?.resume()));
     });
   }
 

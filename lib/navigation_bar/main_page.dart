@@ -25,7 +25,7 @@ class _NavBarPageState extends State<NavBarPage> {
     _screens = [
       LocationPage(),
       const SosPage(),
-      const PersonalEmergencyContacts(deleteFunction: _delete),
+      const PersonalEmergencyContacts(),
       GoogleMapPage(),
     ];
   }
@@ -75,5 +75,3 @@ class _NavBarPageState extends State<NavBarPage> {
     );
   }
 }
-
-void _delete(int id) {}

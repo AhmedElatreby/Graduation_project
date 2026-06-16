@@ -5,12 +5,7 @@ import './personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
 
 class PersonalEmergencyContacts extends StatefulWidget {
-  const PersonalEmergencyContacts({
-    required this.deleteFunction,
-    super.key,
-  });
-
-  final Function deleteFunction;
+  const PersonalEmergencyContacts({super.key});
 
   @override
   State<PersonalEmergencyContacts> createState() =>
@@ -103,7 +98,6 @@ class _PersonalEmergencyContactsState
     );
     nameCtrl.dispose();
     phoneCtrl.dispose();
-    if (!mounted) return;
   }
 
   @override
