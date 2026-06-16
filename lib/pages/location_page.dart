@@ -214,28 +214,35 @@ class _HomeState extends State<LocationPage> {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return ListView.builder(
-                  itemCount: snapshot.data?.docs.length,
+                final docs = snapshot.data!.docs;
+                if (docs.isEmpty) {
+                  return Center(
+                    child: Text('No locations shared yet',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  );
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: docs.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      subtitle: Row(
-                        children: [
-                          Text(snapshot.data!.docs[index]['latitude']
-                              .toString()),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          Text(snapshot.data!.docs[index]['longitude']
-                              .toString()),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.directions),
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  MyMap(snapshot.data!.docs[index].id)));
-                        },
+                    final doc = docs[index];
+                    final lat = doc['latitude'];
+                    final lng = doc['longitude'];
+                    return Card(
+                      child: ListTile(
+                        leading: Icon(Icons.location_pin,
+                            color: Theme.of(context).colorScheme.primary),
+                        title: Text(doc.id),
+                        subtitle: Text('$lat, $lng'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.directions),
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => MyMap(doc.id)));
+                          },
+                        ),
                       ),
                     );
                   },
