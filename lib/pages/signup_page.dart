@@ -116,7 +116,7 @@ class _SignUpPageState extends State<SignUpPage> {
     if (_formKey.currentState?.validate() != true) return;
     AuthController.instance.register(
       _emailController.text.trim(),
-      _passwordController.text.trim(),
+      _passwordController.text,
     );
   }
 }
