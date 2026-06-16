@@ -103,6 +103,7 @@ class _PersonalEmergencyContactsState
     );
     nameCtrl.dispose();
     phoneCtrl.dispose();
+    if (!mounted) return;
   }
 
   @override
