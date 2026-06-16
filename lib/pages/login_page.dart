@@ -16,11 +16,20 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  late final TapGestureRecognizer _signUpTapRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _signUpTapRecognizer = TapGestureRecognizer()
+      ..onTap = () => Get.to(() => const SignUpPage());
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _signUpTapRecognizer.dispose();
     super.dispose();
   }
 
@@ -105,8 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                               color: scheme.primary,
                               fontWeight: FontWeight.bold,
                               fontSize: 15),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => Get.to(() => const SignUpPage()),
+                          recognizer: _signUpTapRecognizer,
                         ),
                       ],
                     ),
@@ -136,10 +144,17 @@ class _LoginPageState extends State<LoginPage> {
       ));
       return;
     }
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Reset link sent to $email'),
-    ));
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Reset link sent to $email'),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send reset email: $e')),
+      );
+    }
   }
 }
