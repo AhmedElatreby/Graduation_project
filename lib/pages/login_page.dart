@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,190 +12,134 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  var emailController = TextEditingController();
-  var passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: width,
-              height: height * 0.25,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                color: Colors.cyan.shade400,
-              ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: height * 0.10,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 48),
+                Text('Hello',
+                    style: Theme.of(context)
+                        .textTheme
+                        .displaySmall
+                        ?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('Sign into your account',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: scheme.onSurfaceVariant)),
+                const SizedBox(height: 32),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  const CircleAvatar(
-                    backgroundColor: Colors.white38,
-                    radius: 25,
-                    backgroundImage:
-                        const AssetImage("assets/images/owl-64.png"),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(left: 20, right: 20),
-              width: width,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Hello",
-                    style: TextStyle(
-                      fontSize: 50,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const Text(
-                    "Sign into your account",
-                    style: TextStyle(fontSize: 20, color: Colors.grey),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 10,
-                              spreadRadius: 6,
-                              offset: const Offset(1, 1),
-                              color: Colors.grey.withValues(alpha: 0.2)),
-                        ]),
-                    child: TextFormField(
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        hintText: "Email",
-                        prefixIcon: const Icon(Icons.email, color: Colors.cyan),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                              color: Colors.white,
-                              width: 1.0,
-                            )),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                                color: Colors.white, width: 1.0)),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 10,
-                              spreadRadius: 7,
-                              offset: const Offset(1, 1),
-                              color: Colors.grey.withValues(alpha: 0.2)),
-                        ]),
-                    child: TextFormField(
-                      obscureText: true,
-                      controller: passwordController,
-                      decoration: InputDecoration(
-                        hintText: "Password",
-                        prefixIcon: const Icon(Icons.password_outlined,
-                            color: Colors.cyan),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                              color: Colors.white,
-                              width: 1.0,
-                            )),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                                color: Colors.white, width: 1.0)),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(),
-                      ),
-                      const Text(
-                        "Forgot your Password?",
-                        style: TextStyle(fontSize: 20, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: width * 0.08,
-            ),
-            GestureDetector(
-              onTap: () {
-                AuthController.instance.login(emailController.text.trim(),
-                    passwordController.text.trim());
-              },
-              child: Container(
-                width: width * 0.4,
-                height: height * 0.06,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  color: Colors.cyan.shade400,
+                  validator: (v) =>
+                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
                 ),
-                child: const Center(
-                  child: Text(
-                    "Sign in",
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
+                  validator: (v) =>
+                      v == null || v.length < 6 ? 'Min 6 characters' : null,
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _forgotPassword,
+                    child: const Text('Forgot password?'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FilledButton(
+                  onPressed: _submit,
+                  child: const Text('Sign in',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 24),
+                Center(
+                  child: RichText(
+                    text: TextSpan(
+                      text: "Don't have an account?  ",
+                      style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15),
+                      children: [
+                        TextSpan(
+                          text: 'Create one',
+                          style: TextStyle(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => Get.to(() => const SignUpPage()),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-            SizedBox(
-              height: width * 0.2,
-            ),
-            RichText(
-                text: TextSpan(
-                    text: "Don\'t have an account?",
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 20,
-                    ),
-                    children: [
-                  TextSpan(
-                      text: "  Create",
-                      style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () => Get.to(() => SignUpPage()))
-                ]))
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  void _submit() {
+    if (_formKey.currentState?.validate() != true) return;
+    AuthController.instance.login(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+  }
+
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Enter your email above first'),
+      ));
+      return;
+    }
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('Reset link sent to $email'),
+    ));
   }
 }
