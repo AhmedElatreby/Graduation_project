@@ -46,9 +46,6 @@ class _HomeState extends State<LocationPage> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -64,6 +61,7 @@ class _HomeState extends State<LocationPage> {
             child: ElevatedButton(
               onPressed: () async {
                 await audioPlayer.play(AssetSource('alarm.mp3'));
+                if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -305,6 +303,7 @@ class _HomeState extends State<LocationPage> {
 
   @override
   void dispose() {
+    _locationSubscription?.cancel();
     audioPlayer.dispose();
     super.dispose();
   }
@@ -320,9 +319,10 @@ class _HomeState extends State<LocationPage> {
     }
   }
 
-  void _handleAllMethodsIfNoContacts(Function method) async {
+  void _handleAllMethodsIfNoContacts(VoidCallback method) async {
     recipientList();
     List<PersonalEmergency> contacts = await dbHelper.getContacts();
+    if (!mounted) return;
     if (contacts.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -355,13 +355,12 @@ class _HomeState extends State<LocationPage> {
 
   void _sendEmergencyMessageOnLongPress() async {
     recipientList();
-    var lat = await FirebaseFirestore.instance
+    final snap = await FirebaseFirestore.instance
         .collection('location')
         .doc('user1')
         .get();
-    var location = lat.data()?.values;
-    var longitude = location?.toList().last;
-    var latitude = location?.toList().first;
+    final latitude = snap.data()?['latitude'] ?? '?';
+    final longitude = snap.data()?['longitude'] ?? '?';
     var userLoaction = "$latitude,$longitude";
     print("test user location $userLoaction");
 
