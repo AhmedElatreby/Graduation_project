@@ -92,7 +92,9 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
   // Method for retrieving the current location
   _getCurrentLocation() async {
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+    await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    )
         .then((Position position) async {
       setState(() {
         _currentPosition = position;
@@ -273,10 +275,12 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   ) async {
     polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      Secrets.API_KEY, // Google Maps API Key
-      PointLatLng(startLatitude, startLongitude),
-      PointLatLng(destinationLatitude, destinationLongitude),
-      travelMode: TravelMode.transit,
+      googleApiKey: Secrets.API_KEY,
+      request: PolylineRequest(
+        origin: PointLatLng(startLatitude, startLongitude),
+        destination: PointLatLng(destinationLatitude, destinationLongitude),
+        mode: TravelMode.transit,
+      ),
     );
 
     if (result.points.isNotEmpty) {
@@ -492,7 +496,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              primary: Colors.red,
+                              backgroundColor: Colors.red,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20.0),
                               ),

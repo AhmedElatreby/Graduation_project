@@ -1,14 +1,11 @@
 buildscript {
-    ext.kotlin_version = '1.6.20'
+    ext.kotlin_version = '2.2.20'
     repositories {
         google()
         mavenCentral()
     }
-
     dependencies {
-        classpath 'com.google.gms:google-services:4.3.10'
-        classpath 'com.android.tools.build:gradle:7.1.3'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.4.0'
     }
 }
 
@@ -19,14 +16,53 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
+rootProject.layout.buildDirectory.set(file('../build'))
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    layout.buildDirectory.set(rootProject.layout.buildDirectory.dir(project.name))
 }
 subprojects {
     project.evaluationDependsOn(':app')
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+subprojects {
+    configurations.all {
+        resolutionStrategy {
+            force "org.jetbrains.kotlin:kotlin-stdlib:2.2.20"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.20"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.20"
+        }
+    }
+}
+
+// AGP 8.11+ requires namespace. Set it from the manifest package for old plugins that lack it.
+// Also enforce consistent JVM target across Java and Kotlin tasks for old plugins.
+gradle.afterProject { proj ->
+    if (proj == rootProject) return
+    if (proj.name == 'app') return  // app declares its own explicit targets
+
+    def androidExt = proj.extensions.findByName("android")
+    if (androidExt != null) {
+        if (androidExt.namespace == null) {
+            def manifestFile = proj.file("src/main/AndroidManifest.xml")
+            if (manifestFile.exists()) {
+                def manifest = new XmlSlurper().parse(manifestFile)
+                def pkg = manifest.@package.text()
+                if (pkg) { androidExt.namespace = pkg }
+            }
+        }
+        androidExt.compileOptions {
+            sourceCompatibility JavaVersion.VERSION_17
+            targetCompatibility JavaVersion.VERSION_17
+        }
+    }
+
+    proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        }
+    }
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.layout.buildDirectory
 }

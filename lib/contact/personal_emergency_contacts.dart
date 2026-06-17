@@ -1,252 +1,200 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
-import './contact_list.dart';
 import './personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
 
 class PersonalEmergencyContacts extends StatefulWidget {
-  final Function deleteFunction;
-
-  const PersonalEmergencyContacts({required this.deleteFunction, Key? key})
-      : super(key: key);
+  const PersonalEmergencyContacts({super.key});
 
   @override
-  _PersonalEmergencyContactsState createState() =>
+  State<PersonalEmergencyContacts> createState() =>
       _PersonalEmergencyContactsState();
 }
 
-class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
-  final GlobalKey<FormState> _formStateKey = GlobalKey<FormState>();
-  static Future<List<PersonalEmergency>>? contacts;
-
-  late DBHelper dbHelper;
-
-  final ContactList cl = ContactList();
-
-  final TextEditingController _textFieldController1 = TextEditingController();
-  final TextEditingController _textFieldController2 = TextEditingController();
-
-  void getInitial(String name) {
-    var nameParts = name.split(" ");
-    if (nameParts.length > 1) {
-      cl.emergencyContactsInitials
-          .add(nameParts[0][0].toUpperCase() + nameParts[0][0].toUpperCase());
-    } else {
-      cl.emergencyContactsInitials.add(nameParts[0][0].toUpperCase());
-    }
-  }
-
-  void _addContact(String name, String no) {
-    dbHelper.add(PersonalEmergency(name, no));
-    _textFieldController1.clear();
-    _textFieldController2.clear();
-  }
-
-  void deleteFunction(int id) async {
-    await dbHelper.delete(id);
-    refreshContacts();
-  }
+class _PersonalEmergencyContactsState
+    extends State<PersonalEmergencyContacts> {
+  late final DBHelper _dbHelper = DBHelper();
+  late Future<List<PersonalEmergency>> _contactsFuture;
 
   @override
   void initState() {
     super.initState();
-    dbHelper = DBHelper();
-    resetContactListValues();
-    refreshContacts();
+    _refresh();
   }
 
-  void resetContactListValues() {
-    cl.emergencyContactsName = [];
-    cl.emergencyContactsInitials = [];
-    cl.emergencyContactsNo = [];
-    cl.emergencyContactsId = [];
+  void _refresh() => setState(() => _contactsFuture = _dbHelper.getContacts());
+
+  Future<void> _deleteContact(int id) async {
+    await _dbHelper.delete(id);
+    _refresh();
   }
 
-  void getData(List<PersonalEmergency> contacts) {
-    contacts.forEach((contact) {
-      print(contact.contactNo);
-      getInitial(contact.name.toString());
-      cl.emergencyContactsName.add(contact.name.toString());
-      cl.emergencyContactsNo.add(contact.contactNo.toString());
-      cl.emergencyContactsId.add(contact.id);
-    });
-  }
-
-  refreshContacts() {
-    setState(() {
-      resetContactListValues();
-      contacts = dbHelper.getContacts();
-    });
-  }
-
-  _giveFeedback(content, color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          content,
+  Future<void> _showAddSheet() async {
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
         ),
-        backgroundColor: color,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder(
-          future: contacts,
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return (const Center(child: CircularProgressIndicator()));
-            } else {
-              getData(snapshot.data);
-              return Scaffold(
-                backgroundColor: Colors.grey.shade100,
-                appBar: AppBar(
-                  title: const Text('Emergency Contacts'),
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Add contact',
+                  style: Theme.of(ctx).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: nameCtrl,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  prefixIcon: Icon(Icons.person_outline),
                 ),
-                body: Scrollbar(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: cl.emergencyContactsName.length,
-                    itemBuilder: (BuildContext context, index) {
-                      return SizedBox(
-                        height: 100,
-                        child: Card(
-                          elevation: 4,
-                          child: InkWell(
-                            onTap: () async {
-                              var phoneNo = cl.emergencyContactsNo[index];
-                              await FlutterPhoneDirectCaller.callNumber(
-                                  phoneNo);
-                            },
-                            child: ListTile(
-                              title: Text(cl.emergencyContactsName[index]),
-                              subtitle: Text(cl.emergencyContactsNo[index]),
-                              dense: true,
-                              trailing: GestureDetector(
-                                child: const Icon(
-                                  Icons.delete_forever,
-                                  size: 40.0,
-                                  color: Colors.cyan,
-                                ),
-                                onTap: () async {
-                                  _showMyDialog(index);
-                                  //
-                                },
-                              ),
-                              leading: CircleAvatar(
-                                child: Text(
-                                  cl.emergencyContactsInitials[index],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              );
-            }
-          }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showDialog<String>(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text('Add Contact Details'),
-            content: SizedBox(
-                width: 300,
-                height: 200,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _textFieldController1,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Enter Contact Name",
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      TextFormField(
-                        controller: _textFieldController2,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Enter Phone No.",
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.pop(context, 'Cancel'),
-                child: const Text('Cancel'),
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Enter a name' : null,
               ),
-              TextButton(
-                onPressed: () => {
-                  if (!_textFieldController1.text.isEmpty &&
-                      !_textFieldController2.text.isEmpty)
-                    {
-                      _addContact(_textFieldController1.text,
-                          _textFieldController2.text),
-                      Navigator.pop(context, 'Add'),
-                      refreshContacts(),
-                      _giveFeedback("Contact has been added", Colors.green)
-                    }
-                  else
-                    {
-                      _giveFeedback("Please enter a name and number.",
-                          Colors.red.shade600)
-                    }
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: phoneCtrl,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: 'Phone number',
+                  prefixIcon: Icon(Icons.phone_outlined),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Enter a number';
+                  if (v.trim().length < 7) return 'Number too short';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () {
+                  if (formKey.currentState?.validate() != true) return;
+                  _dbHelper.add(PersonalEmergency(
+                      nameCtrl.text.trim(), phoneCtrl.text.trim()));
+                  Navigator.pop(ctx);
+                  _refresh();
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Contact added'),
+                  ));
                 },
                 child: const Text('Add'),
               ),
             ],
           ),
         ),
-        tooltip: 'Add Contacts',
-        child: const Icon(Icons.add),
+      ),
+    );
+    nameCtrl.dispose();
+    phoneCtrl.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: FutureBuilder<List<PersonalEmergency>>(
+        future: _contactsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final contacts = snapshot.data ?? [];
+          if (contacts.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.contact_phone_outlined,
+                      size: 72,
+                      color: Theme.of(context).colorScheme.outline),
+                  const SizedBox(height: 16),
+                  Text('No emergency contacts yet',
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  Text('Tap + to add one',
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant)),
+                ],
+              ),
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.all(12),
+            itemCount: contacts.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 4),
+            itemBuilder: (context, i) {
+              final contact = contacts[i];
+              final initials = contact.name.isNotEmpty
+                  ? contact.name[0].toUpperCase()
+                  : '?';
+              return Card(
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onPrimaryContainer,
+                    child: Text(initials),
+                  ),
+                  title: Text(contact.name),
+                  subtitle: Text(contact.contactNo),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.phone_outlined),
+                        onPressed: () => FlutterPhoneDirectCaller.callNumber(
+                            contact.contactNo),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete_outline,
+                            color: Theme.of(context).colorScheme.error),
+                        onPressed: () => _confirmDelete(contact),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddSheet,
+        icon: const Icon(Icons.person_add_outlined),
+        label: const Text('Add contact'),
       ),
     );
   }
 
-  Future<void> _showMyDialog(var id) async {
-    return showDialog<void>(
+  Future<void> _confirmDelete(PersonalEmergency contact) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Contact'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                    'Are you sure you want to delete contact: ${cl.emergencyContactsName[id]}?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('No'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Yes'),
-              onPressed: () {
-                deleteFunction(cl.emergencyContactsId[id]);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete contact'),
+        content: Text('Remove ${contact.name}?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Delete')),
+        ],
+      ),
     );
+    if (confirmed == true) await _deleteContact(contact.id);
   }
 }

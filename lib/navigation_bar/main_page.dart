@@ -1,79 +1,77 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts.dart';
 import 'package:safetyproject/location/googlemap_page.dart';
 import 'package:safetyproject/pages/sos.dart';
 
+import '../oauth/auth_controller.dart';
 import '../pages/location_page.dart';
 
 class NavBarPage extends StatefulWidget {
-  String email;
+  const NavBarPage({Key? key, required this.email}) : super(key: key);
 
-  NavBarPage({Key? key, required this.email}) : super(key: key);
+  final String email;
 
   @override
   State<NavBarPage> createState() => _NavBarPageState();
 }
 
 class _NavBarPageState extends State<NavBarPage> {
-  _MapActivityState createState() => _MapActivityState();
+  int _currentIndex = 1;
+  late final List<Widget> _screens;
 
-  final screens = [
-    LocationPage(),
-    SosPage(),
-    const PersonalEmergencyContacts(deleteFunction: delete),
-    GoogleMapPage(),
-  ];
-
-  int currentIndex = 1;
-
-  void onTap(int index) {
-    setState(() {
-      currentIndex = index;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      LocationPage(),
+      const SosPage(),
+      const PersonalEmergencyContacts(),
+      GoogleMapPage(),
+    ];
   }
+
+  static const _destinations = [
+    NavigationDestination(
+      icon: Icon(Icons.location_on_outlined),
+      selectedIcon: Icon(Icons.location_on),
+      label: 'Track',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.emergency_outlined),
+      selectedIcon: Icon(Icons.emergency),
+      label: 'SOS',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.contacts_outlined),
+      selectedIcon: Icon(Icons.contacts),
+      label: 'Contacts',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.map_outlined),
+      selectedIcon: Icon(Icons.map),
+      label: 'Map',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: screens[currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: onTap,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.cyan,
-        unselectedItemColor: Colors.grey.withOpacity(0.7),
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        elevation: 0,
-        iconSize: 30,
-        currentIndex: currentIndex,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.emergency),
-            label: 'Home',
-            // backgroundColor: Colors.blue,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'SOS',
-            // backgroundColor: Colors.grey,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.contact_page),
-            label: 'Contact',
-            // backgroundColor: Colors.deepPurpleAccent,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Map',
-            // backgroundColor: Colors.deepPurpleAccent,
+      appBar: AppBar(
+        title: const Text('Safety App'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sign out',
+            onPressed: () => AuthController.instance.logOut(),
           ),
         ],
+      ),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (i) => setState(() => _currentIndex = i),
+        destinations: _destinations,
       ),
     );
   }
 }
-
-class _MapActivityState {}

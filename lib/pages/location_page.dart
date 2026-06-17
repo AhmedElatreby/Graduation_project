@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
-import 'package:telephony/telephony.dart';
+import 'package:flutter_sms/flutter_sms.dart';
 
 import '../database/db_helper.dart';
 import '../location/mymap.dart';
@@ -18,7 +18,7 @@ class LocationPage extends StatefulWidget {
 
 class _HomeState extends State<LocationPage> {
   final loc.Location location = loc.Location();
-  final audioPlayer = AudioCache();
+  final audioPlayer = AudioPlayer();
   StreamSubscription<loc.LocationData>? _locationSubscription;
   late DBHelper dbHelper;
 
@@ -46,14 +46,7 @@ class _HomeState extends State<LocationPage> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: const Text('Track Location'),
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -62,9 +55,9 @@ class _HomeState extends State<LocationPage> {
           ),
           Center(
             child: ElevatedButton(
-              onPressed: () {
-                AudioCache player = AudioCache(prefix: 'assets/');
-                player.play('alarm.mp3');
+              onPressed: () async {
+                await audioPlayer.play(AssetSource('alarm.mp3'));
+                if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -83,7 +76,7 @@ class _HomeState extends State<LocationPage> {
               style: ElevatedButton.styleFrom(
                   fixedSize: const Size(80, 80),
                   shape: const CircleBorder(),
-                  primary: Colors.yellow),
+                  backgroundColor: Colors.yellow),
             ),
           ),
           const SizedBox(
@@ -114,7 +107,7 @@ class _HomeState extends State<LocationPage> {
                       style: ElevatedButton.styleFrom(
                           fixedSize: const Size(150, 150),
                           shape: const CircleBorder(),
-                          primary: Colors.cyan),
+                          backgroundColor: Colors.cyan),
                       child: const Text(
                         '''Long Press Release''',
                         style: TextStyle(
@@ -215,28 +208,35 @@ class _HomeState extends State<LocationPage> {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return ListView.builder(
-                  itemCount: snapshot.data?.docs.length,
+                final docs = snapshot.data!.docs;
+                if (docs.isEmpty) {
+                  return Center(
+                    child: Text('No locations shared yet',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  );
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: docs.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      subtitle: Row(
-                        children: [
-                          Text(snapshot.data!.docs[index]['latitude']
-                              .toString()),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          Text(snapshot.data!.docs[index]['longitude']
-                              .toString()),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.directions),
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  MyMap(snapshot.data!.docs[index].id)));
-                        },
+                    final doc = docs[index];
+                    final lat = doc['latitude'];
+                    final lng = doc['longitude'];
+                    return Card(
+                      child: ListTile(
+                        leading: Icon(Icons.location_pin,
+                            color: Theme.of(context).colorScheme.primary),
+                        title: Text(doc.id),
+                        subtitle: Text('$lat, $lng'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.directions),
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => MyMap(doc.id)));
+                          },
+                        ),
                       ),
                     );
                   },
@@ -267,7 +267,7 @@ class _HomeState extends State<LocationPage> {
         'longitude': _locationResult.longitude,
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(const Duration(seconds: 10),
-          () => {_locationSubscription?.resume()}));
+          () => _locationSubscription?.resume()));
     } catch (e) {
       print(e);
     }
@@ -286,7 +286,7 @@ class _HomeState extends State<LocationPage> {
         'longitude': currentlocation.longitude,
       }, SetOptions(merge: true));
       _locationSubscription?.pause(Future.delayed(const Duration(seconds: 10),
-          () => {_locationSubscription?.resume()}));
+          () => _locationSubscription?.resume()));
     });
   }
 
@@ -295,6 +295,13 @@ class _HomeState extends State<LocationPage> {
     setState(() {
       _locationSubscription = null;
     });
+  }
+
+  @override
+  void dispose() {
+    _locationSubscription?.cancel();
+    audioPlayer.dispose();
+    super.dispose();
   }
 
   _requestPermission() async {
@@ -308,9 +315,10 @@ class _HomeState extends State<LocationPage> {
     }
   }
 
-  void _handleAllMethodsIfNoContacts(Function method) async {
+  void _handleAllMethodsIfNoContacts(VoidCallback method) async {
     recipientList();
     List<PersonalEmergency> contacts = await dbHelper.getContacts();
+    if (!mounted) return;
     if (contacts.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -343,25 +351,25 @@ class _HomeState extends State<LocationPage> {
 
   void _sendEmergencyMessageOnLongPress() async {
     recipientList();
-    var lat = await FirebaseFirestore.instance
+    final snap = await FirebaseFirestore.instance
         .collection('location')
         .doc('user1')
         .get();
-    var location = lat.data()?.values;
-    var longitude = location?.toList().last;
-    var latitude = location?.toList().first;
+    final latitude = snap.data()?['latitude'] ?? '?';
+    final longitude = snap.data()?['longitude'] ?? '?';
     var userLoaction = "$latitude,$longitude";
     print("test user location $userLoaction");
 
     String message =
         "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-    sendMessageToContacts(recipients, message);
+    await sendSMS(message: message, recipients: recipients);
 
     print(message);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'A message sent to your emergency contact with your location',
+          'SMS compose opened — tap Send to alert your contacts',
         ),
         backgroundColor: Colors.red.shade600,
       ),
@@ -369,15 +377,3 @@ class _HomeState extends State<LocationPage> {
   }
 }
 
-void sendMessageToContacts(List<String> recipients, String message) {
-  recipients.forEach((number) {
-    _sendSingleText(number, message);
-  });
-}
-
-void _sendSingleText(String number, String message) async {
-  final Telephony telephony = Telephony.instance;
-  bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
-
-  telephony.sendSms(to: number, message: message);
-}

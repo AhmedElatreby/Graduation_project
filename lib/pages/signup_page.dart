@@ -5,209 +5,118 @@ import 'package:get/get.dart';
 import '../oauth/auth_controller.dart';
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({Key? key}) : super(key: key);
+  const SignUpPage({super.key});
 
   @override
-  _SignUpPageState createState() => _SignUpPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  var emailController = TextEditingController();
-  var passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  late final TapGestureRecognizer _signInTapRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _signInTapRecognizer = TapGestureRecognizer()..onTap = () => Get.back();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _signInTapRecognizer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    List images = [
-      "g.png",
-      "t.png",
-      "f.png",
-    ];
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: width,
-              height: height * 0.25,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                color: Colors.cyan.shade400,
-              ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: height * 0.10,
+      appBar: AppBar(
+        title: const Text('Create account'),
+        leading: BackButton(onPressed: () => Get.back()),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  const CircleAvatar(
-                    backgroundColor: Colors.white38,
-                    radius: 25,
-                    backgroundImage:
-                        const AssetImage("assets/images/owl-64.png"),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(left: 20, right: 20),
-              width: width,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  const Text(
-                    "Create an account",
-                    style: TextStyle(fontSize: 20, color: Colors.grey),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 10,
-                              spreadRadius: 6,
-                              offset: const Offset(1, 1),
-                              color: Colors.grey.withOpacity(0.2)),
-                        ]),
-                    child: TextFormField(
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        hintText: "Email",
-                        prefixIcon: const Icon(Icons.email, color: Colors.cyan),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                              color: Colors.white,
-                              width: 1.0,
-                            )),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                                color: Colors.white, width: 1.0)),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                      ),
+                  validator: (v) =>
+                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 10,
-                              spreadRadius: 7,
-                              offset: const Offset(1, 1),
-                              color: Colors.grey.withOpacity(0.1)),
-                        ]),
-                    child: TextFormField(
-                      obscureText: true,
-                      controller: passwordController,
-                      decoration: InputDecoration(
-                        hintText: "Password",
-                        prefixIcon: const Icon(
-                          Icons.password,
-                          color: Colors.cyan,
+                  validator: (v) =>
+                      v == null || v.length < 6 ? 'Min 6 characters' : null,
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _submit,
+                  child: const Text('Create account',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'Already have an account?  ',
+                      style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15),
+                      children: [
+                        TextSpan(
+                          text: 'Sign in',
+                          style: TextStyle(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15),
+                          recognizer: _signInTapRecognizer,
                         ),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                              color: Colors.white,
-                              width: 1.0,
-                            )),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                                color: Colors.white, width: 1.0)),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: width * 0.06,
-            ),
-            GestureDetector(
-              onTap: () {
-                AuthController.instance.register(emailController.text.trim(),
-                    passwordController.text.trim());
-              },
-              child: Container(
-                width: width * 0.4,
-                height: height * 0.06,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  color: Colors.cyan.shade400,
-                ),
-                child: const Center(
-                  child: Text(
-                    "Sign up",
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      ],
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            RichText(
-              text: TextSpan(
-                recognizer: TapGestureRecognizer()..onTap = () => Get.back(),
-                text: "Have an account",
-                style: const TextStyle(
-                  fontSize: 20,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: width * 0.08,
-            ),
-            RichText(
-              text: const TextSpan(
-                text: "Sign up using one of the following methods",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            Wrap(
-              children: List<Widget>.generate(3, (index) {
-                return Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white38,
-                    child: CircleAvatar(
-                      radius: 25,
-                      backgroundImage:
-                          AssetImage("assets/images/" + images[index]),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  void _submit() {
+    if (_formKey.currentState?.validate() != true) return;
+    AuthController.instance.register(
+      _emailController.text.trim(),
+      _passwordController.text,
     );
   }
 }
