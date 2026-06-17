@@ -26,37 +26,34 @@ class _SosPageState extends State<SosPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text(
-                'Emergency',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              _BigCircleButton(
-                label: 'SOS\nCall',
-                color: colorScheme.error,
-                onColor: colorScheme.onError,
-                icon: Icons.phone_in_talk,
-                onPressed: _isProcessing ? null : () => _handleAction(_callEmergencyContact),
-              ),
-              _BigCircleButton(
-                label: 'SMS\nAlert',
-                color: colorScheme.primary,
-                onColor: colorScheme.onPrimary,
-                icon: Icons.message,
-                onPressed: _isProcessing ? null : () => _handleAction(_sendTextsToContacts),
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Emergency',
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
-        ),
+          _BigCircleButton(
+            label: 'SOS\nCall',
+            color: colorScheme.error,
+            onColor: colorScheme.onError,
+            icon: Icons.phone_in_talk,
+            onPressed: _isProcessing ? null : () => _handleAction(_callEmergencyContact),
+          ),
+          _BigCircleButton(
+            label: 'SMS\nAlert',
+            color: colorScheme.primary,
+            onColor: colorScheme.onPrimary,
+            icon: Icons.message,
+            onPressed: _isProcessing ? null : () => _handleAction(_sendTextsToContacts),
+          ),
+        ],
       ),
     );
   }

@@ -60,23 +60,27 @@ class _HomeState extends State<LocationPage> {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                      'Alarm activated!',
-                    ),
+                    content: const Text('Alarm activated!'),
                     backgroundColor: Colors.red.shade600,
                   ),
                 );
               },
-              child: const Text('Alarm',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  )),
               style: ElevatedButton.styleFrom(
-                  fixedSize: const Size(80, 80),
+                  fixedSize: const Size(110, 110),
                   shape: const CircleBorder(),
                   backgroundColor: Colors.yellow),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.campaign, size: 36, color: Colors.black),
+                  Text('Alarm',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      )),
+                ],
+              ),
             ),
           ),
           const SizedBox(
@@ -109,9 +113,10 @@ class _HomeState extends State<LocationPage> {
                           shape: const CircleBorder(),
                           backgroundColor: Colors.cyan),
                       child: const Text(
-                        '''Long Press Release''',
+                        'Long Press\nRelease',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),

@@ -29,27 +29,25 @@ class _MyMapState extends State<MyMap> {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
+        final matches = snapshot.data!.docs
+            .where((element) => element.id == widget.user_id);
+        if (matches.isEmpty) {
+          return const Center(child: Text('Location not available'));
+        }
+        final doc = matches.first;
+        final lat = (doc['latitude'] as num).toDouble();
+        final lng = (doc['longitude'] as num).toDouble();
         return GoogleMap(
           mapType: MapType.normal,
           markers: {
             Marker(
-                position: LatLng(
-                  snapshot.data!.docs.singleWhere(
-                      (element) => element.id == widget.user_id)['latitude'],
-                  snapshot.data!.docs.singleWhere(
-                      (element) => element.id == widget.user_id)['longitude'],
-                ),
+                position: LatLng(lat, lng),
                 markerId: const MarkerId('id'),
                 icon: BitmapDescriptor.defaultMarkerWithHue(
                     BitmapDescriptor.hueMagenta)),
           },
           initialCameraPosition: CameraPosition(
-              target: LatLng(
-                snapshot.data!.docs.singleWhere(
-                    (element) => element.id == widget.user_id)['latitude'],
-                snapshot.data!.docs.singleWhere(
-                    (element) => element.id == widget.user_id)['longitude'],
-              ),
+              target: LatLng(lat, lng),
               zoom: 14.47),
           onMapCreated: (GoogleMapController controller) async {
             setState(() {
@@ -63,14 +61,14 @@ class _MyMapState extends State<MyMap> {
   }
 
   Future<void> mymap(AsyncSnapshot<QuerySnapshot> snapshot) async {
-    await _controller
-        .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-            target: LatLng(
-              snapshot.data!.docs.singleWhere(
-                  (element) => element.id == widget.user_id)['latitude'],
-              snapshot.data!.docs.singleWhere(
-                  (element) => element.id == widget.user_id)['longitude'],
-            ),
-            zoom: 14.47)));
+    if (snapshot.data == null) return;
+    final matches = snapshot.data!.docs
+        .where((element) => element.id == widget.user_id);
+    if (matches.isEmpty) return;
+    final doc = matches.first;
+    final lat = (doc['latitude'] as num).toDouble();
+    final lng = (doc['longitude'] as num).toDouble();
+    await _controller.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(target: LatLng(lat, lng), zoom: 14.47)));
   }
 }

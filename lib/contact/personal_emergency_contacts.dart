@@ -20,7 +20,7 @@ class _PersonalEmergencyContactsState
   @override
   void initState() {
     super.initState();
-    _refresh();
+    _contactsFuture = _dbHelper.getContacts();
   }
 
   void _refresh() => setState(() => _contactsFuture = _dbHelper.getContacts());
@@ -108,6 +108,13 @@ class _PersonalEmergencyContactsState
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Could not load contacts',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.error)),
+            );
           }
           final contacts = snapshot.data ?? [];
           if (contacts.isEmpty) {
