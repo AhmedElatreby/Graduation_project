@@ -70,6 +70,7 @@ class _HomeState extends State<LocationPage> {
                 );
               },
               style: FilledButton.styleFrom(
+                minimumSize: Size.zero,
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 shape: const StadiumBorder(),
               ),
@@ -147,6 +148,7 @@ class _HomeState extends State<LocationPage> {
                         ),
                       );
                     },
+                    style: FilledButton.styleFrom(minimumSize: Size.zero),
                     child: const Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -166,11 +168,10 @@ class _HomeState extends State<LocationPage> {
                         ),
                       );
                     },
-                    style: isLive
-                        ? FilledButton.styleFrom(
-                            backgroundColor: colorScheme.primaryContainer,
-                          )
-                        : null,
+                    style: FilledButton.styleFrom(
+                      minimumSize: Size.zero,
+                      backgroundColor: isLive ? colorScheme.primaryContainer : null,
+                    ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -197,6 +198,7 @@ class _HomeState extends State<LocationPage> {
                         ),
                       );
                     },
+                    style: FilledButton.styleFrom(minimumSize: Size.zero),
                     child: const Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [

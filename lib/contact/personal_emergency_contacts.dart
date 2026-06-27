@@ -23,7 +23,7 @@ class _PersonalEmergencyContactsState
     _contactsFuture = _dbHelper.getContacts();
   }
 
-  void _refresh() => setState(() => _contactsFuture = _dbHelper.getContacts());
+  void _refresh() => setState(() { _contactsFuture = _dbHelper.getContacts(); });
 
   Future<void> _deleteContact(int id) async {
     await _dbHelper.delete(id);
