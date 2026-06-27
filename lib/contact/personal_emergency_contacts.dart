@@ -31,76 +31,13 @@ class _PersonalEmergencyContactsState
   }
 
   Future<void> _showAddSheet() async {
-    final nameCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    bool added = false;
-
-    await showModalBottomSheet(
+    final contact = await showModalBottomSheet<PersonalEmergency>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        child: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Add contact',
-                  style: Theme.of(ctx).textTheme.titleLarge),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: nameCtrl,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Enter a name' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: phoneCtrl,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone number',
-                  prefixIcon: Icon(Icons.phone_outlined),
-                ),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Enter a number';
-                  if (v.trim().length < 7) return 'Number too short';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: () {
-                  if (formKey.currentState?.validate() != true) return;
-                  _dbHelper.add(PersonalEmergency(
-                      nameCtrl.text.trim(), phoneCtrl.text.trim()));
-                  added = true;
-                  Navigator.pop(ctx);
-                },
-                child: const Text('Add'),
-              ),
-            ],
-          ),
-        ),
-      ),
+      builder: (_) => const _AddContactSheet(),
     );
-
-    nameCtrl.dispose();
-    phoneCtrl.dispose();
-
-    // Run after the sheet is fully dismissed to avoid setState during animation
-    if (added) {
+    if (contact != null) {
+      await _dbHelper.add(contact);
       _refresh();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -212,5 +149,86 @@ class _PersonalEmergencyContactsState
       ),
     );
     if (confirmed == true) await _deleteContact(contact.id);
+  }
+}
+
+// Owns its own controllers so Flutter disposes them after the exit animation,
+// not immediately when the sheet is popped (which would crash mid-animation).
+class _AddContactSheet extends StatefulWidget {
+  const _AddContactSheet();
+
+  @override
+  State<_AddContactSheet> createState() => _AddContactSheetState();
+}
+
+class _AddContactSheetState extends State<_AddContactSheet> {
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Add contact', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _nameCtrl,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'Enter a name' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _phoneCtrl,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Phone number',
+                prefixIcon: Icon(Icons.phone_outlined),
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Enter a number';
+                if (v.trim().length < 7) return 'Number too short';
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: () {
+                if (_formKey.currentState?.validate() != true) return;
+                Navigator.pop(
+                  context,
+                  PersonalEmergency(
+                      _nameCtrl.text.trim(), _phoneCtrl.text.trim()),
+                );
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
