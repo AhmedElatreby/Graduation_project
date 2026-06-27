@@ -20,7 +20,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       const CameraPosition(target: LatLng(0.0, 0.0));
   late GoogleMapController mapController;
 
-  late Position _currentPosition;
+  Position? _currentPosition;
   String _currentAddress = '';
 
   final startAddressController = TextEditingController();
@@ -98,9 +98,6 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
         .then((Position position) async {
       setState(() {
         _currentPosition = position;
-        if (kDebugMode) {
-          print('CURRENT POS: $_currentPosition');
-        }
         mapController.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(
@@ -118,9 +115,10 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
   // Method for retrieving the address
   _getAddress() async {
+    if (_currentPosition == null) return;
     try {
       List<Placemark> p = await placemarkFromCoordinates(
-          _currentPosition.latitude, _currentPosition.longitude);
+          _currentPosition!.latitude, _currentPosition!.longitude);
 
       Placemark place = p[0];
 
@@ -143,15 +141,20 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       List<Location> destinationPlacemark =
           await locationFromAddress(_destinationAddress);
 
+      if (startPlacemark.isEmpty) throw Exception('Could not find start address');
+      if (destinationPlacemark.isEmpty) throw Exception('Could not find destination address');
+
       // Use the retrieved coordinates of the current position,
       // instead of the address if the start position is user's
       // current position, as it results in better accuracy.
-      double startLatitude = _startAddress == _currentAddress
-          ? _currentPosition.latitude
+      double startLatitude = (_startAddress == _currentAddress &&
+              _currentPosition != null)
+          ? _currentPosition!.latitude
           : startPlacemark[0].latitude;
 
-      double startLongitude = _startAddress == _currentAddress
-          ? _currentPosition.longitude
+      double startLongitude = (_startAddress == _currentAddress &&
+              _currentPosition != null)
+          ? _currentPosition!.longitude
           : startPlacemark[0].longitude;
 
       double destinationLatitude = destinationPlacemark[0].latitude;
@@ -250,7 +253,15 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
       return true;
     } catch (e) {
-      print(e);
+      print('_calculateDistance error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not calculate route: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
     return false;
   }
@@ -465,20 +476,11 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                                     });
 
                                     _calculateDistance().then((isCalculated) {
-                                      if (isCalculated) {
+                                      if (isCalculated && mounted) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           const SnackBar(
-                                            content: Text(
-                                                'Distance Calculated Successfully'),
-                                          ),
-                                        );
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'Error Calculating Distance'),
+                                            content: Text('Route calculated successfully'),
                                           ),
                                         );
                                       }
@@ -526,12 +528,13 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                           child: Icon(Icons.my_location),
                         ),
                         onTap: () {
+                          if (_currentPosition == null) return;
                           mapController.animateCamera(
                             CameraUpdate.newCameraPosition(
                               CameraPosition(
                                 target: LatLng(
-                                  _currentPosition.latitude,
-                                  _currentPosition.longitude,
+                                  _currentPosition!.latitude,
+                                  _currentPosition!.longitude,
                                 ),
                                 zoom: 18.0,
                               ),
