@@ -34,6 +34,8 @@ class _PersonalEmergencyContactsState
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    bool added = false;
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -83,11 +85,8 @@ class _PersonalEmergencyContactsState
                   if (formKey.currentState?.validate() != true) return;
                   _dbHelper.add(PersonalEmergency(
                       nameCtrl.text.trim(), phoneCtrl.text.trim()));
+                  added = true;
                   Navigator.pop(ctx);
-                  _refresh();
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Contact added'),
-                  ));
                 },
                 child: const Text('Add'),
               ),
@@ -96,8 +95,18 @@ class _PersonalEmergencyContactsState
         ),
       ),
     );
+
     nameCtrl.dispose();
     phoneCtrl.dispose();
+
+    // Run after the sheet is fully dismissed to avoid setState during animation
+    if (added) {
+      _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Contact added')),
+      );
+    }
   }
 
   @override
