@@ -26,7 +26,9 @@ class _SosPageState extends State<SosPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
+    return SizedBox(
+      width: double.infinity,
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -55,7 +57,7 @@ class _SosPageState extends State<SosPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Future<void> _handleAction(Future<void> Function() action) async {
