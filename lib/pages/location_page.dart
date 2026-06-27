@@ -46,15 +46,19 @@ class _HomeState extends State<LocationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isLive = _locationSubscription != null;
+
     return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          const SizedBox(
-            height: 40,
-          ),
-          Center(
-            child: ElevatedButton(
+      body: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 28),
+
+            // Alarm — compact pill (secondary action)
+            FilledButton.tonal(
               onPressed: () async {
                 await audioPlayer.play(AssetSource('alarm.mp3'));
                 if (!mounted) return;
@@ -65,191 +69,208 @@ class _HomeState extends State<LocationPage> {
                   ),
                 );
               },
-              style: ElevatedButton.styleFrom(
-                  fixedSize: const Size(110, 110),
-                  shape: const CircleBorder(),
-                  backgroundColor: Colors.yellow),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                shape: const StadiumBorder(),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.campaign, size: 36, color: Colors.black),
-                  Text('Alarm',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      )),
+                  Icon(Icons.campaign, size: 22),
+                  SizedBox(width: 8),
+                  Text('Alarm', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
-          ),
-          const SizedBox(
-            height: 50,
-          ),
-          Center(
-            child: GestureDetector(
+
+            const SizedBox(height: 24),
+
+            // Long Press — hero button (primary action)
+            GestureDetector(
               onLongPressUp: () async {
                 if (sendMessageOkay) {
-                  _handleAllMethodsIfNoContacts(
-                      _sendEmergencyMessageOnLongPress);
+                  _handleAllMethodsIfNoContacts(_sendEmergencyMessageOnLongPress);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        "Emergency message send has been cancelled.",
-                      ),
+                    const SnackBar(
+                      content: Text('Emergency message send has been cancelled.'),
                       backgroundColor: Colors.green,
                     ),
                   );
                 }
                 sendMessageOkay = true;
               },
-              child: Column(
-                children: [
-                  ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(150, 150),
-                          shape: const CircleBorder(),
-                          backgroundColor: Colors.cyan),
-                      child: const Text(
-                        'Long Press\nRelease',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      )),
-                ],
-              ),
-              onLongPressMoveUpdate: (details) async {
+              onLongPressMoveUpdate: (details) {
                 if (details.offsetFromOrigin.dy < -20) {
                   sendMessageOkay = false;
                 }
               },
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  fixedSize: const Size(170, 170),
+                  shape: const CircleBorder(),
+                  backgroundColor: colorScheme.error,
+                  foregroundColor: colorScheme.onError,
+                  elevation: 6,
+                ),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.send_to_mobile, size: 36),
+                    SizedBox(height: 6),
+                    Text(
+                      'Long Press\n& Release',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 50,
-          ),
-          // Center(
-          //   child: GestureDetector(
-          //     child: Column(
-          //       children: [
-          //         ElevatedButton(
-          //             onPressed: () {
-          //               _handleAllMethodsIfNoContacts(
-          //                   _sendCancelMessageToRecipients);
-          //             },
-          //             style: ElevatedButton.styleFrom(
-          //                 fixedSize: const Size(80, 80),
-          //                 shape: const CircleBorder(),
-          //                 primary: Colors.green),
-          //             child: const Text(
-          //               'Cancel',
-          //               style: TextStyle(
-          //                 fontSize: 15,
-          //                 fontWeight: FontWeight.bold,
-          //                 color: Colors.white,
-          //               ),
-          //             )),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextButton(
+
+            const SizedBox(height: 24),
+
+            // Location sharing controls
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  FilledButton.tonal(
                     onPressed: () {
                       _addLocation();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(
-                            'Your location added to the database.',
-                          ),
+                          content: const Text('Your location added to the database.'),
                           backgroundColor: Colors.red.shade600,
                         ),
                       );
                     },
-                    child: Text('Add my location')),
-                TextButton(
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add_location_alt_outlined, size: 20),
+                        SizedBox(height: 2),
+                        Text('Add', style: TextStyle(fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                  FilledButton.tonal(
                     onPressed: () {
                       _listenLocation();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(
-                            'Your location enabled on the database.',
-                          ),
+                          content: const Text('Live location enabled.'),
                           backgroundColor: Colors.red.shade600,
                         ),
                       );
                     },
-                    child: Text('Enable live location')),
-                TextButton(
+                    style: isLive
+                        ? FilledButton.styleFrom(
+                            backgroundColor: colorScheme.primaryContainer,
+                          )
+                        : null,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.my_location, size: 20,
+                            color: isLive ? colorScheme.primary : null),
+                        const SizedBox(height: 2),
+                        Text(
+                          isLive ? 'Live ●' : 'Live',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isLive ? colorScheme.primary : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  FilledButton.tonal(
                     onPressed: () {
                       _stopListening();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(
-                            'You stopped sharing your location on the database.',
-                          ),
+                          content: const Text('You stopped sharing your location.'),
                           backgroundColor: Colors.red.shade600,
                         ),
                       );
                     },
-                    child: Text('Stop live location')),
-              ],
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_off_outlined, size: 20),
+                        SizedBox(height: 2),
+                        Text('Stop', style: TextStyle(fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: StreamBuilder(
-              stream:
-                  FirebaseFirestore.instance.collection('location').snapshots(),
-              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final docs = snapshot.data!.docs;
-                if (docs.isEmpty) {
-                  return Center(
-                    child: Text('No locations shared yet',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                  );
-                }
-                return ListView.separated(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: docs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final doc = docs[index];
-                    final lat = doc['latitude'];
-                    final lng = doc['longitude'];
-                    return Card(
-                      child: ListTile(
-                        leading: Icon(Icons.location_pin,
-                            color: Theme.of(context).colorScheme.primary),
-                        title: Text(doc.id),
-                        subtitle: Text('$lat, $lng'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.directions),
-                          onPressed: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => MyMap(doc.id)));
-                          },
-                        ),
-                      ),
+
+            const SizedBox(height: 12),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Shared Locations',
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelLarge
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance.collection('location').snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final docs = snapshot.data!.docs;
+                  if (docs.isEmpty) {
+                    return Center(
+                      child: Text('No locations shared yet',
+                          style: TextStyle(color: colorScheme.onSurfaceVariant)),
                     );
-                  },
-                );
-              },
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: docs.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final doc = docs[index];
+                      final lat = doc['latitude'];
+                      final lng = doc['longitude'];
+                      return Card(
+                        child: ListTile(
+                          leading: Icon(Icons.location_pin, color: colorScheme.primary),
+                          title: Text(doc.id),
+                          subtitle: Text('$lat, $lng'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.directions),
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => MyMap(doc.id)));
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
