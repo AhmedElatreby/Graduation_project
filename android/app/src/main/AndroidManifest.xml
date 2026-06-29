@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.safetyproject">
+    package="com.elatreby.safety">
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
@@ -21,7 +21,7 @@
         android:icon="@mipmap/ic_launcher">
        <!-- api key -->
        <meta-data android:name="com.google.android.geo.API_KEY"
-           android:value="AIzaSyARDxZgkunFLZCjoRYVbmQYPwYlv1NrMaw"/>
+           android:value="AIzaSyBFWjw90iH5rkDve37AUtJ67BZVk1XQAaI"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -50,7 +50,7 @@
             android:name="flutterEmbedding"
             android:value="2" />
        <meta-data android:name="com.google.android.geo.API_KEY"
-           android:value="AIzaSyARDxZgkunFLZCjoRYVbmQYPwYlv1NrMaw"/>
+           android:value="AIzaSyBFWjw90iH5rkDve37AUtJ67BZVk1XQAaI"/>
     </application>
     <queries>
         <!-- If your app makes calls -->

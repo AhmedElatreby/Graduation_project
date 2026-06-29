@@ -6,8 +6,9 @@ plugins {
 }
 
 android {
-    namespace "com.example.safetyproject"
+    namespace "com.elatreby.safety"
     compileSdk 36
+    ndkVersion "28.2.13676358"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -25,7 +26,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.safetyproject"
+        applicationId "com.elatreby.safety"
         minSdk flutter.minSdkVersion
         targetSdk 35
         versionCode flutter.versionCode

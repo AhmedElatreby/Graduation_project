@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 
+import 'firebase_options.dart';
 import 'oauth/auth_controller.dart';
 import 'pages/login_page.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp().then((value) => Get.put(AuthController()));
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform).then((value) => Get.put(AuthController()));
   FlutterNativeSplash.removeAfter(initialization);
   runApp(const MyApp());
 }

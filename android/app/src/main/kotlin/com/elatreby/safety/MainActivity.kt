@@ -1,4 +1,4 @@
-package com.example.safetyproject
+package com.elatreby.safety
 
 import io.flutter.embedding.android.FlutterActivity
 

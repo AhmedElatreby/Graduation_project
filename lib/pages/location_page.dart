@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:flutter_sms/flutter_sms.dart';
+import 'package:telephony/telephony.dart';
 
 import '../database/db_helper.dart';
 import '../location/mymap.dart';
@@ -390,7 +392,14 @@ class _HomeState extends State<LocationPage> {
 
     String message =
         "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-    await sendSMS(message: message, recipients: recipients);
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final telephony = Telephony.instance;
+      for (final number in recipients) {
+        await telephony.sendSms(to: number, message: message);
+      }
+    } else {
+      await sendSMS(message: message, recipients: recipients);
+    }
 
     print(message);
     if (!mounted) return;

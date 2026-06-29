@@ -17,17 +17,25 @@ class NavBarPage extends StatefulWidget {
 
 class _NavBarPageState extends State<NavBarPage> {
   int _currentIndex = 1;
+  late final PageController _pageController;
   late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
     _screens = [
       LocationPage(),
       const SosPage(),
       const PersonalEmergencyContacts(),
       GoogleMapPage(),
     ];
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   static const _destinations = [
@@ -53,6 +61,15 @@ class _NavBarPageState extends State<NavBarPage> {
     ),
   ];
 
+  void _onTabTapped(int i) {
+    setState(() => _currentIndex = i);
+    _pageController.animateToPage(
+      i,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,12 +83,36 @@ class _NavBarPageState extends State<NavBarPage> {
           ),
         ],
       ),
-      body: _screens[_currentIndex],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (i) => setState(() => _currentIndex = i),
+        children: _screens.map((s) => _KeepAlive(child: s)).toList(),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (i) => setState(() => _currentIndex = i),
+        onDestinationSelected: _onTabTapped,
         destinations: _destinations,
       ),
     );
+  }
+}
+
+class _KeepAlive extends StatefulWidget {
+  const _KeepAlive({required this.child});
+  final Widget child;
+
+  @override
+  State<_KeepAlive> createState() => _KeepAliveState();
+}
+
+class _KeepAliveState extends State<_KeepAlive>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

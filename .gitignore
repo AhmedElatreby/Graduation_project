@@ -46,3 +46,6 @@ app.*.map.json
 /android/app/release
 .worktrees/
 /android/build/
+
+# Secrets — keep API keys off GitHub
+lib/secrets.dart

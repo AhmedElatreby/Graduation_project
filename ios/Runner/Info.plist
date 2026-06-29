@@ -8,6 +8,12 @@
 		</array>
 		<key>NSContactsUsageDescription</key>
 		<string>This app requires contacts access to function properly.</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>This app needs your location to track your position and calculate distances.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>This app needs your location in the background to keep tracking your position for safety.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>This app needs your location in the background to keep tracking your position for safety.</string>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
@@ -51,5 +57,9 @@
 		<false/>
 		<key>UIStatusBarHidden</key>
 		<false/>
-	</dict>
+		<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+</dict>
 </plist>

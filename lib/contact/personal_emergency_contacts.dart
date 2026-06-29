@@ -34,7 +34,7 @@ class _PersonalEmergencyContactsState
     final contact = await showModalBottomSheet<PersonalEmergency>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => const _AddContactSheet(),
+      builder: (_) => const _ContactSheet(),
     );
     if (contact != null) {
       await _dbHelper.add(contact);
@@ -42,6 +42,22 @@ class _PersonalEmergencyContactsState
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Contact added')),
+      );
+    }
+  }
+
+  Future<void> _showEditSheet(PersonalEmergency existing) async {
+    final updated = await showModalBottomSheet<PersonalEmergency>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _ContactSheet(existing: existing),
+    );
+    if (updated != null) {
+      await _dbHelper.update(updated);
+      _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Contact updated')),
       );
     }
   }
@@ -112,6 +128,10 @@ class _PersonalEmergencyContactsState
                             contact.contactNo),
                       ),
                       IconButton(
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () => _showEditSheet(contact),
+                      ),
+                      IconButton(
                         icon: Icon(Icons.delete_outline,
                             color: Theme.of(context).colorScheme.error),
                         onPressed: () => _confirmDelete(contact),
@@ -154,17 +174,27 @@ class _PersonalEmergencyContactsState
 
 // Owns its own controllers so Flutter disposes them after the exit animation,
 // not immediately when the sheet is popped (which would crash mid-animation).
-class _AddContactSheet extends StatefulWidget {
-  const _AddContactSheet();
+class _ContactSheet extends StatefulWidget {
+  const _ContactSheet({this.existing});
+  final PersonalEmergency? existing;
 
   @override
-  State<_AddContactSheet> createState() => _AddContactSheetState();
+  State<_ContactSheet> createState() => _ContactSheetState();
 }
 
-class _AddContactSheetState extends State<_AddContactSheet> {
-  final _nameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
+class _ContactSheetState extends State<_ContactSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _phoneCtrl;
   final _formKey = GlobalKey<FormState>();
+
+  bool get _isEditing => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.existing?.name ?? '');
+    _phoneCtrl = TextEditingController(text: widget.existing?.contactNo ?? '');
+  }
 
   @override
   void dispose() {
@@ -188,7 +218,8 @@ class _AddContactSheetState extends State<_AddContactSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Add contact', style: Theme.of(context).textTheme.titleLarge),
+            Text(_isEditing ? 'Edit contact' : 'Add contact',
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             TextFormField(
               controller: _nameCtrl,
@@ -218,14 +249,14 @@ class _AddContactSheetState extends State<_AddContactSheet> {
             FilledButton(
               onPressed: () {
                 if (_formKey.currentState?.validate() != true) return;
-                Navigator.pop(
-                  context,
-                  PersonalEmergency(
-                      _nameCtrl.text.trim(), _phoneCtrl.text.trim()),
-                );
+                final contact = PersonalEmergency(
+                    _nameCtrl.text.trim(), _phoneCtrl.text.trim());
+                if (_isEditing) contact.id = widget.existing!.id;
+                Navigator.pop(context, contact);
               },
-              child: const Text('Add'),
+              child: Text(_isEditing ? 'Save' : 'Add'),
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

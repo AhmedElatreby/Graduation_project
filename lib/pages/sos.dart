@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:telephony/telephony.dart';
 
 import '../database/db_helper.dart';
 
@@ -73,31 +75,11 @@ class _SosPageState extends State<SosPage> {
         ));
         return;
       }
-      final confirmed = await _showConfirmation();
-      if (!mounted) return;
-      if (confirmed == true) await action();
+      await action();
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
   }
-
-  Future<bool?> _showConfirmation() => showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Confirm'),
-          content: const Text('Send an emergency alert now?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Yes, send'),
-            ),
-          ],
-        ),
-      );
 
   Future<void> _callEmergencyContact() async {
     final contacts = await _dbHelper.getContacts();
@@ -116,10 +98,19 @@ class _SosPageState extends State<SosPage> {
     final message =
         'I need help, please find me: https://maps.google.com/?q=$lat,$lng';
     final recipients = contacts.map((c) => c.contactNo).toList();
-    await sendSMS(message: message, recipients: recipients);
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final telephony = Telephony.instance;
+      for (final number in recipients) {
+        await telephony.sendSms(to: number, message: message);
+      }
+    } else {
+      await sendSMS(message: message, recipients: recipients);
+    }
+
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('SMS compose opened — tap Send to alert your contacts'),
+      content: Text('Emergency SMS sent to your contacts'),
     ));
   }
 }

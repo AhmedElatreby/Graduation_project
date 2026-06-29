@@ -1,0 +1,62 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_phone_direct_caller (0.0.1):
+    - Flutter
+  - flutter_sms (1.1.0):
+    - Flutter
+  - Google-Maps-iOS-Utils (5.0.0):
+    - GoogleMaps (~> 8.0)
+  - google_maps_flutter_ios (0.0.1):
+    - Flutter
+    - Google-Maps-iOS-Utils (< 7.0, >= 5.0)
+    - GoogleMaps (< 11.0, >= 8.4)
+  - GoogleMaps (8.4.0):
+    - GoogleMaps/Maps (= 8.4.0)
+  - GoogleMaps/Base (8.4.0)
+  - GoogleMaps/Maps (8.4.0):
+    - GoogleMaps/Base
+  - location (0.0.1):
+    - Flutter
+  - sensors_plus (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_phone_direct_caller (from `.symlinks/plugins/flutter_phone_direct_caller/ios`)
+  - flutter_sms (from `.symlinks/plugins/flutter_sms/ios`)
+  - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
+  - location (from `.symlinks/plugins/location/ios`)
+  - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
+
+SPEC REPOS:
+  trunk:
+    - Google-Maps-iOS-Utils
+    - GoogleMaps
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_phone_direct_caller:
+    :path: ".symlinks/plugins/flutter_phone_direct_caller/ios"
+  flutter_sms:
+    :path: ".symlinks/plugins/flutter_sms/ios"
+  google_maps_flutter_ios:
+    :path: ".symlinks/plugins/google_maps_flutter_ios/ios"
+  location:
+    :path: ".symlinks/plugins/location/ios"
+  sensors_plus:
+    :path: ".symlinks/plugins/sensors_plus/ios"
+
+SPEC CHECKSUMS:
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_phone_direct_caller: 7d5d72794577b96f12b4b6da13a9ef90ba438665
+  flutter_sms: bb63bc226f41fad2b7cc9f0b1d0c15f7730a8310
+  Google-Maps-iOS-Utils: 66d6de12be1ce6d3742a54661e7a79cb317a9321
+  google_maps_flutter_ios: 17552876e72723da1d41accc22f03b5f7afbde69
+  GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
+  location: 155caecf9da4f280ab5fe4a55f94ceccfab838f8
+  sensors_plus: 809f7e76b18439344b148b2730634b59d645f7eb
+
+PODFILE CHECKSUM: 66791031430cdcb0135ea4c6d612990a0f405ca5
+
+COCOAPODS: 1.16.2

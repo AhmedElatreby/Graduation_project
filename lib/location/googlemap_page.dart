@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../secrets.dart';
 
@@ -32,6 +32,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   String _startAddress = '';
   String _destinationAddress = '';
   String? _placeDistance;
+  LatLng? _startLatLng;
+  LatLng? _destinationLatLng;
 
   Set<Marker> markers = {};
 
@@ -248,7 +250,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
       setState(() {
         _placeDistance = totalDistance.toStringAsFixed(2);
-        print('DISTANCE: $_placeDistance km');
+        _startLatLng = LatLng(startLatitude, startLongitude);
+        _destinationLatLng = LatLng(destinationLatitude, destinationLongitude);
       });
 
       return true;
@@ -447,16 +450,44 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                                 });
                               }),
                           const SizedBox(height: 10),
-                          Visibility(
-                            visible: _placeDistance == null ? false : true,
-                            child: Text(
+                          if (_placeDistance != null) ...[
+                            Text(
                               'DISTANCE: $_placeDistance km',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: () async {
+                                final start = _startLatLng!;
+                                final dest = _destinationLatLng!;
+                                final uri = Uri.parse(
+                                  'https://www.google.com/maps/dir/?api=1'
+                                  '&origin=${start.latitude},${start.longitude}'
+                                  '&destination=${dest.latitude},${dest.longitude}'
+                                  '&travelmode=driving',
+                                );
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                }
+                              },
+                              icon: const Icon(Icons.navigation, color: Colors.white),
+                              label: const Text(
+                                'NAVIGATE',
+                                style: TextStyle(color: Colors.white, fontSize: 16),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green.shade700,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                          ],
                           const SizedBox(height: 5),
                           ElevatedButton(
                             onPressed: (_startAddress != '' &&
@@ -473,6 +504,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                                         polylineCoordinates.clear();
                                       }
                                       _placeDistance = null;
+                                      _startLatLng = null;
+                                      _destinationLatLng = null;
                                     });
 
                                     _calculateDistance().then((isCalculated) {
