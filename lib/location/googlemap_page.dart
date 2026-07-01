@@ -1,3 +1,11 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  Lumi · Map (route + navigate)
+//  Replaces:  lib/location/googlemap_page.dart
+//  ★ #4  Restyled to the Lumi design system and FIXED the invisible input text:
+//        the fields used a white fill on a dark theme, so the typed "direction"
+//        text was white-on-white. Fields are now dark with light text + a proper
+//        Lumi panel and buttons. All routing / geocoding logic is unchanged.
+// ─────────────────────────────────────────────────────────────────────────────
 import 'dart:async';
 import 'dart:math';
 
@@ -9,6 +17,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../secrets.dart';
+import '../theme/lumi_theme.dart';
 
 class GoogleMapPage extends StatefulWidget {
   @override
@@ -43,6 +52,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // ── Lumi-styled input field (dark fill + LIGHT text — fixes white-on-white) ──
   Widget _textField({
     required TextEditingController controller,
     required FocusNode focusNode,
@@ -54,39 +64,35 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     required Function(String) locationCallback,
   }) {
     return SizedBox(
-      width: width * 0.8,
+      width: width * 0.82,
       child: TextField(
-        onChanged: (value) {
-          locationCallback(value);
-        },
+        onChanged: (value) => locationCallback(value),
         controller: controller,
         focusNode: focusNode,
+        style: LumiText.body(15, color: LumiColors.text), // ★ visible text
+        cursorColor: LumiColors.accent,
         decoration: InputDecoration(
           prefixIcon: prefixIcon,
+          prefixIconColor: LumiColors.textFaint,
           suffixIcon: suffixIcon,
+          suffixIconColor: LumiColors.textFaint,
           labelText: label,
+          labelStyle: LumiText.body(14, color: LumiColors.textSub),
+          floatingLabelStyle: LumiText.body(14, color: LumiColors.accent),
+          hintText: hint,
+          hintStyle: LumiText.body(14, color: LumiColors.textFaint),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: LumiColors.field, // ★ dark fill
           enabledBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(10.0),
-            ),
-            borderSide: BorderSide(
-              color: Colors.grey.shade400,
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: LumiColors.hairline, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(10.0),
-            ),
-            borderSide: BorderSide(
-              color: Colors.blue.shade300,
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: LumiColors.accent, width: 1.6),
           ),
-          contentPadding: const EdgeInsets.all(15),
-          hintText: hint,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         ),
       ),
     );
@@ -96,8 +102,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   _getCurrentLocation() async {
     await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-    )
-        .then((Position position) async {
+    ).then((Position position) async {
       setState(() {
         _currentPosition = position;
         mapController.animateCamera(
@@ -138,26 +143,26 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   // Method for calculating the distance between two places
   Future<bool> _calculateDistance() async {
     try {
-      // Retrieving placemarks from addresses
       List<Location> startPlacemark = await locationFromAddress(_startAddress);
       List<Location> destinationPlacemark =
           await locationFromAddress(_destinationAddress);
 
-      if (startPlacemark.isEmpty) throw Exception('Could not find start address');
-      if (destinationPlacemark.isEmpty) throw Exception('Could not find destination address');
+      if (startPlacemark.isEmpty) {
+        throw Exception('Could not find start address');
+      }
+      if (destinationPlacemark.isEmpty) {
+        throw Exception('Could not find destination address');
+      }
 
-      // Use the retrieved coordinates of the current position,
-      // instead of the address if the start position is user's
-      // current position, as it results in better accuracy.
-      double startLatitude = (_startAddress == _currentAddress &&
-              _currentPosition != null)
-          ? _currentPosition!.latitude
-          : startPlacemark[0].latitude;
+      double startLatitude =
+          (_startAddress == _currentAddress && _currentPosition != null)
+              ? _currentPosition!.latitude
+              : startPlacemark[0].latitude;
 
-      double startLongitude = (_startAddress == _currentAddress &&
-              _currentPosition != null)
-          ? _currentPosition!.longitude
-          : startPlacemark[0].longitude;
+      double startLongitude =
+          (_startAddress == _currentAddress && _currentPosition != null)
+              ? _currentPosition!.longitude
+              : startPlacemark[0].longitude;
 
       double destinationLatitude = destinationPlacemark[0].latitude;
       double destinationLongitude = destinationPlacemark[0].longitude;
@@ -166,7 +171,6 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       String destinationCoordinatesString =
           '($destinationLatitude, $destinationLongitude)';
 
-      // Start Location Marker
       Marker startMarker = Marker(
         markerId: MarkerId(startCoordinatesString),
         position: LatLng(startLatitude, startLongitude),
@@ -177,7 +181,6 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
         icon: BitmapDescriptor.defaultMarker,
       );
 
-      // Destination Location Marker
       Marker destinationMarker = Marker(
         markerId: MarkerId(destinationCoordinatesString),
         position: LatLng(destinationLatitude, destinationLongitude),
@@ -188,19 +191,9 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
         icon: BitmapDescriptor.defaultMarker,
       );
 
-      // Adding the markers to the list
       markers.add(startMarker);
       markers.add(destinationMarker);
 
-      print(
-        'START COORDINATES: ($startLatitude, $startLongitude)',
-      );
-      print(
-        'DESTINATION COORDINATES: ($destinationLatitude, $destinationLongitude)',
-      );
-
-      // Calculating to check that the position relative
-      // to the frame, and pan & zoom the camera accordingly.
       double miny = (startLatitude <= destinationLatitude)
           ? startLatitude
           : destinationLatitude;
@@ -214,19 +207,11 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
           ? destinationLongitude
           : startLongitude;
 
-      double southWestLatitude = miny;
-      double southWestLongitude = minx;
-
-      double northEastLatitude = maxy;
-      double northEastLongitude = maxx;
-
-      // Accommodate the two locations within the
-      // camera view of the map
       mapController.animateCamera(
         CameraUpdate.newLatLngBounds(
           LatLngBounds(
-            northeast: LatLng(northEastLatitude, northEastLongitude),
-            southwest: LatLng(southWestLatitude, southWestLongitude),
+            northeast: LatLng(maxy, maxx),
+            southwest: LatLng(miny, minx),
           ),
           100.0,
         ),
@@ -236,9 +221,6 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
           destinationLongitude);
 
       double totalDistance = 0.0;
-
-      // Calculating the total distance by adding the distance
-      // between small segments
       for (int i = 0; i < polylineCoordinates.length - 1; i++) {
         totalDistance += _coordinateDistance(
           polylineCoordinates[i].latitude,
@@ -261,7 +243,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Could not calculate route: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: LumiColors.accent,
           ),
         );
       }
@@ -269,8 +251,6 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     return false;
   }
 
-  // Formula for calculating distance between two coordinates
-  // https://stackoverflow.com/a/54138876/11910277
   double _coordinateDistance(lat1, lon1, lat2, lon2) {
     var p = 0.017453292519943295;
     var c = cos;
@@ -280,7 +260,6 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     return 12742 * asin(sqrt(a));
   }
 
-  // Create the polylines for showing the route between two places
   _createPolylines(
     double startLatitude,
     double startLongitude,
@@ -306,9 +285,9 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     PolylineId id = const PolylineId('poly');
     Polyline polyline = Polyline(
       polylineId: id,
-      color: Colors.red,
+      color: LumiColors.accent,
       points: polylineCoordinates,
-      width: 3,
+      width: 4,
     );
     polylines[id] = polyline;
   }
@@ -317,6 +296,24 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   void initState() {
     super.initState();
     _getCurrentLocation();
+  }
+
+  // round icon button matching the Lumi dark surface
+  Widget _mapButton({required IconData icon, required VoidCallback onTap}) {
+    return ClipOval(
+      child: Material(
+        color: const Color(0xF2141C2E),
+        child: InkWell(
+          splashColor: LumiColors.accent.withOpacity(0.2),
+          onTap: onTap,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Icon(icon, color: LumiColors.text, size: 22),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -328,6 +325,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       width: width,
       child: Scaffold(
         key: _scaffoldKey,
+        backgroundColor: LumiColors.bgDeep,
         body: Stack(
           children: <Widget>[
             // Map View
@@ -344,197 +342,196 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                 mapController = controller;
               },
             ),
-            // Show zoom buttons
+
+            // Zoom buttons
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(left: 10.0),
+                padding: const EdgeInsets.only(left: 12.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    ClipOval(
-                      child: Material(
-                        color: Colors.blue.shade100, // button color
-                        child: InkWell(
-                          splashColor: Colors.blue, // inkwell color
-                          child: const SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: Icon(Icons.add),
-                          ),
-                          onTap: () {
-                            mapController.animateCamera(
-                              CameraUpdate.zoomIn(),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ClipOval(
-                      child: Material(
-                        color: Colors.blue.shade100, // button color
-                        child: InkWell(
-                          splashColor: Colors.blue, // inkwell color
-                          child: const SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: Icon(Icons.remove),
-                          ),
-                          onTap: () {
-                            mapController.animateCamera(
-                              CameraUpdate.zoomOut(),
-                            );
-                          },
-                        ),
-                      ),
-                    )
+                    _mapButton(
+                        icon: Icons.add,
+                        onTap: () =>
+                            mapController.animateCamera(CameraUpdate.zoomIn())),
+                    const SizedBox(height: 14),
+                    _mapButton(
+                        icon: Icons.remove,
+                        onTap: () => mapController
+                            .animateCamera(CameraUpdate.zoomOut())),
                   ],
                 ),
               ),
             ),
-            // Show the place input fields & button for
-            // showing the route
+
+            // Places panel
             SafeArea(
               child: Align(
                 alignment: Alignment.topCenter,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
+                  padding: const EdgeInsets.only(top: 12.0),
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white70,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(20.0),
-                      ),
+                    width: width * 0.92,
+                    decoration: BoxDecoration(
+                      color: const Color(0xF2131C30), // Midnight panel, ~95%
+                      borderRadius: BorderRadius.circular(20.0),
+                      border: Border.all(color: LumiColors.hairline),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.35),
+                          blurRadius: 24,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                    width: width * 0.9,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          const Text(
-                            'Places',
-                            style: TextStyle(fontSize: 20.0),
+                          Row(
+                            children: [
+                              const Icon(Icons.route,
+                                  color: LumiColors.accent, size: 18),
+                              const SizedBox(width: 8),
+                              Text('Plan a route',
+                                  style: LumiText.display(17)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _textField(
+                            label: 'Start',
+                            hint: 'Choose starting point',
+                            prefixIcon: const Icon(Icons.trip_origin, size: 20),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.my_location, size: 20),
+                              onPressed: () {
+                                startAddressController.text = _currentAddress;
+                                _startAddress = _currentAddress;
+                              },
+                            ),
+                            controller: startAddressController,
+                            focusNode: startAddressFocusNode,
+                            width: width,
+                            locationCallback: (String value) {
+                              setState(() => _startAddress = value);
+                            },
                           ),
                           const SizedBox(height: 10),
                           _textField(
-                              label: 'Start',
-                              hint: 'Choose starting point',
-                              prefixIcon: const Icon(Icons.looks_one),
-                              suffixIcon: IconButton(
-                                icon: const Icon(Icons.my_location),
-                                onPressed: () {
-                                  startAddressController.text = _currentAddress;
-                                  _startAddress = _currentAddress;
-                                },
-                              ),
-                              controller: startAddressController,
-                              focusNode: startAddressFocusNode,
-                              width: width,
-                              locationCallback: (String value) {
-                                setState(() {
-                                  _startAddress = value;
-                                });
-                              }),
-                          const SizedBox(height: 10),
-                          _textField(
-                              label: 'Destination',
-                              hint: 'Choose destination',
-                              prefixIcon: const Icon(Icons.looks_two),
-                              controller: destinationAddressController,
-                              focusNode: desrinationAddressFocusNode,
-                              width: width,
-                              locationCallback: (String value) {
-                                setState(() {
-                                  _destinationAddress = value;
-                                });
-                              }),
-                          const SizedBox(height: 10),
+                            label: 'Destination',
+                            hint: 'Choose destination',
+                            prefixIcon: const Icon(Icons.place_outlined, size: 20),
+                            controller: destinationAddressController,
+                            focusNode: desrinationAddressFocusNode,
+                            width: width,
+                            locationCallback: (String value) {
+                              setState(() => _destinationAddress = value);
+                            },
+                          ),
+                          const SizedBox(height: 12),
                           if (_placeDistance != null) ...[
-                            Text(
-                              'DISTANCE: $_placeDistance km',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 9),
+                              decoration: BoxDecoration(
+                                color: LumiColors.green.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: LumiColors.green.withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                'DISTANCE · $_placeDistance km',
+                                textAlign: TextAlign.center,
+                                style: LumiText.body(13.5,
+                                    weight: FontWeight.w700,
+                                    color: LumiColors.greenSoft),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  final start = _startLatLng!;
+                                  final dest = _destinationLatLng!;
+                                  final uri = Uri.parse(
+                                    'https://www.google.com/maps/dir/?api=1'
+                                    '&origin=${start.latitude},${start.longitude}'
+                                    '&destination=${dest.latitude},${dest.longitude}'
+                                    '&travelmode=driving',
+                                  );
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri,
+                                        mode: LaunchMode.externalApplication);
+                                  }
+                                },
+                                icon: const Icon(Icons.navigation,
+                                    color: Colors.white, size: 18),
+                                label: Text('Navigate',
+                                    style: LumiText.display(14.5,
+                                        color: Colors.white)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: LumiColors.green,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 13),
+                                ),
                               ),
                             ),
                             const SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              onPressed: () async {
-                                final start = _startLatLng!;
-                                final dest = _destinationLatLng!;
-                                final uri = Uri.parse(
-                                  'https://www.google.com/maps/dir/?api=1'
-                                  '&origin=${start.latitude},${start.longitude}'
-                                  '&destination=${dest.latitude},${dest.longitude}'
-                                  '&travelmode=driving',
-                                );
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                }
-                              },
-                              icon: const Icon(Icons.navigation, color: Colors.white),
-                              label: const Text(
-                                'NAVIGATE',
-                                style: TextStyle(color: Colors.white, fontSize: 16),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green.shade700,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                              ),
-                            ),
-                            const SizedBox(height: 5),
                           ],
-                          const SizedBox(height: 5),
-                          ElevatedButton(
-                            onPressed: (_startAddress != '' &&
-                                    _destinationAddress != '')
-                                ? () async {
-                                    startAddressFocusNode.unfocus();
-                                    desrinationAddressFocusNode.unfocus();
-                                    setState(() {
-                                      if (markers.isNotEmpty) markers.clear();
-                                      if (polylines.isNotEmpty) {
-                                        polylines.clear();
-                                      }
-                                      if (polylineCoordinates.isNotEmpty) {
-                                        polylineCoordinates.clear();
-                                      }
-                                      _placeDistance = null;
-                                      _startLatLng = null;
-                                      _destinationLatLng = null;
-                                    });
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: (_startAddress != '' &&
+                                      _destinationAddress != '')
+                                  ? () async {
+                                      startAddressFocusNode.unfocus();
+                                      desrinationAddressFocusNode.unfocus();
+                                      setState(() {
+                                        if (markers.isNotEmpty) markers.clear();
+                                        if (polylines.isNotEmpty) {
+                                          polylines.clear();
+                                        }
+                                        if (polylineCoordinates.isNotEmpty) {
+                                          polylineCoordinates.clear();
+                                        }
+                                        _placeDistance = null;
+                                        _startLatLng = null;
+                                        _destinationLatLng = null;
+                                      });
 
-                                    _calculateDistance().then((isCalculated) {
-                                      if (isCalculated && mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Route calculated successfully'),
-                                          ),
-                                        );
-                                      }
-                                    });
-                                  }
-                                : null,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Show Route'.toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20.0,
+                                      _calculateDistance().then((isCalculated) {
+                                        if (isCalculated && mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  'Route calculated successfully'),
+                                            ),
+                                          );
+                                        }
+                                      });
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: LumiColors.accent,
+                                disabledBackgroundColor:
+                                    LumiColors.accent.withOpacity(0.3),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                               ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
+                              child: Text('Show route',
+                                  style: LumiText.display(15.5,
+                                      color: Colors.white)),
                             ),
                           ),
                         ],
@@ -544,22 +541,18 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                 ),
               ),
             ),
-            // Show current location button
+
+            // Current location button
             SafeArea(
               child: Align(
                 alignment: Alignment.bottomRight,
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 10.0, bottom: 10.0),
+                  padding: const EdgeInsets.only(right: 12.0, bottom: 96.0),
                   child: ClipOval(
                     child: Material(
-                      color: Colors.orange.shade100, // button color
+                      color: LumiColors.accent,
                       child: InkWell(
-                        splashColor: Colors.orange, // inkwell color
-                        child: const SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: Icon(Icons.my_location),
-                        ),
+                        splashColor: Colors.white24,
                         onTap: () {
                           if (_currentPosition == null) return;
                           mapController.animateCamera(
@@ -574,6 +567,11 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                             ),
                           );
                         },
+                        child: const SizedBox(
+                          width: 56,
+                          height: 56,
+                          child: Icon(Icons.my_location, color: Colors.white),
+                        ),
                       ),
                     ),
                   ),

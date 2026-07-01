@@ -1,126 +1,120 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  Lumi · login
+//  Replaces:  lib/pages/login_page.dart
+//  Keeps your AuthController + Get + FirebaseAuth logic — only the UI changed.
+// ─────────────────────────────────────────────────────────────────────────────
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../oauth/auth_controller.dart';
-import '../pages/signup_page.dart';
+import '../theme/lumi_theme.dart';
+import '../widgets/lumi_logo.dart';
+import '../widgets/lumi_widgets.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
   @override
-  _LoginPageState createState() => _LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-  late final TapGestureRecognizer _signUpTapRecognizer;
-
-  @override
-  void initState() {
-    super.initState();
-    _signUpTapRecognizer = TapGestureRecognizer()
-      ..onTap = () => Get.to(() => const SignUpPage());
-  }
+  bool _obscure = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _signUpTapRecognizer.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 48),
-                Text('Hello',
-                    style: Theme.of(context)
-                        .textTheme
-                        .displaySmall
-                        ?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text('Sign into your account',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: scheme.onSurfaceVariant)),
-                const SizedBox(height: 32),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  validator: (v) =>
-                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+    return LumiScaffold(
+      padding: const EdgeInsets.fromLTRB(26, 30, 26, 24),
+      child: Form(
+        key: _formKey,
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 6),
+                    const LumiMark(size: 62),
+                    const SizedBox(height: 30),
+                    Text('Welcome back', style: LumiText.display(30)),
+                    const SizedBox(height: 6),
+                    Text('Sign in to keep your circle close.',
+                        style: LumiText.body(14.5, color: LumiColors.textSub)),
+                    const SizedBox(height: 28),
+                    LumiField(
+                      hint: 'Email',
+                      icon: Icons.mail_outline,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => v == null || !v.contains('@')
+                          ? 'Enter a valid email'
+                          : null,
                     ),
-                  ),
-                  validator: (v) =>
-                      v == null || v.length < 6 ? 'Min 6 characters' : null,
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _forgotPassword,
-                    child: const Text('Forgot password?'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _submit,
-                  child: const Text('Sign in',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 24),
-                Center(
-                  child: RichText(
-                    text: TextSpan(
-                      text: "Don't have an account?  ",
-                      style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15),
-                      children: [
-                        TextSpan(
-                          text: 'Create one',
-                          style: TextStyle(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15),
-                          recognizer: _signUpTapRecognizer,
-                        ),
-                      ],
+                    const SizedBox(height: 14),
+                    LumiField(
+                      hint: 'Password',
+                      icon: Icons.lock_outline,
+                      controller: _passwordController,
+                      obscure: _obscure,
+                      validator: (v) =>
+                          v == null || v.length < 6 ? 'Min 6 characters' : null,
+                      suffix: IconButton(
+                        icon: Icon(
+                            _obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: LumiColors.textFaint,
+                            size: 20),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
                     ),
-                  ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _forgotPassword,
+                        child: Text('Forgot password?',
+                            style: LumiText.body(13,
+                                weight: FontWeight.w600,
+                                color: LumiColors.textSub)),
+                      ),
+                    ),
+                    const Spacer(),
+                    LumiPrimaryButton(label: 'Sign in', onPressed: _submit),
+                    const SizedBox(height: 18),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () => Get.to(() => const SignUpPage()),
+                        child: Text.rich(TextSpan(
+                          text: 'New here?  ',
+                          style: LumiText.body(14, color: LumiColors.textSub),
+                          children: [
+                            TextSpan(
+                              text: 'Create account',
+                              style: LumiText.body(14,
+                                  weight: FontWeight.w700,
+                                  color: LumiColors.accent),
+                            ),
+                          ],
+                        )),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -139,17 +133,17 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _forgotPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Enter your email above first'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter your email above first')),
+      );
       return;
     }
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Reset link sent to $email'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reset link sent to $email')),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

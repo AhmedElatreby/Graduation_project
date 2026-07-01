@@ -1,416 +1,317 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  Lumi · Track (live-location tab)
+//  Replaces:  lib/pages/location_page.dart
+//  Returns CONTENT only. Keeps your location stream + Firestore writes.
+//  ★ #6  Siren now uses the app-wide Siren singleton, so it keeps playing until
+//        the clip finishes even if you leave this screen.
+// ─────────────────────────────────────────────────────────────────────────────
 import 'dart:async';
-
-import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:telephony/telephony.dart';
 
-import '../database/db_helper.dart';
-import '../location/mymap.dart';
+import '../services/siren.dart';
+import '../theme/lumi_theme.dart';
+import '../widgets/lumi_widgets.dart';
 
 class LocationPage extends StatefulWidget {
+  const LocationPage({super.key});
   @override
-  _HomeState createState() => _HomeState();
+  State<LocationPage> createState() => _LocationPageState();
 }
 
-class _HomeState extends State<LocationPage> {
+class _LocationPageState extends State<LocationPage> {
   final loc.Location location = loc.Location();
-  final audioPlayer = AudioPlayer();
-  StreamSubscription<loc.LocationData>? _locationSubscription;
-  late DBHelper dbHelper;
+  StreamSubscription<loc.LocationData>? _sub;
 
-  bool sendMessageOkay = true;
-
-  late List<String> recipients = [];
+  bool get _isLive => _sub != null;
 
   @override
   void initState() {
     super.initState();
-    dbHelper = DBHelper();
     _requestPermission();
-    _getUserLocationFromFirebase();
     location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
-    location.enableBackgroundMode(enable: true);
-  }
-
-  void recipientList() async {
-    List<PersonalEmergency> contacts;
-    contacts = await dbHelper.getContacts();
-    contacts.forEach((contact) {
-      recipients.add(contact.contactNo);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isLive = _locationSubscription != null;
-
-    return Scaffold(
-      body: SizedBox(
-        width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 28),
-
-            // Alarm — compact pill (secondary action)
-            FilledButton.tonal(
-              onPressed: () async {
-                await audioPlayer.play(AssetSource('alarm.mp3'));
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Alarm activated!'),
-                    backgroundColor: Colors.red.shade600,
-                  ),
-                );
-              },
-              style: FilledButton.styleFrom(
-                minimumSize: Size.zero,
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                shape: const StadiumBorder(),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.campaign, size: 22),
-                  SizedBox(width: 8),
-                  Text('Alarm', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Long Press — hero button (primary action)
-            GestureDetector(
-              onLongPressUp: () async {
-                if (sendMessageOkay) {
-                  _handleAllMethodsIfNoContacts(_sendEmergencyMessageOnLongPress);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Emergency message send has been cancelled.'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-                sendMessageOkay = true;
-              },
-              onLongPressMoveUpdate: (details) {
-                if (details.offsetFromOrigin.dy < -20) {
-                  sendMessageOkay = false;
-                }
-              },
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  fixedSize: const Size(170, 170),
-                  shape: const CircleBorder(),
-                  backgroundColor: colorScheme.error,
-                  foregroundColor: colorScheme.onError,
-                  elevation: 6,
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.send_to_mobile, size: 36),
-                    SizedBox(height: 6),
-                    Text(
-                      'Long Press\n& Release',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Location sharing controls
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  FilledButton.tonal(
-                    onPressed: () {
-                      _addLocation();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Your location added to the database.'),
-                          backgroundColor: Colors.red.shade600,
-                        ),
-                      );
-                    },
-                    style: FilledButton.styleFrom(minimumSize: Size.zero),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.add_location_alt_outlined, size: 20),
-                        SizedBox(height: 2),
-                        Text('Add', style: TextStyle(fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                  FilledButton.tonal(
-                    onPressed: () {
-                      _listenLocation();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Live location enabled.'),
-                          backgroundColor: Colors.red.shade600,
-                        ),
-                      );
-                    },
-                    style: FilledButton.styleFrom(
-                      minimumSize: Size.zero,
-                      backgroundColor: isLive ? colorScheme.primaryContainer : null,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.my_location, size: 20,
-                            color: isLive ? colorScheme.primary : null),
-                        const SizedBox(height: 2),
-                        Text(
-                          isLive ? 'Live ●' : 'Live',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isLive ? colorScheme.primary : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  FilledButton.tonal(
-                    onPressed: () {
-                      _stopListening();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('You stopped sharing your location.'),
-                          backgroundColor: Colors.red.shade600,
-                        ),
-                      );
-                    },
-                    style: FilledButton.styleFrom(minimumSize: Size.zero),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.location_off_outlined, size: 20),
-                        SizedBox(height: 2),
-                        Text('Stop', style: TextStyle(fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Shared Locations',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelLarge
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            Expanded(
-              child: StreamBuilder(
-                stream: FirebaseFirestore.instance.collection('location').snapshots(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  final docs = snapshot.data!.docs;
-                  if (docs.isEmpty) {
-                    return Center(
-                      child: Text('No locations shared yet',
-                          style: TextStyle(color: colorScheme.onSurfaceVariant)),
-                    );
-                  }
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: docs.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final doc = docs[index];
-                      final lat = doc['latitude'];
-                      final lng = doc['longitude'];
-                      return Card(
-                        child: ListTile(
-                          leading: Icon(Icons.location_pin, color: colorScheme.primary),
-                          title: Text(doc.id),
-                          subtitle: Text('$lat, $lng'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.directions),
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => MyMap(doc.id)));
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  _getUserLocationFromFirebase() {
-    FirebaseFirestore.instance
-        .collection('location')
-        .doc('user1')
-        .get()
-        .then((value) {
-      setState(() {});
-    });
-  }
-
-  Future<void> _addLocation() async {
-    try {
-      final loc.LocationData _locationResult = await location.getLocation();
-      await FirebaseFirestore.instance.collection('location').doc('user1').set({
-        'latitude': _locationResult.latitude,
-        'longitude': _locationResult.longitude,
-      }, SetOptions(merge: true));
-      _locationSubscription?.pause(Future.delayed(const Duration(seconds: 10),
-          () => _locationSubscription?.resume()));
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future<void> _listenLocation() async {
-    _locationSubscription = location.onLocationChanged.handleError((onError) {
-      print(onError);
-      _locationSubscription?.cancel();
-      setState(() {
-        _locationSubscription = null;
-      });
-    }).listen((loc.LocationData currentlocation) async {
-      await FirebaseFirestore.instance.collection('location').doc('user1').set({
-        'latitude': currentlocation.latitude,
-        'longitude': currentlocation.longitude,
-      }, SetOptions(merge: true));
-      _locationSubscription?.pause(Future.delayed(const Duration(seconds: 10),
-          () => _locationSubscription?.resume()));
-    });
-  }
-
-  _stopListening() {
-    _locationSubscription?.cancel();
-    setState(() {
-      _locationSubscription = null;
-    });
   }
 
   @override
   void dispose() {
-    _locationSubscription?.cancel();
-    audioPlayer.dispose();
+    _sub?.cancel();
+    // NOTE: we intentionally do NOT stop the siren here — it should keep playing
+    // even if you leave this tab.
     super.dispose();
   }
 
-  _requestPermission() async {
-    var status = await Permission.location.request();
-    if (status.isGranted) {
-      print('done');
-    } else if (status.isDenied) {
-      _requestPermission();
-    } else if (status.isPermanentlyDenied) {
-      openAppSettings();
-    }
-  }
-
-  void _handleAllMethodsIfNoContacts(VoidCallback method) async {
-    recipientList();
-    List<PersonalEmergency> contacts = await dbHelper.getContacts();
-    if (!mounted) return;
-    if (contacts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "You don't have any contacts in your contact list...",
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text('Live tracking', style: LumiText.display(24)),
           ),
-          backgroundColor: Colors.red.shade600,
-        ),
-      );
-    } else {
-      return method();
-    }
+          const SizedBox(height: 16),
+
+          // map preview (decorative — tap to open full Map tab if you wire it)
+          _MapPreview(isLive: _isLive),
+          const SizedBox(height: 14),
+
+          // live toggle
+          LumiCard(
+            child: Row(
+              children: [
+                _TileIcon(
+                    icon: Icons.my_location,
+                    bg: LumiColors.accent.withOpacity(0.14),
+                    fg: LumiColors.accent),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Live location',
+                          style: LumiText.body(14.5, weight: FontWeight.w700)),
+                      Text(_isLive ? 'Sharing now' : 'Off',
+                          style:
+                              LumiText.body(12, color: LumiColors.textSub)),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _isLive,
+                  activeColor: Colors.white,
+                  activeTrackColor: LumiColors.accent,
+                  onChanged: (v) => v ? _listenLocation() : _stopListening(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 11),
+
+          // siren
+          LumiCard(
+            child: Row(
+              children: [
+                _TileIcon(
+                    icon: Icons.campaign_outlined,
+                    bg: LumiColors.amber.withOpacity(0.14),
+                    fg: LumiColors.amber),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Loud siren',
+                          style: LumiText.body(14.5, weight: FontWeight.w700)),
+                      Text('Scare off & draw attention',
+                          style: LumiText.body(12, color: LumiColors.textSub)),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _siren,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: LumiColors.amber.withOpacity(0.16),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text('Play',
+                        style: LumiText.body(13,
+                            weight: FontWeight.w700, color: LumiColors.amber)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text('RECENT PINGS',
+                style: LumiText.body(12,
+                    weight: FontWeight.w700, color: LumiColors.textFaint)),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance.collection('location').snapshots(),
+              builder: (context, snap) {
+                if (!snap.hasData) {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: LumiColors.accent));
+                }
+                final docs = snap.data!.docs;
+                if (docs.isEmpty) {
+                  return Center(
+                    child: Text('No locations shared yet',
+                        style: LumiText.body(13, color: LumiColors.textSub)),
+                  );
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  itemCount: docs.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, i) {
+                    final d = docs[i];
+                    final lat = d['latitude'];
+                    final lng = d['longitude'];
+                    return Container(
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(
+                        color: LumiColors.surface2,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on,
+                              color: LumiColors.accent, size: 18),
+                          const SizedBox(width: 11),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(d.id,
+                                    style: LumiText.body(13,
+                                        weight: FontWeight.w600)),
+                                Text('$lat, $lng',
+                                    style: LumiText.body(11,
+                                        color: LumiColors.textSub)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right,
+                              color: LumiColors.textFaint, size: 18),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  // void _sendCancelMessageToRecipients() {
-  //   recipientList();
-  //   String message = "Please ignore my last message. I'm safe now!";
-  //   sendMessageToContacts(recipients, message);
-  //   print("on long press up!");
-  //   print(message);
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text(
-  //         'A message sent to your contact',
-  //       ),
-  //       backgroundColor: Colors.green.shade600,
-  //     ),
-  //   );
-  // }
+  // ── logic (yours, trimmed) ──────────────────────────────────────────────────
+  Future<void> _listenLocation() async {
+    setState(() {});
+    _sub = location.onLocationChanged.handleError((e) {
+      _sub?.cancel();
+      setState(() => _sub = null);
+    }).listen((d) async {
+      await FirebaseFirestore.instance.collection('location').doc('user1').set({
+        'latitude': d.latitude,
+        'longitude': d.longitude,
+      }, SetOptions(merge: true));
+    });
+    if (mounted) setState(() {});
+  }
 
-  void _sendEmergencyMessageOnLongPress() async {
-    recipientList();
-    final snap = await FirebaseFirestore.instance
-        .collection('location')
-        .doc('user1')
-        .get();
-    final latitude = snap.data()?['latitude'] ?? '?';
-    final longitude = snap.data()?['longitude'] ?? '?';
-    var userLoaction = "$latitude,$longitude";
-    print("test user location $userLoaction");
+  void _stopListening() {
+    _sub?.cancel();
+    setState(() => _sub = null);
+  }
 
-    String message =
-        "I need help, please find me with the following link: https://maps.google.com/?q=${userLoaction}";
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      final telephony = Telephony.instance;
-      for (final number in recipients) {
-        await telephony.sendSms(to: number, message: message);
-      }
-    } else {
-      await sendSMS(message: message, recipients: recipients);
-    }
-
-    print(message);
+  Future<void> _siren() async {
+    await Siren.instance.play(); // keeps playing after you leave this screen
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'SMS compose opened — tap Send to alert your contacts',
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: const Text('Siren activated!'),
+      backgroundColor: LumiColors.amber.withOpacity(0.9),
+    ));
+  }
+
+  Future<void> _requestPermission() async {
+    final status = await Permission.location.request();
+    if (status.isPermanentlyDenied) openAppSettings();
+  }
+}
+
+class _TileIcon extends StatelessWidget {
+  const _TileIcon({required this.icon, required this.bg, required this.fg});
+  final IconData icon;
+  final Color bg, fg;
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 42,
+        height: 42,
+        decoration:
+            BoxDecoration(color: bg, borderRadius: BorderRadius.circular(13)),
+        child: Icon(icon, color: fg, size: 20),
+      );
+}
+
+/// Lightweight stylised map preview (no Google tile cost on this tab).
+class _MapPreview extends StatelessWidget {
+  const _MapPreview({required this.isLive});
+  final bool isLive;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 150,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: LumiColors.hairline),
+        gradient: const RadialGradient(
+          center: Alignment(0.2, -0.2),
+          radius: 1.1,
+          colors: [Color(0xFF122036), Color(0xFF0A1120)],
         ),
-        backgroundColor: Colors.red.shade600,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned(
+            left: -40,
+            top: 92,
+            right: -40,
+            child: Transform.rotate(
+              angle: -0.22,
+              child: Container(height: 12, color: Colors.white.withOpacity(0.06)),
+            ),
+          ),
+          Positioned(
+            left: 90,
+            top: -30,
+            bottom: -30,
+            child: Transform.rotate(
+              angle: 0.16,
+              child: Container(width: 10, color: Colors.white.withOpacity(0.05)),
+            ),
+          ),
+          const Center(child: _Marker()),
+          if (isLive)
+            const Positioned(
+              left: 12,
+              top: 12,
+              child: LumiStatusPill(label: 'Sharing live'),
+            ),
+        ],
       ),
     );
   }
 }
 
+class _Marker extends StatelessWidget {
+  const _Marker();
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 20,
+        height: 20,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: LumiColors.accent,
+          border: Border.all(color: Colors.white, width: 3),
+          boxShadow: [BoxShadow(color: LumiColors.accent, blurRadius: 16)],
+        ),
+      );
+}

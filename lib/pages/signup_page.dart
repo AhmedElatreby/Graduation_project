@@ -1,110 +1,131 @@
-import 'package:flutter/gestures.dart';
+// ─────────────────────────────────────────────────────────────────────────────
+//  Lumi · signup
+//  Replaces:  lib/pages/signup_page.dart
+//  Keeps your AuthController.register + Get navigation.
+// ─────────────────────────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../oauth/auth_controller.dart';
+import '../theme/lumi_theme.dart';
+import '../widgets/lumi_widgets.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
-
   @override
   State<SignUpPage> createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-  late final TapGestureRecognizer _signInTapRecognizer;
-
-  @override
-  void initState() {
-    super.initState();
-    _signInTapRecognizer = TapGestureRecognizer()..onTap = () => Get.back();
-  }
+  bool _obscure = true;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _signInTapRecognizer.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create account'),
-        leading: BackButton(onPressed: () => Get.back()),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  validator: (v) =>
-                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  validator: (v) =>
-                      v == null || v.length < 6 ? 'Min 6 characters' : null,
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _submit,
-                  child: const Text('Create account',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: RichText(
-                    text: TextSpan(
-                      text: 'Already have an account?  ',
-                      style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15),
-                      children: [
-                        TextSpan(
-                          text: 'Sign in',
-                          style: TextStyle(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15),
-                          recognizer: _signInTapRecognizer,
+    return LumiScaffold(
+      padding: const EdgeInsets.fromLTRB(26, 8, 26, 24),
+      child: Form(
+        key: _formKey,
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // back button
+                    GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: LumiColors.field,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: LumiColors.hairline),
                         ),
-                      ],
+                        child: const Icon(Icons.chevron_left,
+                            color: LumiColors.text, size: 24),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 18),
+                    Text('Create account', style: LumiText.display(30)),
+                    const SizedBox(height: 6),
+                    Text('Set up your safety circle in 30 seconds.',
+                        style: LumiText.body(14.5, color: LumiColors.textSub)),
+                    const SizedBox(height: 26),
+                    LumiField(
+                      hint: 'Full name',
+                      icon: Icons.person_outline,
+                      controller: _nameController,
+                      validator: (v) =>
+                          v == null || v.trim().isEmpty ? 'Enter a name' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    LumiField(
+                      hint: 'Email',
+                      icon: Icons.mail_outline,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => v == null || !v.contains('@')
+                          ? 'Enter a valid email'
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+                    LumiField(
+                      hint: 'Password',
+                      icon: Icons.lock_outline,
+                      controller: _passwordController,
+                      obscure: _obscure,
+                      validator: (v) =>
+                          v == null || v.length < 6 ? 'Min 6 characters' : null,
+                      suffix: IconButton(
+                        icon: Icon(
+                            _obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: LumiColors.textFaint,
+                            size: 20),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                    ),
+                    const Spacer(),
+                    LumiPrimaryButton(
+                        label: 'Create account', onPressed: _submit),
+                    const SizedBox(height: 18),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () => Get.back(),
+                        child: Text.rich(TextSpan(
+                          text: 'Already have one?  ',
+                          style: LumiText.body(14, color: LumiColors.textSub),
+                          children: [
+                            TextSpan(
+                              text: 'Sign in',
+                              style: LumiText.body(14,
+                                  weight: FontWeight.w700,
+                                  color: LumiColors.accent),
+                            ),
+                          ],
+                        )),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'firebase_options.dart';
 import 'oauth/auth_controller.dart';
 import 'pages/login_page.dart';
-import 'theme/app_theme.dart';
+import 'theme/lumi_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Safety App',
-      theme: AppTheme.light(),
+      theme: LumiTheme.dark(),
       debugShowCheckedModeBanner: false,
       home: LoginPage(),
     );

@@ -41,6 +41,7 @@ dependencies:
   flutter_native_splash: ^2.4.0
   get_it: ^8.0.0
   characters: ^1.4.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -49,22 +50,22 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 
 flutter_native_splash:
-  color: "#C41E3A"
-  color_dark: "#7A1226"
+  color: "#06080E"
+  color_dark: "#06080E"
   image: assets/splash.png
   android: true
   ios: true
   android_12:
-    color: "#C41E3A"
-    color_dark: "#7A1226"
+    color: "#06080E"
+    color_dark: "#06080E"
     image: assets/splash.png
 
 
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo_foreground.png"
-  adaptive_icon_background: "#C41E3A"
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#FF2E45"
   adaptive_icon_foreground: "assets/images/logo_foreground.png"
   min_sdk_android: 21
 

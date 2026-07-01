@@ -34,10 +34,14 @@ class DBHelper {
     var dbClient = await db;
     var name = contacts.name;
     var contactNo = contacts.contactNo;
-    dbClient.rawInsert(
+    // ★ FIX: await the insert so the row is committed BEFORE the list reloads.
+    // Without await, getContacts() ran before the write finished, so a new
+    // number only appeared after an app restart.
+    final id = await dbClient.rawInsert(
         "INSERT into contacts(name,contactNo)"
         "VALUES(?, ?)",
         [name, contactNo]);
+    contacts.id = id;
     return contacts;
   }
 

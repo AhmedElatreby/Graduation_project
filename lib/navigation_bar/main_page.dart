@@ -1,14 +1,21 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  Lumi · main navigation (custom tab bar)
+//  Replaces:  lib/navigation_bar/main_page.dart
+//  Hosts the 4 content pages over the midnight gradient, with the Lumi tab bar
+//  (SOS emphasised). Keeps AuthController sign-out.
+// ─────────────────────────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
-import 'package:safetyproject/contact/personal_emergency_contacts.dart';
-import 'package:safetyproject/location/googlemap_page.dart';
-import 'package:safetyproject/pages/sos.dart';
 
+import '../contact/personal_emergency_contacts.dart';
+import '../location/googlemap_page.dart';
 import '../oauth/auth_controller.dart';
 import '../pages/location_page.dart';
+import '../pages/sos.dart';
+import '../theme/lumi_theme.dart';
+import '../widgets/lumi_logo.dart';
 
 class NavBarPage extends StatefulWidget {
-  const NavBarPage({Key? key, required this.email}) : super(key: key);
-
+  const NavBarPage({super.key, required this.email});
   final String email;
 
   @override
@@ -16,103 +23,153 @@ class NavBarPage extends StatefulWidget {
 }
 
 class _NavBarPageState extends State<NavBarPage> {
-  int _currentIndex = 1;
-  late final PageController _pageController;
-  late final List<Widget> _screens;
+  int _index = 1; // start on SOS
 
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: _currentIndex);
-    _screens = [
-      LocationPage(),
-      const SosPage(),
-      const PersonalEmergencyContacts(),
-      GoogleMapPage(),
-    ];
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  static const _destinations = [
-    NavigationDestination(
-      icon: Icon(Icons.location_on_outlined),
-      selectedIcon: Icon(Icons.location_on),
-      label: 'Track',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.emergency_outlined),
-      selectedIcon: Icon(Icons.emergency),
-      label: 'SOS',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.contacts_outlined),
-      selectedIcon: Icon(Icons.contacts),
-      label: 'Contacts',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.map_outlined),
-      selectedIcon: Icon(Icons.map),
-      label: 'Map',
-    ),
+  late final List<Widget> _pages = [
+    const LocationPage(),
+    SosPage(userName: _nameFromEmail(widget.email)),
+    const PersonalEmergencyContacts(),
+    GoogleMapPage(), // your existing map (keeps its own Scaffold)
   ];
 
-  void _onTabTapped(int i) {
-    setState(() => _currentIndex = i);
-    _pageController.animateToPage(
-      i,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+  String _nameFromEmail(String e) {
+    final base = e.contains('@') ? e.split('@').first : e;
+    if (base.isEmpty) return 'there';
+    return base[0].toUpperCase() + base.substring(1);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isMap = _index == 3;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Safety App'),
-        actions: [
+      extendBody: true,
+      backgroundColor: LumiColors.bgDeep,
+      body: Container(
+        decoration: isMap
+            ? null
+            : const BoxDecoration(gradient: LumiColors.screenGradient),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              if (!isMap) _topBar(),
+              Expanded(child: IndexedStack(index: _index, children: _pages)),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _LumiTabBar(
+        index: _index,
+        onTap: (i) => setState(() => _index = i),
+      ),
+    );
+  }
+
+  Widget _topBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 6, 14, 2),
+      child: Row(
+        children: [
+          const LumiMark(size: 30),
+          const SizedBox(width: 10),
+          Text('Lumi', style: LumiText.display(18)),
+          const Spacer(),
           IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
+            icon: const Icon(Icons.logout, color: LumiColors.textSub, size: 20),
             onPressed: () => AuthController.instance.logOut(),
           ),
         ],
       ),
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (i) => setState(() => _currentIndex = i),
-        children: _screens.map((s) => _KeepAlive(child: s)).toList(),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _onTabTapped,
-        destinations: _destinations,
-      ),
     );
   }
 }
 
-class _KeepAlive extends StatefulWidget {
-  const _KeepAlive({required this.child});
-  final Widget child;
-
-  @override
-  State<_KeepAlive> createState() => _KeepAliveState();
-}
-
-class _KeepAliveState extends State<_KeepAlive>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+class _LumiTabBar extends StatelessWidget {
+  const _LumiTabBar({required this.index, required this.onTap});
+  final int index;
+  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-    return widget.child;
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xF2080B14), // 0.92 opacity midnight
+        border: Border(top: BorderSide(color: LumiColors.hairline)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 70,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _tab(0, Icons.location_on_outlined, Icons.location_on, 'Track'),
+              _sosTab(1),
+              _tab(2, Icons.people_outline, Icons.people, 'Contacts'),
+              _tab(3, Icons.map_outlined, Icons.map, 'Map'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tab(int i, IconData icon, IconData active, String label) {
+    final on = index == i;
+    final color = on ? LumiColors.accent : LumiColors.textFaint;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onTap(i),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(on ? active : icon, color: color, size: 22),
+          const SizedBox(height: 4),
+          Text(label,
+              style: LumiText.body(10,
+                  weight: on ? FontWeight.w700 : FontWeight.w600,
+                  color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _sosTab(int i) {
+    final on = index == i;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onTap(i),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              gradient: on ? LumiColors.accentGradient : null,
+              color: on ? null : const Color(0xFF1A2030),
+              borderRadius: BorderRadius.circular(11),
+              boxShadow: on
+                  ? [
+                      BoxShadow(
+                          color: LumiColors.accent.withOpacity(0.5),
+                          blurRadius: 14,
+                          offset: const Offset(0, 5))
+                    ]
+                  : null,
+            ),
+            alignment: Alignment.center,
+            child: Text('SOS',
+                style: LumiText.display(11,
+                    color: on ? Colors.white : LumiColors.textFaint)),
+          ),
+          const SizedBox(height: 4),
+          Text('SOS',
+              style: LumiText.body(10,
+                  weight: FontWeight.w700,
+                  color: on ? LumiColors.accent : LumiColors.textFaint)),
+        ],
+      ),
+    );
   }
 }
