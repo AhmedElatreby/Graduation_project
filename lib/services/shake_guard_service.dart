@@ -7,6 +7,7 @@
 //  See docs/superpowers/specs/2026-07-04-background-shake-to-sos-design.md
 // ─────────────────────────────────────────────────────────────────────────────
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shake/shake.dart';
 
 import 'emergency_alert.dart';
@@ -41,6 +42,17 @@ class ShakeGuardService {
       ),
     );
   }
+
+  /// The three runtime permissions background SOS needs. The Track-page
+  /// toggle requests them; this check keeps a default-ON pref from starting
+  /// a service that can't notify or send.
+  static Future<bool> hasRequiredPermissions() async =>
+      (await Future.wait([
+        Permission.notification.status,
+        Permission.sms.status,
+        Permission.phone.status,
+      ]))
+          .every((s) => s.isGranted);
 
   static Future<void> start() async {
     if (await FlutterForegroundTask.isRunningService) return;

@@ -71,8 +71,18 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       ShakeGuardService.notifyLifecycle(resumed: true);
       _consumePendingCall();
+      // Re-arm the in-app detector we tore down on pause (see below).
+      _syncShakeDetector();
     } else if (state == AppLifecycleState.paused) {
       ShakeGuardService.notifyLifecycle(resumed: false);
+      // Android buffers accelerometer events while paused and flushes them
+      // on resume; if the in-app detector stayed subscribed it would fire a
+      // second _onShake() for a shake the background service already
+      // handled (observed as a duplicate countdown + duplicate send). Tear
+      // it down here; didChangeAppLifecycleState's resumed branch above
+      // recreates it via _syncShakeDetector().
+      _shakeDetector?.stopListening();
+      _shakeDetector = null;
     }
   }
 
@@ -93,11 +103,23 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
         // Two distinct shakes required — cuts down pocket/bag false alarms.
         minimumShakeCount: 2,
       );
-      if (android) ShakeGuardService.start();
+      if (android) _startGuardIfPermitted();
     } else {
       _shakeDetector?.stopListening();
       _shakeDetector = null;
       if (android) ShakeGuardService.stop();
+    }
+  }
+
+  /// A default-ON pref must not start a service that can't notify or send
+  /// (fresh install: no permissions yet). Flip the pref off instead — the
+  /// Track-page switch then shows the true state, and flipping it back on
+  /// runs the permission prompts.
+  Future<void> _startGuardIfPermitted() async {
+    if (await ShakeGuardService.hasRequiredPermissions()) {
+      await ShakeGuardService.start();
+    } else {
+      await ShakePrefs.setEnabled(false);
     }
   }
 
