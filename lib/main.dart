@@ -1,16 +1,26 @@
+import 'dart:io' show Platform;
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 
 import 'firebase_options.dart';
 import 'oauth/auth_controller.dart';
 import 'pages/splash_screen.dart';
+import 'services/shake_guard_service.dart';
 import 'services/shake_prefs.dart';
 import 'theme/lumi_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb && Platform.isAndroid) {
+    // Receive-port for the shake-guard service isolate + notification config.
+    FlutterForegroundTask.initCommunicationPort();
+    ShakeGuardService.init();
+  }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
       .then((value) => Get.put(AuthController()));
   await ShakePrefs.load();

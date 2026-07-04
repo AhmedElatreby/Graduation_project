@@ -4,6 +4,9 @@
 //  Hosts the 4 content pages over the midnight gradient, with the Lumi tab bar
 //  (SOS emphasised). Keeps AuthController sign-out.
 // ─────────────────────────────────────────────────────────────────────────────
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:shake/shake.dart';
 
@@ -13,6 +16,8 @@ import '../oauth/auth_controller.dart';
 import '../pages/location_page.dart';
 import '../pages/sos.dart';
 import '../services/emergency_alert.dart';
+import '../services/pending_call.dart';
+import '../services/shake_guard_service.dart';
 import '../services/shake_prefs.dart';
 import '../theme/lumi_theme.dart';
 import '../widgets/lumi_logo.dart';
@@ -26,7 +31,7 @@ class NavBarPage extends StatefulWidget {
   State<NavBarPage> createState() => _NavBarPageState();
 }
 
-class _NavBarPageState extends State<NavBarPage> {
+class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   int _index = 1; // start on SOS
 
   // ── shake-to-SOS ────────────────────────────────────────────────────────────
@@ -45,6 +50,7 @@ class _NavBarPageState extends State<NavBarPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     ShakePrefs.enabled.addListener(_syncShakeDetector);
     _syncShakeDetector();
   }
@@ -54,19 +60,44 @@ class _NavBarPageState extends State<NavBarPage> {
     ShakePrefs.enabled.removeListener(_syncShakeDetector);
     _shakeDetector?.stopListening();
     _shakeDetector = null;
+    WidgetsBinding.instance.removeObserver(this);
+    if (!kIsWeb && Platform.isAndroid) ShakeGuardService.stop(); // logout
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (kIsWeb || !Platform.isAndroid) return;
+    if (state == AppLifecycleState.resumed) {
+      ShakeGuardService.notifyLifecycle(resumed: true);
+      _consumePendingCall();
+    } else if (state == AppLifecycleState.paused) {
+      ShakeGuardService.notifyLifecycle(resumed: false);
+    }
+  }
+
+  /// The background alert couldn't launch the dialer (Android 10+ blocks
+  /// it); the flag survives until the user opens the app — dial now.
+  Future<void> _consumePendingCall() async {
+    if (!await PendingCall.consume()) return;
+    try {
+      await EmergencyAlert.callFirstContact();
+    } catch (_) {/* user can still dial from the SOS page */}
+  }
+
   void _syncShakeDetector() {
+    final android = !kIsWeb && Platform.isAndroid;
     if (ShakePrefs.enabled.value) {
       _shakeDetector ??= ShakeDetector.autoStart(
         onPhoneShake: (_) => _onShake(),
         // Two distinct shakes required — cuts down pocket/bag false alarms.
         minimumShakeCount: 2,
       );
+      if (android) ShakeGuardService.start();
     } else {
       _shakeDetector?.stopListening();
       _shakeDetector = null;
+      if (android) ShakeGuardService.stop();
     }
   }
 
