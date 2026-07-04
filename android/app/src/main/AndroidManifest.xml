@@ -14,6 +14,17 @@
     <uses-permission android:name="android.permission.SEND_SMS"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Background shake-to-SOS (Android only):
+         POST_NOTIFICATIONS          - countdown + result notifications (API 33+)
+         FOREGROUND_SERVICE(+type)   - keeps shake detection alive in background
+         CALL_PHONE                  - direct-dial the first guardian
+         VIBRATE                     - countdown ticks are felt, not just seen -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
 
     <application
         android:label="Safety App"
@@ -51,6 +62,14 @@
             android:value="2" />
        <meta-data android:name="com.google.android.geo.API_KEY"
            android:value="AIzaSyBFWjw90iH5rkDve37AUtJ67BZVk1XQAaI"/>
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="specialUse"
+            android:exported="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Personal-safety shake detection with a user-cancellable SOS countdown" />
+        </service>
     </application>
     <queries>
         <!-- If your app makes calls -->
