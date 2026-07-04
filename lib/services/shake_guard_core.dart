@@ -39,18 +39,31 @@ class ShakeGuardCore {
   Future<void> shakeDetected() async {
     if (_appResumed || _counting) return;
     _counting = true;
-    if (!await hasGuardians()) {
+    bool hasGuardiansResult;
+    try {
+      hasGuardiansResult = await hasGuardians();
+    } catch (_) {
+      // On exception, treat as true (fail toward alerting).
+      hasGuardiansResult = true;
+    }
+    if (!hasGuardiansResult) {
       _counting = false;
       onNoGuardians();
       return;
     }
+    // Re-check: cancel() may have run during the await above.
+    if (!_counting) return;
     var remaining = seconds;
     onTick(remaining);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) async {
       remaining--;
       if (remaining <= 0) {
         _timer?.cancel();
-        await send();
+        try {
+          await send();
+        } catch (_) {
+          // Swallow: still reset _counting and call onSent to unblock.
+        }
         _counting = false;
         onSent();
       } else {

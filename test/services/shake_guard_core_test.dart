@@ -1,5 +1,6 @@
 // The background shake state machine: cancel never sends, zero sends exactly
 // once, foreground shakes are ignored, and no guardians short-circuits.
+import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,14 +11,18 @@ class _Probe {
   final ticks = <int>[];
   bool guardians = true;
 
-  late final ShakeGuardCore core = ShakeGuardCore(
-    hasGuardians: () async => guardians,
-    send: () async => sends++,
-    onTick: ticks.add,
-    onCancelled: () => cancels++,
-    onSent: () => sents++,
-    onNoGuardians: () => noGuardians++,
-  );
+  late ShakeGuardCore core;
+
+  _Probe() {
+    core = ShakeGuardCore(
+      hasGuardians: () async => guardians,
+      send: () async => sends++,
+      onTick: ticks.add,
+      onCancelled: () => cancels++,
+      onSent: () => sents++,
+      onNoGuardians: () => noGuardians++,
+    );
+  }
 }
 
 void main() {
@@ -97,6 +102,80 @@ void main() {
       final p = _Probe();
       p.core.cancel();
       expect(p.cancels, 0);
+    });
+  });
+
+  test('cancel during the guardians check prevents the countdown entirely', () {
+    fakeAsync((async) {
+      final p = _Probe();
+      final completer = Completer<bool>();
+      p.core = ShakeGuardCore(
+        hasGuardians: () => completer.future,
+        send: () async => p.sends++,
+        onTick: p.ticks.add,
+        onCancelled: () => p.cancels++,
+        onSent: () => p.sents++,
+        onNoGuardians: () => p.noGuardians++,
+      );
+      p.core.appPaused();
+      p.core.shakeDetected();
+      p.core.cancel();
+      completer.complete(true);
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 10));
+      expect(p.ticks, isEmpty);
+      expect(p.sends, 0);
+      expect(p.cancels, 1);
+    });
+  });
+
+  test('hasGuardians throwing still counts down (fail toward alerting)', () {
+    fakeAsync((async) {
+      final p = _Probe();
+      p.core = ShakeGuardCore(
+        hasGuardians: () async => throw StateError('db broken'),
+        send: () async => p.sends++,
+        onTick: p.ticks.add,
+        onCancelled: () => p.cancels++,
+        onSent: () => p.sents++,
+        onNoGuardians: () => p.noGuardians++,
+      );
+      p.core.appPaused();
+      p.core.shakeDetected();
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 5));
+      expect(p.sends, 1);
+    });
+  });
+
+  test('send throwing does not wedge the machine', () {
+    fakeAsync((async) {
+      final p = _Probe();
+      var sendCount = 0;
+      p.core = ShakeGuardCore(
+        hasGuardians: () async => true,
+        send: () async {
+          sendCount++;
+          if (sendCount == 1) throw StateError('send failed');
+        },
+        onTick: p.ticks.add,
+        onCancelled: () => p.cancels++,
+        onSent: () => p.sents++,
+        onNoGuardians: () => p.noGuardians++,
+      );
+      p.core.appPaused();
+      p.core.shakeDetected();
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 5));
+      expect(p.sents, 1);
+      expect(sendCount, 1);
+      // Now shake again — should count down without being wedged
+      p.core.shakeDetected();
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 5));
+      expect(p.ticks.length, 10); // two full countdowns
+      expect(p.sents, 2);
+      expect(sendCount, 2);
     });
   });
 }
