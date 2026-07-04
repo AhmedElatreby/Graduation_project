@@ -6,8 +6,10 @@
 //        the clip finishes even if you leave this screen.
 // ─────────────────────────────────────────────────────────────────────────────
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
@@ -162,7 +164,7 @@ class _LocationPageState extends State<LocationPage> {
                     value: on,
                     activeColor: Colors.white,
                     activeTrackColor: LumiColors.blue,
-                    onChanged: ShakePrefs.setEnabled,
+                    onChanged: _setShakeEnabled,
                   ),
                 ),
               ],
@@ -290,6 +292,30 @@ class _LocationPageState extends State<LocationPage> {
   Future<void> _requestPermission() async {
     final status = await Permission.location.request();
     if (status.isPermanentlyDenied) openAppSettings();
+  }
+
+  /// Android background SOS needs notification + SMS + phone permissions.
+  /// Deny any of them and the switch stays OFF with an explanation.
+  Future<void> _setShakeEnabled(bool value) async {
+    if (!value || kIsWeb || !Platform.isAndroid) {
+      await ShakePrefs.setEnabled(value);
+      return;
+    }
+    final statuses = await [
+      Permission.notification,
+      Permission.sms,
+      Permission.phone,
+    ].request();
+    if (statuses.values.every((s) => s.isGranted)) {
+      await ShakePrefs.setEnabled(true);
+      return;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: const Text(
+          'Lumi needs notification, SMS and phone access for background SOS'),
+      backgroundColor: LumiColors.accent.withOpacity(0.9),
+    ));
   }
 }
 
