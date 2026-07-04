@@ -269,7 +269,13 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
   }
 
   String _holdLabel() {
-    if (!_armed && _hold.value == 0) return 'HOLD TO ALERT';
+    // AnimationController.reverse() rarely lands on exactly 0.0, so a strict
+    // equality check here left the label stuck on "KEEP HOLDING" forever
+    // after a cancelled hold. A small tolerance (and checking the animation
+    // status, not just the raw value) makes it settle back to idle.
+    if (!_armed && _hold.status == AnimationStatus.dismissed) {
+      return 'HOLD TO ALERT';
+    }
     if (_hold.value >= 1.0) return 'RELEASE TO SEND';
     return 'KEEP HOLDING';
   }
