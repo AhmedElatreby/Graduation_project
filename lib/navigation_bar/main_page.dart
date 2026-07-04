@@ -5,14 +5,18 @@
 //  (SOS emphasised). Keeps AuthController sign-out.
 // ─────────────────────────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
+import 'package:shake/shake.dart';
 
 import '../contact/personal_emergency_contacts.dart';
 import '../location/googlemap_page.dart';
 import '../oauth/auth_controller.dart';
 import '../pages/location_page.dart';
 import '../pages/sos.dart';
+import '../services/emergency_alert.dart';
+import '../services/shake_prefs.dart';
 import '../theme/lumi_theme.dart';
 import '../widgets/lumi_logo.dart';
+import '../widgets/sos_countdown.dart';
 
 class NavBarPage extends StatefulWidget {
   const NavBarPage({super.key, required this.email});
@@ -25,12 +29,74 @@ class NavBarPage extends StatefulWidget {
 class _NavBarPageState extends State<NavBarPage> {
   int _index = 1; // start on SOS
 
+  // ── shake-to-SOS ────────────────────────────────────────────────────────────
+  // Lives here (not in SosPage) so shaking works on every tab; dies with this
+  // page on logout. See docs/superpowers/specs/2026-07-04-shake-to-sos-design.md
+  ShakeDetector? _shakeDetector;
+  bool _countdownShowing = false;
+
   late final List<Widget> _pages = [
     const LocationPage(),
     SosPage(userName: _nameFromEmail(widget.email)),
     const PersonalEmergencyContacts(),
     GoogleMapPage(), // your existing map (keeps its own Scaffold)
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    ShakePrefs.enabled.addListener(_syncShakeDetector);
+    _syncShakeDetector();
+  }
+
+  @override
+  void dispose() {
+    ShakePrefs.enabled.removeListener(_syncShakeDetector);
+    _shakeDetector?.stopListening();
+    _shakeDetector = null;
+    super.dispose();
+  }
+
+  void _syncShakeDetector() {
+    if (ShakePrefs.enabled.value) {
+      _shakeDetector ??= ShakeDetector.autoStart(
+        onPhoneShake: (_) => _onShake(),
+        // Two distinct shakes required — cuts down pocket/bag false alarms.
+        minimumShakeCount: 2,
+      );
+    } else {
+      _shakeDetector?.stopListening();
+      _shakeDetector = null;
+    }
+  }
+
+  Future<void> _onShake() async {
+    if (_countdownShowing || !mounted) return;
+    _countdownShowing = true;
+    try {
+      setState(() => _index = 1); // jump to the SOS tab behind the overlay
+      final sent = await showSosCountdown(context, onSend: () async {
+        final failures = await EmergencyAlert.send();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(failures.isEmpty
+              ? 'Emergency alert sent to your guardians'
+              : failures.join(' · ')),
+          backgroundColor:
+              (failures.isEmpty ? LumiColors.green : LumiColors.accent)
+                  .withOpacity(0.9),
+        ));
+      });
+      if (!sent && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Cancelled — no alert sent'),
+          backgroundColor: LumiColors.surface.withOpacity(0.95),
+        ));
+      }
+    } finally {
+      _countdownShowing = false;
+    }
+  }
 
   String _nameFromEmail(String e) {
     final base = e.contains('@') ? e.split('@').first : e;

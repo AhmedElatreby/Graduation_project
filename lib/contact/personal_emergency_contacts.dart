@@ -111,8 +111,8 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                      child: CircularProgressIndicator(
-                          color: LumiColors.accent));
+                      child:
+                          CircularProgressIndicator(color: LumiColors.accent));
                 }
                 final contacts = snapshot.data ?? [];
                 return ListView.separated(
@@ -200,7 +200,8 @@ class _ContactTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             alignment: Alignment.center,
-            child: Text(initial, style: LumiText.display(17, color: Colors.white)),
+            child:
+                Text(initial, style: LumiText.display(17, color: Colors.white)),
           ),
           const SizedBox(width: 13),
           Expanded(

@@ -109,7 +109,8 @@ class LumiTheme {
         hintStyle: LumiText.body(15, color: LumiColors.textFaint),
         labelStyle: LumiText.body(15, color: LumiColors.textSub),
         prefixIconColor: LumiColors.textFaint,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: const BorderSide(color: LumiColors.hairline),

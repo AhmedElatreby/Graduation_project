@@ -59,7 +59,8 @@ class _LumiLogoState extends State<LumiLogo> with TickerProviderStateMixin {
                       height: s * (0.9 + t * 0.9),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: LumiColors.accent, width: 1.5),
+                        border:
+                            Border.all(color: LumiColors.accent, width: 1.5),
                       ),
                     ),
                   );
@@ -91,7 +92,10 @@ class _LumiLogoState extends State<LumiLogo> with TickerProviderStateMixin {
                     gradient: RadialGradient(
                       center: const Alignment(-0.5, -0.6),
                       radius: 0.9,
-                      colors: [Colors.white.withOpacity(0.4), Colors.transparent],
+                      colors: [
+                        Colors.white.withOpacity(0.4),
+                        Colors.transparent
+                      ],
                       stops: const [0.0, 0.55],
                     ),
                   ),

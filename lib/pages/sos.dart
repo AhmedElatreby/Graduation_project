@@ -11,18 +11,12 @@
 //        the clip finishes even if you leave this screen.
 //  ★ #7  Two clear quick actions in the SOS page: Send SMS and Call (plus Siren).
 // ─────────────────────────────────────────────────────────────────────────────
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:telephony/telephony.dart';
 
 import '../database/db_helper.dart';
+import '../services/emergency_alert.dart';
 import '../services/siren.dart';
 import '../theme/lumi_theme.dart';
 import '../widgets/lumi_widgets.dart';
@@ -301,76 +295,19 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
     }
   }
 
+  // Alert mechanics live in EmergencyAlert so the shake-to-SOS flow shares
+  // the exact same code path as this button.
   Future<void> _triggerFullAlert() async {
-    final failures = <String>[];
-    try {
-      await _sendTextsToContacts();
-    } catch (e) {
-      failures.add('SMS failed: $e');
-    }
-    try {
-      await _callEmergencyContact();
-    } catch (e) {
-      failures.add('Call failed: $e');
-    }
+    final failures = await EmergencyAlert.send();
     if (failures.isNotEmpty && mounted) {
       _snack(failures.join(' · '), LumiColors.accent);
     }
   }
 
-  Future<void> _callEmergencyContact() async {
-    final contacts = await _dbHelper.getContacts();
-    await FlutterPhoneDirectCaller.callNumber(contacts.first.contactNo);
-  }
-
-  /// Best-effort current coordinates: live GPS first (this is an emergency,
-  /// the freshest fix matters), then the user's own Firestore location doc
-  /// (written by the Track tab), then null.
-  Future<String?> _currentCoordinates() async {
-    try {
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 8),
-        ),
-      );
-      return '${pos.latitude},${pos.longitude}';
-    } catch (_) {
-      // fall through to the last value shared via the Track tab
-    }
-    try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) return null;
-      final snap = await FirebaseFirestore.instance
-          .collection('location')
-          .doc(uid)
-          .get();
-      final data = snap.data();
-      final lat = data?['latitude'];
-      final lng = data?['longitude'];
-      if (lat == null || lng == null) return null;
-      return '$lat,$lng';
-    } catch (_) {
-      return null;
-    }
-  }
+  Future<void> _callEmergencyContact() => EmergencyAlert.callFirstContact();
 
   Future<void> _sendTextsToContacts() async {
-    final contacts = await _dbHelper.getContacts();
-    final coords = await _currentCoordinates();
-    final message = coords == null
-        ? 'I need help! (My location is unavailable right now.)'
-        : 'I need help, please find me: https://maps.google.com/?q=$coords';
-    final recipients = contacts.map((c) => c.contactNo).toList();
-
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      final telephony = Telephony.instance;
-      for (final number in recipients) {
-        await telephony.sendSms(to: number, message: message);
-      }
-    } else {
-      await sendSMS(message: message, recipients: recipients);
-    }
+    await EmergencyAlert.sendTexts();
     if (!mounted) return;
     _snack('Emergency SMS sent to your contacts', LumiColors.green);
   }

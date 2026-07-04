@@ -46,7 +46,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '405608367816',
     projectId: 'safety-project-71d83',
     authDomain: 'safety-project-71d83.firebaseapp.com',
-    databaseURL: 'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'safety-project-71d83.firebasestorage.app',
     measurementId: 'G-6H99VPYCM8',
   );
@@ -56,7 +57,8 @@ class DefaultFirebaseOptions {
     appId: '1:405608367816:android:6d5d63a0b20dd0da4a07fd',
     messagingSenderId: '405608367816',
     projectId: 'safety-project-71d83',
-    databaseURL: 'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'safety-project-71d83.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
@@ -64,9 +66,11 @@ class DefaultFirebaseOptions {
     appId: '1:405608367816:ios:1d417ef4d65432da4a07fd',
     messagingSenderId: '405608367816',
     projectId: 'safety-project-71d83',
-    databaseURL: 'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'safety-project-71d83.firebasestorage.app',
-    iosClientId: '405608367816-9v58i29mvtngt38c0mk9t7rf29lsgqtl.apps.googleusercontent.com',
+    iosClientId:
+        '405608367816-9v58i29mvtngt38c0mk9t7rf29lsgqtl.apps.googleusercontent.com',
     iosBundleId: 'com.elatreby.safety',
   );
   static const FirebaseOptions macos = FirebaseOptions(
@@ -74,9 +78,11 @@ class DefaultFirebaseOptions {
     appId: '1:405608367816:ios:6592926df1bd302b4a07fd',
     messagingSenderId: '405608367816',
     projectId: 'safety-project-71d83',
-    databaseURL: 'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'safety-project-71d83.firebasestorage.app',
-    iosClientId: '405608367816-efe0ascc6rf6g5t1k40klvv0o75esosa.apps.googleusercontent.com',
+    iosClientId:
+        '405608367816-efe0ascc6rf6g5t1k40klvv0o75esosa.apps.googleusercontent.com',
     iosBundleId: 'com.elatreby.safety',
   );
 
@@ -86,7 +92,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '405608367816',
     projectId: 'safety-project-71d83',
     authDomain: 'safety-project-71d83.firebaseapp.com',
-    databaseURL: 'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://safety-project-71d83-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'safety-project-71d83.firebasestorage.app',
     measurementId: 'G-5YNF1H671K',
   );

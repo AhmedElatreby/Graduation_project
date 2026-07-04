@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
 
+import '../services/shake_prefs.dart';
 import '../services/siren.dart';
 import '../theme/lumi_theme.dart';
 import '../widgets/lumi_widgets.dart';
@@ -128,6 +129,40 @@ class _LocationPageState extends State<LocationPage> {
                     child: Text('Play',
                         style: LumiText.body(13,
                             weight: FontWeight.w700, color: LumiColors.amber)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 11),
+
+          // shake-to-SOS
+          LumiCard(
+            child: Row(
+              children: [
+                _TileIcon(
+                    icon: Icons.vibration,
+                    bg: LumiColors.blue.withOpacity(0.14),
+                    fg: LumiColors.blue),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Shake to SOS',
+                          style: LumiText.body(14.5, weight: FontWeight.w700)),
+                      Text('Shake your phone to trigger an alert',
+                          style: LumiText.body(12, color: LumiColors.textSub)),
+                    ],
+                  ),
+                ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: ShakePrefs.enabled,
+                  builder: (_, on, __) => Switch(
+                    value: on,
+                    activeColor: Colors.white,
+                    activeTrackColor: LumiColors.blue,
+                    onChanged: ShakePrefs.setEnabled,
                   ),
                 ),
               ],
