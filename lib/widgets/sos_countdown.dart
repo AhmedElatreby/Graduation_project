@@ -99,8 +99,12 @@ class _SosCountdownState extends State<_SosCountdown> {
                       ],
                     ),
                     alignment: Alignment.center,
-                    child: Text('$_remaining',
-                        style: LumiText.display(96, color: Colors.white)),
+                    // liveRegion: VoiceOver/TalkBack announce each tick.
+                    child: Semantics(
+                      liveRegion: true,
+                      child: Text('$_remaining',
+                          style: LumiText.display(96, color: Colors.white)),
+                    ),
                   ),
                 ),
               ),

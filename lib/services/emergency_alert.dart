@@ -21,6 +21,11 @@ import '../database/db_helper.dart';
 class EmergencyAlert {
   EmergencyAlert._();
 
+  /// Whether at least one guardian exists — callers gate the shake countdown
+  /// on this so users without contacts get a prompt instead of a countdown.
+  static Future<bool> hasGuardians() async =>
+      (await DBHelper().getContacts()).isNotEmpty;
+
   /// Sends the full alert: SMS to every guardian, then a call to the first.
   /// SMS and call are attempted independently so one failing doesn't block
   /// the other. Returns human-readable failure messages (empty = success).

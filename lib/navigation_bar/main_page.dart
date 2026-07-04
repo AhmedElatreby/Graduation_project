@@ -75,6 +75,16 @@ class _NavBarPageState extends State<NavBarPage> {
     _countdownShowing = true;
     try {
       setState(() => _index = 1); // jump to the SOS tab behind the overlay
+      // No guardians → nothing to send; prompt instead of a pointless countdown.
+      if (!await EmergencyAlert.hasGuardians()) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Add guardians first — no alert sent'),
+          backgroundColor: LumiColors.accent.withOpacity(0.9),
+        ));
+        return;
+      }
+      if (!mounted) return;
       final sent = await showSosCountdown(context, onSend: () async {
         final failures = await EmergencyAlert.send();
         if (!mounted) return;

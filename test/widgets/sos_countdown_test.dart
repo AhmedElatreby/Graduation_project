@@ -1,5 +1,8 @@
 // Tests for the shake-to-SOS countdown overlay: cancelling must never send,
-// and reaching zero must send exactly once.
+// reaching zero must send exactly once, and the overlay must be usable with
+// a screen reader (cancel reachable as a button, ticks announced).
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -64,5 +67,23 @@ void main() {
 
     await tester.pump(const Duration(seconds: 5));
     expect(sends, 1); // no double-fire
+  });
+
+  testWidgets('overlay is screen-reader accessible', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpHost(tester, onSend: () async {});
+
+    // The cancel action must be reachable as a tappable button.
+    final cancel =
+        tester.getSemantics(find.text("I'm safe — cancel")).getSemanticsData();
+    expect(cancel.hasFlag(ui.SemanticsFlag.isButton), isTrue);
+    expect(cancel.hasAction(ui.SemanticsAction.tap), isTrue);
+
+    // The ticking number must be a live region so VoiceOver/TalkBack
+    // announces 5…4…3 without the user hunting for it.
+    final tick = tester.getSemantics(find.text('5')).getSemanticsData();
+    expect(tick.hasFlag(ui.SemanticsFlag.isLiveRegion), isTrue);
+
+    semantics.dispose();
   });
 }
