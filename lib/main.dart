@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 
 import 'firebase_options.dart';
 import 'oauth/auth_controller.dart';
-import 'pages/login_page.dart';
+import 'pages/splash_screen.dart';
 import 'theme/lumi_theme.dart';
 
 Future<void> main() async {
@@ -28,7 +28,10 @@ class MyApp extends StatelessWidget {
       title: 'Safety App',
       theme: LumiTheme.dark(),
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      // AuthController navigates to LoginPage or NavBarPage as soon as the
+      // auth state resolves; showing the branded splash until then avoids
+      // flashing the login form at users who are already signed in.
+      home: const SplashScreen(),
     );
   }
 }

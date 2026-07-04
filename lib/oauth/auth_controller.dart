@@ -23,10 +23,10 @@ class AuthController extends GetxController {
 
   _initialScreen(User? user) {
     if (user == null) {
-      // print("login page");
-      Get.offAll(() => LoginPage());
+      Get.offAll(() => const LoginPage());
     } else {
-      Get.offAll(() => NavBarPage(email: user.email!));
+      // email can be null (e.g. phone/anonymous auth) — never force-unwrap it.
+      Get.offAll(() => NavBarPage(email: user.email ?? ''));
     }
   }
 

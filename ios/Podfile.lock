@@ -17,8 +17,6 @@ PODS:
     - GoogleMaps/Base
   - location (0.0.1):
     - Flutter
-  - sensors_plus (0.0.1):
-    - Flutter
   - telephony (0.0.1):
     - Flutter
 
@@ -28,7 +26,6 @@ DEPENDENCIES:
   - flutter_sms (from `.symlinks/plugins/flutter_sms/ios`)
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
   - location (from `.symlinks/plugins/location/ios`)
-  - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
   - telephony (from `.symlinks/plugins/telephony/ios`)
 
 SPEC REPOS:
@@ -47,8 +44,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/google_maps_flutter_ios/ios"
   location:
     :path: ".symlinks/plugins/location/ios"
-  sensors_plus:
-    :path: ".symlinks/plugins/sensors_plus/ios"
   telephony:
     :path: ".symlinks/plugins/telephony/ios"
 
@@ -60,7 +55,6 @@ SPEC CHECKSUMS:
   google_maps_flutter_ios: 17552876e72723da1d41accc22f03b5f7afbde69
   GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
   location: 155caecf9da4f280ab5fe4a55f94ceccfab838f8
-  sensors_plus: 809f7e76b18439344b148b2730634b59d645f7eb
   telephony: 092fd9f86ca076809b22f4efe52e5d4e57a4e674
 
 PODFILE CHECKSUM: 66791031430cdcb0135ea4c6d612990a0f405ca5

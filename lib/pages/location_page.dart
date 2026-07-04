@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
@@ -26,6 +27,11 @@ class _LocationPageState extends State<LocationPage> {
   StreamSubscription<loc.LocationData>? _sub;
 
   bool get _isLive => _sub != null;
+
+  // Location docs are keyed by the signed-in user's uid so each user only
+  // ever touches their own document (was a single shared 'user1' doc that
+  // every account overwrote and could read).
+  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
 
   @override
   void initState() {
@@ -75,8 +81,7 @@ class _LocationPageState extends State<LocationPage> {
                       Text('Live location',
                           style: LumiText.body(14.5, weight: FontWeight.w700)),
                       Text(_isLive ? 'Sharing now' : 'Off',
-                          style:
-                              LumiText.body(12, color: LumiColors.textSub)),
+                          style: LumiText.body(12, color: LumiColors.textSub)),
                     ],
                   ),
                 ),
@@ -138,63 +143,72 @@ class _LocationPageState extends State<LocationPage> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance.collection('location').snapshots(),
-              builder: (context, snap) {
-                if (!snap.hasData) {
-                  return const Center(
-                      child: CircularProgressIndicator(
-                          color: LumiColors.accent));
-                }
-                final docs = snap.data!.docs;
-                if (docs.isEmpty) {
-                  return Center(
-                    child: Text('No locations shared yet',
+            // Only the signed-in user's own document — streaming the whole
+            // collection here used to show every user's live coordinates to
+            // everyone (and Firestore rules now forbid it anyway).
+            child: _uid == null
+                ? Center(
+                    child: Text('Sign in to see your pings',
                         style: LumiText.body(13, color: LumiColors.textSub)),
-                  );
-                }
-                return ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 100),
-                  itemCount: docs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, i) {
-                    final d = docs[i];
-                    final lat = d['latitude'];
-                    final lng = d['longitude'];
-                    return Container(
-                      padding: const EdgeInsets.all(13),
-                      decoration: BoxDecoration(
-                        color: LumiColors.surface2,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
+                  )
+                : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: FirebaseFirestore.instance
+                        .collection('location')
+                        .doc(_uid)
+                        .snapshots(),
+                    builder: (context, snap) {
+                      if (!snap.hasData) {
+                        return const Center(
+                            child: CircularProgressIndicator(
+                                color: LumiColors.accent));
+                      }
+                      final data = snap.data!.data();
+                      if (data == null) {
+                        return Center(
+                          child: Text('No locations shared yet',
+                              style:
+                                  LumiText.body(13, color: LumiColors.textSub)),
+                        );
+                      }
+                      final lat = data['latitude'];
+                      final lng = data['longitude'];
+                      return ListView(
+                        padding: const EdgeInsets.only(bottom: 100),
                         children: [
-                          const Icon(Icons.location_on,
-                              color: LumiColors.accent, size: 18),
-                          const SizedBox(width: 11),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          Container(
+                            padding: const EdgeInsets.all(13),
+                            decoration: BoxDecoration(
+                              color: LumiColors.surface2,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
                               children: [
-                                Text(d.id,
-                                    style: LumiText.body(13,
-                                        weight: FontWeight.w600)),
-                                Text('$lat, $lng',
-                                    style: LumiText.body(11,
-                                        color: LumiColors.textSub)),
+                                const Icon(Icons.location_on,
+                                    color: LumiColors.accent, size: 18),
+                                const SizedBox(width: 11),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('You',
+                                          style: LumiText.body(13,
+                                              weight: FontWeight.w600)),
+                                      Text('$lat, $lng',
+                                          style: LumiText.body(11,
+                                              color: LumiColors.textSub)),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.chevron_right,
+                                    color: LumiColors.textFaint, size: 18),
                               ],
                             ),
                           ),
-                          const Icon(Icons.chevron_right,
-                              color: LumiColors.textFaint, size: 18),
                         ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -203,14 +217,22 @@ class _LocationPageState extends State<LocationPage> {
 
   // ── logic (yours, trimmed) ──────────────────────────────────────────────────
   Future<void> _listenLocation() async {
+    final uid = _uid;
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in to share your location')),
+      );
+      return;
+    }
     setState(() {});
     _sub = location.onLocationChanged.handleError((e) {
       _sub?.cancel();
       setState(() => _sub = null);
     }).listen((d) async {
-      await FirebaseFirestore.instance.collection('location').doc('user1').set({
+      await FirebaseFirestore.instance.collection('location').doc(uid).set({
         'latitude': d.latitude,
         'longitude': d.longitude,
+        'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     });
     if (mounted) setState(() {});
@@ -276,7 +298,8 @@ class _MapPreview extends StatelessWidget {
             right: -40,
             child: Transform.rotate(
               angle: -0.22,
-              child: Container(height: 12, color: Colors.white.withOpacity(0.06)),
+              child:
+                  Container(height: 12, color: Colors.white.withOpacity(0.06)),
             ),
           ),
           Positioned(
@@ -285,7 +308,8 @@ class _MapPreview extends StatelessWidget {
             bottom: -30,
             child: Transform.rotate(
               angle: 0.16,
-              child: Container(width: 10, color: Colors.white.withOpacity(0.05)),
+              child:
+                  Container(width: 10, color: Colors.white.withOpacity(0.05)),
             ),
           ),
           const Center(child: _Marker()),

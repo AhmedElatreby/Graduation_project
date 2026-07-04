@@ -12,11 +12,13 @@
 //  ★ #7  Two clear quick actions in the SOS page: Send SMS and Call (plus Siren).
 // ─────────────────────────────────────────────────────────────────────────────
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_sms/flutter_sms.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
 
@@ -321,17 +323,44 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
     await FlutterPhoneDirectCaller.callNumber(contacts.first.contactNo);
   }
 
+  /// Best-effort current coordinates: live GPS first (this is an emergency,
+  /// the freshest fix matters), then the user's own Firestore location doc
+  /// (written by the Track tab), then null.
+  Future<String?> _currentCoordinates() async {
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+      return '${pos.latitude},${pos.longitude}';
+    } catch (_) {
+      // fall through to the last value shared via the Track tab
+    }
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return null;
+      final snap = await FirebaseFirestore.instance
+          .collection('location')
+          .doc(uid)
+          .get();
+      final data = snap.data();
+      final lat = data?['latitude'];
+      final lng = data?['longitude'];
+      if (lat == null || lng == null) return null;
+      return '$lat,$lng';
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _sendTextsToContacts() async {
     final contacts = await _dbHelper.getContacts();
-    final snap = await FirebaseFirestore.instance
-        .collection('location')
-        .doc('user1')
-        .get();
-    final data = snap.data();
-    final lat = data?['latitude'] ?? '?';
-    final lng = data?['longitude'] ?? '?';
-    final message =
-        'I need help, please find me: https://maps.google.com/?q=$lat,$lng';
+    final coords = await _currentCoordinates();
+    final message = coords == null
+        ? 'I need help! (My location is unavailable right now.)'
+        : 'I need help, please find me: https://maps.google.com/?q=$coords';
     final recipients = contacts.map((c) => c.contactNo).toList();
 
     if (defaultTargetPlatform == TargetPlatform.android) {

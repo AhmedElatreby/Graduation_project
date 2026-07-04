@@ -27,7 +27,10 @@ class GoogleMapPage extends StatefulWidget {
 class _GoogleMapPageState extends State<GoogleMapPage> {
   final CameraPosition _initialLocation =
       const CameraPosition(target: LatLng(0.0, 0.0));
-  late GoogleMapController mapController;
+  // Nullable, not `late`: _getCurrentLocation() kicks off in initState and can
+  // resolve before onMapCreated, which used to throw LateInitializationError
+  // on every launch. Camera moves are simply skipped until the map exists.
+  GoogleMapController? mapController;
 
   Position? _currentPosition;
   String _currentAddress = '';
@@ -105,7 +108,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     ).then((Position position) async {
       setState(() {
         _currentPosition = position;
-        mapController.animateCamera(
+        mapController?.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(
               target: LatLng(position.latitude, position.longitude),
@@ -207,7 +210,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
           ? destinationLongitude
           : startLongitude;
 
-      mapController.animateCamera(
+      mapController?.animateCamera(
         CameraUpdate.newLatLngBounds(
           LatLngBounds(
             northeast: LatLng(maxy, maxx),
@@ -340,6 +343,18 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
               polylines: Set<Polyline>.of(polylines.values),
               onMapCreated: (GoogleMapController controller) {
                 mapController = controller;
+                // If the GPS fix arrived before the map was ready, catch up.
+                final pos = _currentPosition;
+                if (pos != null) {
+                  controller.animateCamera(
+                    CameraUpdate.newCameraPosition(
+                      CameraPosition(
+                        target: LatLng(pos.latitude, pos.longitude),
+                        zoom: 18.0,
+                      ),
+                    ),
+                  );
+                }
               },
             ),
 
@@ -352,13 +367,13 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                   children: <Widget>[
                     _mapButton(
                         icon: Icons.add,
-                        onTap: () =>
-                            mapController.animateCamera(CameraUpdate.zoomIn())),
+                        onTap: () => mapController
+                            ?.animateCamera(CameraUpdate.zoomIn())),
                     const SizedBox(height: 14),
                     _mapButton(
                         icon: Icons.remove,
                         onTap: () => mapController
-                            .animateCamera(CameraUpdate.zoomOut())),
+                            ?.animateCamera(CameraUpdate.zoomOut())),
                   ],
                 ),
               ),
@@ -394,8 +409,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                               const Icon(Icons.route,
                                   color: LumiColors.accent, size: 18),
                               const SizedBox(width: 8),
-                              Text('Plan a route',
-                                  style: LumiText.display(17)),
+                              Text('Plan a route', style: LumiText.display(17)),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -421,7 +435,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                           _textField(
                             label: 'Destination',
                             hint: 'Choose destination',
-                            prefixIcon: const Icon(Icons.place_outlined, size: 20),
+                            prefixIcon:
+                                const Icon(Icons.place_outlined, size: 20),
                             controller: destinationAddressController,
                             focusNode: desrinationAddressFocusNode,
                             width: width,
@@ -477,8 +492,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 13),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 13),
                                 ),
                               ),
                             ),
@@ -555,7 +570,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                         splashColor: Colors.white24,
                         onTap: () {
                           if (_currentPosition == null) return;
-                          mapController.animateCamera(
+                          mapController?.animateCamera(
                             CameraUpdate.newCameraPosition(
                               CameraPosition(
                                 target: LatLng(
