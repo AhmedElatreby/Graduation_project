@@ -17,6 +17,14 @@ import 'package:telephony/telephony.dart';
 
 import '../contact/personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
+import 'pending_call.dart';
+
+class BackgroundSendResult {
+  const BackgroundSendResult(
+      {required this.smsFailures, required this.callBlocked});
+  final List<String> smsFailures;
+  final bool callBlocked;
+}
 
 class EmergencyAlert {
   EmergencyAlert._();
@@ -25,6 +33,12 @@ class EmergencyAlert {
   /// on this so users without contacts get a prompt instead of a countdown.
   static Future<bool> hasGuardians() async =>
       (await DBHelper().getContacts()).isNotEmpty;
+
+  /// The SMS body. Extracted so the foreground composer path and the
+  /// background silent path can never drift apart.
+  static String buildAlertMessage(String? coords) => coords == null
+      ? 'I need help! (My location is unavailable right now.)'
+      : 'I need help, please find me: https://maps.google.com/?q=$coords';
 
   /// Sends the full alert: SMS to every guardian, then a call to the first.
   /// SMS and call are attempted independently so one failing doesn't block
@@ -59,9 +73,7 @@ class EmergencyAlert {
   static Future<void> sendTexts({List<PersonalEmergency>? contacts}) async {
     final list = contacts ?? await DBHelper().getContacts();
     final coords = await currentCoordinates();
-    final message = coords == null
-        ? 'I need help! (My location is unavailable right now.)'
-        : 'I need help, please find me: https://maps.google.com/?q=$coords';
+    final message = buildAlertMessage(coords);
     final recipients = list.map((c) => c.contactNo).toList();
 
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -104,5 +116,46 @@ class EmergencyAlert {
     } catch (_) {
       return null;
     }
+  }
+
+  /// Background variant used by the Android shake-guard service: silent SMS
+  /// per guardian (no composer UI), then a best-effort call. Android 10+
+  /// usually blocks the dialer launch from the background — then we set
+  /// [PendingCall] and report callBlocked so the notification can say
+  /// "tap to call".
+  static Future<BackgroundSendResult> sendBackground() async {
+    final contacts = await DBHelper().getContacts();
+    if (contacts.isEmpty) {
+      return const BackgroundSendResult(
+          smsFailures: ['Add emergency contacts first.'], callBlocked: false);
+    }
+
+    String? coords;
+    try {
+      coords = await currentCoordinates().timeout(const Duration(seconds: 10));
+    } catch (_) {
+      coords = null; // background GPS may be denied/slow — degrade, don't die
+    }
+    final message = buildAlertMessage(coords);
+
+    final smsFailures = <String>[];
+    final telephony = Telephony.backgroundInstance;
+    for (final c in contacts) {
+      try {
+        await telephony.sendSms(to: c.contactNo, message: message);
+      } catch (e) {
+        smsFailures.add('SMS to ${c.name} failed: $e');
+      }
+    }
+
+    var callBlocked = false;
+    try {
+      await callFirstContact(contacts: contacts);
+    } catch (_) {
+      callBlocked = true;
+      await PendingCall.set();
+    }
+    return BackgroundSendResult(
+        smsFailures: smsFailures, callBlocked: callBlocked);
   }
 }
