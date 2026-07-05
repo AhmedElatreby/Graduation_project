@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
 
 import '../contact/personal_emergency_contacts_model.dart';
@@ -62,16 +63,31 @@ class EmergencyAlert {
     return failures;
   }
 
+  /// Fail fast if [permission] is missing (Android). The telephony and
+  /// direct-caller plugins self-request missing permissions — and the
+  /// telephony one then crashes the whole app with "Reply already
+  /// submitted" when the grant arrives. Throwing here keeps the plugins
+  /// out of the permission business; callers already surface the error.
+  static Future<void> _requireGranted(
+      Permission permission, String what) async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    if (!(await permission.status).isGranted) {
+      throw StateError('$what permission not granted');
+    }
+  }
+
   /// Calls the first guardian. Throws on failure; returns the plugin's
   /// success flag (false/null = the OS refused the launch without throwing).
   static Future<bool?> callFirstContact(
       {List<PersonalEmergency>? contacts}) async {
+    await _requireGranted(Permission.phone, 'Phone');
     final list = contacts ?? await DBHelper().getContacts();
     return FlutterPhoneDirectCaller.callNumber(list.first.contactNo);
   }
 
   /// Texts every guardian the location link. Throws on failure.
   static Future<void> sendTexts({List<PersonalEmergency>? contacts}) async {
+    await _requireGranted(Permission.sms, 'SMS');
     final list = contacts ?? await DBHelper().getContacts();
     final coords = await currentCoordinates();
     final message = buildAlertMessage(coords);
@@ -152,13 +168,18 @@ class EmergencyAlert {
     final message = buildAlertMessage(coords);
 
     final smsFailures = <String>[];
-    final telephony = Telephony.backgroundInstance;
-    for (final c in contacts) {
-      try {
-        await telephony.sendSms(to: c.contactNo, message: message);
-      } catch (e) {
-        smsFailures.add('SMS to ${c.name} failed: $e');
+    try {
+      await _requireGranted(Permission.sms, 'SMS');
+      final telephony = Telephony.backgroundInstance;
+      for (final c in contacts) {
+        try {
+          await telephony.sendSms(to: c.contactNo, message: message);
+        } catch (e) {
+          smsFailures.add('SMS to ${c.name} failed: $e');
+        }
       }
+    } catch (e) {
+      smsFailures.add('SMS failed: $e');
     }
 
     var callBlocked = false;

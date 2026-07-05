@@ -49,6 +49,18 @@ class FakeGrantedPermissionHandlerPlatform extends PermissionHandlerPlatform
   Future<bool> openAppSettings() async => true;
 }
 
+/// Grants everything except SMS — for tests proving code fails fast instead
+/// of letting the telephony plugin self-request (which crashes the app with
+/// "Reply already submitted" when the grant arrives).
+class SmsDeniedPermissionHandlerPlatform extends PermissionHandlerPlatform
+    with MockPlatformInterfaceMixin {
+  @override
+  Future<PermissionStatus> checkPermissionStatus(Permission permission) async =>
+      permission == Permission.sms
+          ? PermissionStatus.denied
+          : PermissionStatus.granted;
+}
+
 /// Fails every request immediately instead of letting google_fonts hang (or
 /// time out slowly) trying to reach fonts.gstatic.com from a widget test.
 /// google_fonts checksums its downloads, so a fake successful response isn't

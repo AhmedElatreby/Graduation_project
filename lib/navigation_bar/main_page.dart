@@ -8,6 +8,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shake/shake.dart';
 
 import '../contact/personal_emergency_contacts.dart';
@@ -57,7 +58,24 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
       ShakeGuardService.notifyLifecycle(resumed: true);
     }
     ShakePrefs.enabled.addListener(_syncShakeDetector);
-    _syncShakeDetector();
+    // Ask for everything background SOS needs up front (Android): if the
+    // first send ever runs unpermissioned, the telephony plugin self-requests
+    // and then crashes the app ("Reply already submitted") when the grant
+    // lands. Sync runs after the prompts so a granted set starts the service
+    // immediately instead of flipping the toggle off.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _armShakeToSos());
+  }
+
+  Future<void> _armShakeToSos() async {
+    if (!kIsWeb && Platform.isAndroid && ShakePrefs.enabled.value) {
+      await [
+        Permission.notification,
+        Permission.sms,
+        Permission.phone,
+        Permission.locationWhenInUse,
+      ].request();
+    }
+    if (mounted) _syncShakeDetector();
   }
 
   @override
