@@ -12,6 +12,7 @@ import 'package:shake/shake.dart';
 
 import 'emergency_alert.dart';
 import 'shake_guard_core.dart';
+import 'shake_prefs.dart';
 
 @pragma('vm:entry-point')
 void shakeGuardCallback() {
@@ -79,6 +80,12 @@ class ShakeGuardService {
   static void notifyLifecycle({required bool resumed}) =>
       FlutterForegroundTask.sendDataToTask(
           resumed ? 'app_resumed' : 'app_paused');
+
+  /// Pushes a live sensitivity change to the running service (no-op if it
+  /// isn't running). NavBarPage calls this from the same place it reacts to
+  /// ShakePrefs.sensitivity changes for the in-app detector.
+  static void notifySensitivity(ShakeSensitivity level) =>
+      FlutterForegroundTask.sendDataToTask('sensitivity:${level.name}');
 }
 
 class _ShakeGuardTaskHandler extends TaskHandler {
@@ -150,20 +157,31 @@ class _ShakeGuardTaskHandler extends TaskHandler {
         notificationButtons: const [],
       ),
     );
-    _detector = ShakeDetector.autoStart(
-      minimumShakeCount: 2,
-      onPhoneShake: (_) => _core?.shakeDetected(),
-    );
+    await ShakePrefs.load(); // this isolate has its own SharedPreferences access
+    _startDetector(thresholdFor(ShakePrefs.sensitivity.value));
     // The core assumes "app foregrounded" because WE normally start it from
     // the running app. An OS restart of the service is the opposite case —
     // the app is gone; treat it as paused so background shakes are handled.
     if (starter != TaskStarter.developer) _core?.appPaused();
   }
 
+  void _startDetector(double threshold) {
+    _detector = ShakeDetector.autoStart(
+      minimumShakeCount: 2,
+      shakeThresholdGravity: threshold,
+      onPhoneShake: (_) => _core?.shakeDetected(),
+    );
+  }
+
   @override
   void onReceiveData(Object data) {
     if (data == 'app_resumed') _core?.appResumed();
     if (data == 'app_paused') _core?.appPaused();
+    if (data is String && data.startsWith('sensitivity:')) {
+      final level = ShakeSensitivity.values.byName(data.substring(12));
+      _detector?.stopListening();
+      _startDetector(thresholdFor(level));
+    }
   }
 
   @override

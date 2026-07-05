@@ -58,6 +58,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
       ShakeGuardService.notifyLifecycle(resumed: true);
     }
     ShakePrefs.enabled.addListener(_syncShakeDetector);
+    ShakePrefs.sensitivity.addListener(_syncShakeDetector);
     // Ask for everything background SOS needs up front (Android): if the
     // first send ever runs unpermissioned, the telephony plugin self-requests
     // and then crashes the app ("Reply already submitted") when the grant
@@ -81,6 +82,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     ShakePrefs.enabled.removeListener(_syncShakeDetector);
+    ShakePrefs.sensitivity.removeListener(_syncShakeDetector);
     _shakeDetector?.stopListening();
     _shakeDetector = null;
     WidgetsBinding.instance.removeObserver(this);
@@ -121,12 +123,19 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   void _syncShakeDetector() {
     final android = !kIsWeb && Platform.isAndroid;
     if (ShakePrefs.enabled.value) {
-      _shakeDetector ??= ShakeDetector.autoStart(
+      // ShakeDetector's fields are final, so a sensitivity change tears down
+      // the old instance and builds a fresh one at the new threshold.
+      _shakeDetector?.stopListening();
+      _shakeDetector = ShakeDetector.autoStart(
         onPhoneShake: (_) => _onShake(),
         // Two distinct shakes required — cuts down pocket/bag false alarms.
         minimumShakeCount: 2,
+        shakeThresholdGravity: thresholdFor(ShakePrefs.sensitivity.value),
       );
-      if (android) _startGuardIfPermitted();
+      if (android) {
+        _startGuardIfPermitted();
+        ShakeGuardService.notifySensitivity(ShakePrefs.sensitivity.value);
+      }
     } else {
       _shakeDetector?.stopListening();
       _shakeDetector = null;
