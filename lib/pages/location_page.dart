@@ -194,8 +194,9 @@ class _LocationPageState extends State<LocationPage> {
                               label: Text('High')),
                         ],
                         selected: {ShakePrefs.sensitivity.value},
-                        onSelectionChanged: (s) =>
-                            ShakePrefs.setSensitivity(s.first),
+                        onSelectionChanged: ShakePrefs.enabled.value
+                            ? (s) => ShakePrefs.setSensitivity(s.first)
+                            : null,
                       ),
                     ),
                   ),
