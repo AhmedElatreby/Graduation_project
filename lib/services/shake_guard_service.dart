@@ -94,18 +94,26 @@ class _ShakeGuardTaskHandler extends TaskHandler {
   }
 
   Future<void> _sendAlert() async {
-    final result = await EmergencyAlert.sendBackground();
-    final ok = result.smsFailures.isEmpty;
-    FlutterForegroundTask.updateService(
-      notificationTitle:
-          ok ? 'Alert sent to your guardians' : 'Alert sent with problems',
-      notificationText: [
-        if (!ok) result.smsFailures.join(' · '),
-        if (result.callBlocked)
-          'Tap to open Lumi and call your first guardian.',
-      ].join(' '),
-      notificationButtons: const [],
-    );
+    try {
+      final result = await EmergencyAlert.sendBackground();
+      final ok = result.smsFailures.isEmpty;
+      FlutterForegroundTask.updateService(
+        notificationTitle:
+            ok ? 'Alert sent to your guardians' : 'Alert sent with problems',
+        notificationText: [
+          if (!ok) result.smsFailures.join(' · '),
+          if (result.callBlocked)
+            'Tap to open Lumi and call your first guardian.',
+        ].join(' '),
+        notificationButtons: const [],
+      );
+    } catch (_) {
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Alert may have failed',
+        notificationText: 'Open Lumi and use the SOS button.',
+        notificationButtons: const [],
+      );
+    }
   }
 
   @override
@@ -131,6 +139,10 @@ class _ShakeGuardTaskHandler extends TaskHandler {
       minimumShakeCount: 2,
       onPhoneShake: (_) => _core?.shakeDetected(),
     );
+    // The core assumes "app foregrounded" because WE normally start it from
+    // the running app. An OS restart of the service is the opposite case —
+    // the app is gone; treat it as paused so background shakes are handled.
+    if (starter != TaskStarter.developer) _core?.appPaused();
   }
 
   @override

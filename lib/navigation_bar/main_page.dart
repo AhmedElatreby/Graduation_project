@@ -51,6 +51,11 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Relaunching into an already-running service: no lifecycle *change*
+    // fires, so tell the service explicitly that the app is foregrounded.
+    if (!kIsWeb && Platform.isAndroid) {
+      ShakeGuardService.notifyLifecycle(resumed: true);
+    }
     ShakePrefs.enabled.addListener(_syncShakeDetector);
     _syncShakeDetector();
   }

@@ -62,11 +62,12 @@ class EmergencyAlert {
     return failures;
   }
 
-  /// Calls the first guardian. Throws on failure.
-  static Future<void> callFirstContact(
+  /// Calls the first guardian. Throws on failure; returns the plugin's
+  /// success flag (false/null = the OS refused the launch without throwing).
+  static Future<bool?> callFirstContact(
       {List<PersonalEmergency>? contacts}) async {
     final list = contacts ?? await DBHelper().getContacts();
-    await FlutterPhoneDirectCaller.callNumber(list.first.contactNo);
+    return FlutterPhoneDirectCaller.callNumber(list.first.contactNo);
   }
 
   /// Texts every guardian the location link. Throws on failure.
@@ -150,11 +151,12 @@ class EmergencyAlert {
 
     var callBlocked = false;
     try {
-      await callFirstContact(contacts: contacts);
+      final ok = await callFirstContact(contacts: contacts);
+      if (ok != true) callBlocked = true;
     } catch (_) {
       callBlocked = true;
-      await PendingCall.set();
     }
+    if (callBlocked) await PendingCall.set();
     return BackgroundSendResult(
         smsFailures: smsFailures, callBlocked: callBlocked);
   }

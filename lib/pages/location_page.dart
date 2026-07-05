@@ -310,6 +310,9 @@ class _LocationPageState extends State<LocationPage> {
       await ShakePrefs.setEnabled(true);
       return;
     }
+    if (statuses.values.any((s) => s.isPermanentlyDenied)) {
+      openAppSettings();
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text(
