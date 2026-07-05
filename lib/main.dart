@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
@@ -16,6 +17,11 @@ import 'theme/lumi_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The SOS page's hold button and animated rings are fixed-size and were
+  // never laid out for landscape — rotating overflows the screen. This app
+  // has no landscape design, so lock to portrait like other safety apps.
+  await SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   if (!kIsWeb && Platform.isAndroid) {
     // Receive-port for the shake-guard service isolate + notification config.
     FlutterForegroundTask.initCommunicationPort();
