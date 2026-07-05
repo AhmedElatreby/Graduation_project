@@ -149,23 +149,39 @@ the other three cards):
   field, and a "Start" button.
 - **Running state:** the chips/note are replaced by a live countdown
   ("Checking in in 12:34"), the note if set, and an "I'm safe — cancel"
-  button (same visual treatment as `_SosCountdown`'s cancel button).
-  Live-updates the countdown text via a local `Timer.periodic` in the page
-  state, computed from `CheckInPrefs.endTime` — the page doesn't own the
-  authoritative countdown, the service does; the page timer is purely a
-  display refresh.
-- Card is driven by `ListenableBuilder(listenable: CheckInPrefs.endTime, ...)`
-  the same way the sensitivity picker already listens to `ShakePrefs`
-  notifiers.
+  button.
+- **Grace-period state:** once the main duration elapses, the card itself
+  (not a separate dialog) flips to a warning-colored state: "Check-in
+  missed — alerting your guardians in 45s" and the same cancel button.
+  Both this and the running state are computed the same way — remaining
+  time and phase are pure functions of `CheckInPrefs.endTime` (persisted,
+  refreshed on app resume) and the fixed `graceSeconds` constant, evaluated
+  locally wherever they're displayed. That's what keeps this safe to
+  compute redundantly in two isolates at once (see below) without risk of
+  disagreement: both apply the identical formula to the identical
+  timestamp, so there's nothing to synchronize.
+- Live-updates via a local `Timer.periodic` in the page state (purely a
+  display refresh — the page never runs its own `CheckInTimerCore` or
+  decides to send/cancel anything itself) and a
+  `ListenableBuilder(listenable: CheckInPrefs.endTime, ...)`, the same
+  pattern the sensitivity picker already uses for `ShakePrefs` notifiers.
 
-**Grace-period dialog (foreground only):** `showSosCountdown` is
-generalized to accept the title/subtitle text as parameters (currently
-hardcoded to "Shake detected" / "Alerting your guardians in") instead of
-duplicating the whole widget for "Check-in missed" / "Alerting your
-guardians in" — same countdown circle, same cancel button, different copy
-and `seconds: 60` instead of `5`. When the app is backgrounded during the
-grace period, the persistent notification carries the same cancel action
-the shake countdown's notification already has.
+**Why not a modal dialog for the grace period, unlike shake-to-SOS:**
+shake's full-screen countdown only ever runs in the isolate that detected
+the shake — the foreground detector shows it directly, and a
+background-detected shake never tries to show UI at all, only a
+notification. A check-in timer's authoritative countdown lives in the
+service *regardless* of whether the app is foregrounded (that's the whole
+point — it must keep counting whether or not anyone's looking). Showing a
+foreground modal for it would require the service to push a "grace started"
+event to the main isolate and the main isolate's dialog to independently
+decide when to fire — two places that could each reach "send now," which is
+exactly the kind of drift `EmergencyAlert.send()` being one shared pipeline
+is supposed to prevent. An inline, warning-colored card state — driven by
+the same read-only formula as the running-state countdown — gets the same
+"hard to miss, cancel any time" outcome with one authority instead of two.
+The persistent notification (with its own cancel action, exactly like
+shake's) is what actually carries this when the app is backgrounded.
 
 ## Extending `EmergencyAlert`
 
@@ -191,16 +207,24 @@ call sites pass no note and see no change. This is the only change to
   both are false" — a small new `_syncGuardService()` helper (or inline
   check) replaces the single-condition version, so an active check-in timer
   keeps the service alive even with shake-to-SOS off, and vice versa.
-- `NavBarPage` sends a new `'checkin:start:<endTimeMillis>:<note>'` message
-  over the existing `sendDataToTask` channel (mirroring `notifySensitivity`),
-  and `'checkin:cancel'` on cancel.
+- `NavBarPage` sends `'checkin_start'` over the existing `sendDataToTask`
+  channel (mirroring `notifySensitivity`'s shape) after persisting via
+  `CheckInPrefs.start(...)` — the service isolate re-reads the endTime/note
+  from `CheckInPrefs` itself (it already does this for `ShakePrefs` in
+  `onStart`), rather than smuggling the note's free text through the IPC
+  message. `'checkin_cancel'` is sent on cancel.
 - `_ShakeGuardTaskHandler` gains a `CheckInTimerCore? _checkIn` alongside its
   existing `ShakeGuardCore? _core`, wired the same way: `onTick`/`onGraceTick`
-  update the persistent notification text (combined with the shake-guard's
-  own "Shake protection on" text when both are active), `onSent` calls
-  `EmergencyAlert.send()` through the same `_sendAlert()` helper already
-  used by shake-to-SOS (parameterized with the note, if any), and
-  `onCancelled` resets the notification and calls `CheckInPrefs.clear()`.
+  update the persistent notification text, `onSent` calls
+  `EmergencyAlert.sendBackground(note: ...)` through the same `_sendAlert()`
+  helper already used by shake-to-SOS (extended to take an optional note),
+  and `onCancelled` resets the notification and calls `CheckInPrefs.clear()`.
+  Because the two state machines' notification updates aren't merged
+  line-by-line (each just overwrites the notification text when it has
+  something new to say), a shake countdown starting while a check-in timer
+  is also mid-countdown will visually override it until the shake countdown
+  resolves — an acceptable rough edge for a v1 that doesn't attempt full
+  multi-state notification composition.
 - `onStart` (service (re)start, including after an OS-initiated restart)
   additionally reads `CheckInPrefs.endTime`; if non-null, calls
   `_checkIn.start(endTime)` immediately — this is what makes a running
