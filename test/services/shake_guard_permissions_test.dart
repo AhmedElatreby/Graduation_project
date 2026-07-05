@@ -33,4 +33,24 @@ void main() {
     PermissionHandlerPlatform.instance = FakeGrantedPermissionHandlerPlatform();
     expect(await ShakeGuardService.hasRequiredPermissions(), isTrue);
   });
+
+  test('hasRequiredPermissions is false when location is denied', () async {
+    // Without while-in-use location the background SMS can never carry
+    // coordinates (Android blocks GPS for a non-location foreground service),
+    // so location is part of the required set.
+    PermissionHandlerPlatform.instance =
+        _LocationDeniedPermissionHandlerPlatform();
+    expect(await ShakeGuardService.hasRequiredPermissions(), isFalse);
+  });
+}
+
+class _LocationDeniedPermissionHandlerPlatform extends PermissionHandlerPlatform
+    with MockPlatformInterfaceMixin {
+  @override
+  Future<PermissionStatus> checkPermissionStatus(Permission permission) async {
+    if (permission == Permission.locationWhenInUse) {
+      return PermissionStatus.denied;
+    }
+    return PermissionStatus.granted;
+  }
 }

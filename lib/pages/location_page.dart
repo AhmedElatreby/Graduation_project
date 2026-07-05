@@ -294,8 +294,10 @@ class _LocationPageState extends State<LocationPage> {
     if (status.isPermanentlyDenied) openAppSettings();
   }
 
-  /// Android background SOS needs notification + SMS + phone permissions.
-  /// Deny any of them and the switch stays OFF with an explanation.
+  /// Android background SOS needs notification + SMS + phone + location
+  /// permissions (location: the service declares the location type so GPS
+  /// keeps working in the background). Deny any and the switch stays OFF
+  /// with an explanation.
   Future<void> _setShakeEnabled(bool value) async {
     if (!value || kIsWeb || !Platform.isAndroid) {
       await ShakePrefs.setEnabled(value);
@@ -305,6 +307,7 @@ class _LocationPageState extends State<LocationPage> {
       Permission.notification,
       Permission.sms,
       Permission.phone,
+      Permission.locationWhenInUse,
     ].request();
     if (statuses.values.every((s) => s.isGranted)) {
       await ShakePrefs.setEnabled(true);
@@ -316,7 +319,7 @@ class _LocationPageState extends State<LocationPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text(
-          'Lumi needs notification, SMS and phone access for background SOS'),
+          'Lumi needs notification, SMS, phone and location access for background SOS'),
       backgroundColor: LumiColors.accent.withOpacity(0.9),
     ));
   }

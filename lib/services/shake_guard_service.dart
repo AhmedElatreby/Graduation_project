@@ -43,14 +43,18 @@ class ShakeGuardService {
     );
   }
 
-  /// The three runtime permissions background SOS needs. The Track-page
-  /// toggle requests them; this check keeps a default-ON pref from starting
-  /// a service that can't notify or send.
+  /// The runtime permissions background SOS needs. The Track-page toggle
+  /// requests them; this check keeps a default-ON pref from starting a
+  /// service that can't notify or send. Location is required because the
+  /// manifest declares the location service type — starting without it
+  /// throws on Android 14+, and the SOS SMS would say "location
+  /// unavailable" anyway.
   static Future<bool> hasRequiredPermissions() async =>
       (await Future.wait([
         Permission.notification.status,
         Permission.sms.status,
         Permission.phone.status,
+        Permission.locationWhenInUse.status,
       ]))
           .every((s) => s.isGranted);
 
@@ -80,6 +84,9 @@ class ShakeGuardService {
 class _ShakeGuardTaskHandler extends TaskHandler {
   ShakeDetector? _detector;
   ShakeGuardCore? _core;
+  // Started on the countdown's first tick so the 5 seconds double as GPS
+  // warm-up — a fresh fix is usually ready by the time the SMS is built.
+  Future<String?>? _coordsPrefetch;
 
   static const _cancelButtonId = 'cancel_sos';
   static const _cancelButton =
@@ -95,7 +102,9 @@ class _ShakeGuardTaskHandler extends TaskHandler {
 
   Future<void> _sendAlert() async {
     try {
-      final result = await EmergencyAlert.sendBackground();
+      final coords = _coordsPrefetch;
+      _coordsPrefetch = null;
+      final result = await EmergencyAlert.sendBackground(coordsFuture: coords);
       final ok = result.smsFailures.isEmpty;
       FlutterForegroundTask.updateService(
         notificationTitle:
@@ -121,12 +130,18 @@ class _ShakeGuardTaskHandler extends TaskHandler {
     _core = ShakeGuardCore(
       hasGuardians: EmergencyAlert.hasGuardians,
       send: _sendAlert,
-      onTick: (remaining) => FlutterForegroundTask.updateService(
-        notificationTitle: 'Shake detected',
-        notificationText: 'Alerting your guardians in $remaining…',
-        notificationButtons: const [_cancelButton],
-      ),
-      onCancelled: _idleNotification,
+      onTick: (remaining) {
+        _coordsPrefetch ??= EmergencyAlert.currentCoordinates();
+        FlutterForegroundTask.updateService(
+          notificationTitle: 'Shake detected',
+          notificationText: 'Alerting your guardians in $remaining…',
+          notificationButtons: const [_cancelButton],
+        );
+      },
+      onCancelled: () {
+        _coordsPrefetch = null;
+        _idleNotification();
+      },
       onSent: () {}, // _sendAlert wrote the result notification already
       onNoGuardians: () => FlutterForegroundTask.updateService(
         notificationTitle: 'Add guardians first',

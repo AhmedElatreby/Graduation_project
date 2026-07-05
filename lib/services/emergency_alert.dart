@@ -88,8 +88,9 @@ class EmergencyAlert {
   }
 
   /// Best-effort current coordinates: live GPS first (this is an emergency,
-  /// the freshest fix matters), then the user's own Firestore location doc
-  /// (written by the Track tab), then null.
+  /// the freshest fix matters), then the OS's cached last-known fix, then
+  /// the user's own Firestore location doc (written by the Track tab),
+  /// then null.
   static Future<String?> currentCoordinates() async {
     try {
       final pos = await Geolocator.getCurrentPosition(
@@ -99,6 +100,14 @@ class EmergencyAlert {
         ),
       );
       return '${pos.latitude},${pos.longitude}';
+    } catch (_) {
+      // fall through to the cached fix
+    }
+    try {
+      // A minutes-old fix beats "location unavailable" in an emergency —
+      // and unlike a fresh fix it's instant and works indoors.
+      final last = await Geolocator.getLastKnownPosition();
+      if (last != null) return '${last.latitude},${last.longitude}';
     } catch (_) {
       // fall through to the last value shared via the Track tab
     }
@@ -123,8 +132,10 @@ class EmergencyAlert {
   /// per guardian (no composer UI), then a best-effort call. Android 10+
   /// usually blocks the dialer launch from the background — then we set
   /// [PendingCall] and report callBlocked so the notification can say
-  /// "tap to call".
-  static Future<BackgroundSendResult> sendBackground() async {
+  /// "tap to call". Pass [coordsFuture] to reuse a fix already being
+  /// acquired (the countdown doubles as GPS warm-up time).
+  static Future<BackgroundSendResult> sendBackground(
+      {Future<String?>? coordsFuture}) async {
     final contacts = await DBHelper().getContacts();
     if (contacts.isEmpty) {
       return const BackgroundSendResult(
@@ -133,7 +144,8 @@ class EmergencyAlert {
 
     String? coords;
     try {
-      coords = await currentCoordinates().timeout(const Duration(seconds: 10));
+      coords = await (coordsFuture ?? currentCoordinates())
+          .timeout(const Duration(seconds: 10));
     } catch (_) {
       coords = null; // background GPS may be denied/slow — degrade, don't die
     }
