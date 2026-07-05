@@ -53,235 +53,259 @@ class _LocationPageState extends State<LocationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text('Live tracking', style: LumiText.display(24)),
-          ),
-          const SizedBox(height: 16),
+    // NavBarPage's Scaffold uses extendBody: true, which makes Flutter inject
+    // the bottomNavigationBar's actual rendered height into MediaQuery's
+    // bottom padding for this body subtree specifically so children can
+    // reserve space for it — SafeArea consumes exactly that value, so the
+    // scroll viewport stays clear of the bar on every device without
+    // guessing at its height ourselves.
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text('Live tracking', style: LumiText.display(24)),
+              ),
+              const SizedBox(height: 16),
 
-          // map preview (decorative — tap to open full Map tab if you wire it)
-          _MapPreview(isLive: _isLive),
-          const SizedBox(height: 14),
+              // map preview (decorative — tap to open full Map tab if you wire it)
+              _MapPreview(isLive: _isLive),
+              const SizedBox(height: 14),
 
-          // live toggle
-          LumiCard(
-            child: Row(
-              children: [
-                _TileIcon(
-                    icon: Icons.my_location,
-                    bg: LumiColors.accent.withOpacity(0.14),
-                    fg: LumiColors.accent),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Live location',
-                          style: LumiText.body(14.5, weight: FontWeight.w700)),
-                      Text(_isLive ? 'Sharing now' : 'Off',
-                          style: LumiText.body(12, color: LumiColors.textSub)),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: _isLive,
-                  activeColor: Colors.white,
-                  activeTrackColor: LumiColors.accent,
-                  onChanged: (v) => v ? _listenLocation() : _stopListening(),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 11),
-
-          // siren
-          LumiCard(
-            child: Row(
-              children: [
-                _TileIcon(
-                    icon: Icons.campaign_outlined,
-                    bg: LumiColors.amber.withOpacity(0.14),
-                    fg: LumiColors.amber),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Loud siren',
-                          style: LumiText.body(14.5, weight: FontWeight.w700)),
-                      Text('Scare off & draw attention',
-                          style: LumiText.body(12, color: LumiColors.textSub)),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: _siren,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: LumiColors.amber.withOpacity(0.16),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text('Play',
-                        style: LumiText.body(13,
-                            weight: FontWeight.w700, color: LumiColors.amber)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 11),
-
-          // shake-to-SOS
-          LumiCard(
-            child: Column(
-              children: [
-                Row(
+              // live toggle
+              LumiCard(
+                child: Row(
                   children: [
                     _TileIcon(
-                        icon: Icons.vibration,
-                        bg: LumiColors.blue.withOpacity(0.14),
-                        fg: LumiColors.blue),
+                        icon: Icons.my_location,
+                        bg: LumiColors.accent.withOpacity(0.14),
+                        fg: LumiColors.accent),
                     const SizedBox(width: 13),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Shake to SOS',
+                          Text('Live location',
                               style:
                                   LumiText.body(14.5, weight: FontWeight.w700)),
-                          Text('Shake your phone to trigger an alert',
+                          Text(_isLive ? 'Sharing now' : 'Off',
                               style:
                                   LumiText.body(12, color: LumiColors.textSub)),
                         ],
                       ),
                     ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: ShakePrefs.enabled,
-                      builder: (_, on, __) => Switch(
-                        value: on,
-                        activeColor: Colors.white,
-                        activeTrackColor: LumiColors.blue,
-                        onChanged: _setShakeEnabled,
+                    Switch(
+                      value: _isLive,
+                      activeColor: Colors.white,
+                      activeTrackColor: LumiColors.accent,
+                      onChanged: (v) =>
+                          v ? _listenLocation() : _stopListening(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 11),
+
+              // siren
+              LumiCard(
+                child: Row(
+                  children: [
+                    _TileIcon(
+                        icon: Icons.campaign_outlined,
+                        bg: LumiColors.amber.withOpacity(0.14),
+                        fg: LumiColors.amber),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Loud siren',
+                              style:
+                                  LumiText.body(14.5, weight: FontWeight.w700)),
+                          Text('Scare off & draw attention',
+                              style:
+                                  LumiText.body(12, color: LumiColors.textSub)),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _siren,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: LumiColors.amber.withOpacity(0.16),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text('Play',
+                            style: LumiText.body(13,
+                                weight: FontWeight.w700,
+                                color: LumiColors.amber)),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                ListenableBuilder(
-                  listenable: Listenable.merge(
-                      [ShakePrefs.enabled, ShakePrefs.sensitivity]),
-                  builder: (_, __) => IgnorePointer(
-                    ignoring: !ShakePrefs.enabled.value,
-                    child: Opacity(
-                      opacity: ShakePrefs.enabled.value ? 1 : 0.4,
-                      child: SegmentedButton<ShakeSensitivity>(
-                        segments: const [
-                          ButtonSegment(
-                              value: ShakeSensitivity.low,
-                              label: Text('Low')),
-                          ButtonSegment(
-                              value: ShakeSensitivity.medium,
-                              label: Text('Medium')),
-                          ButtonSegment(
-                              value: ShakeSensitivity.high,
-                              label: Text('High')),
-                        ],
-                        selected: {ShakePrefs.sensitivity.value},
-                        onSelectionChanged: ShakePrefs.enabled.value
-                            ? (s) => ShakePrefs.setSensitivity(s.first)
-                            : null,
+              ),
+              const SizedBox(height: 11),
+
+              // shake-to-SOS
+              LumiCard(
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        _TileIcon(
+                            icon: Icons.vibration,
+                            bg: LumiColors.blue.withOpacity(0.14),
+                            fg: LumiColors.blue),
+                        const SizedBox(width: 13),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Shake to SOS',
+                                  style: LumiText.body(14.5,
+                                      weight: FontWeight.w700)),
+                              Text('Shake your phone to trigger an alert',
+                                  style: LumiText.body(12,
+                                      color: LumiColors.textSub)),
+                            ],
+                          ),
+                        ),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: ShakePrefs.enabled,
+                          builder: (_, on, __) => Switch(
+                            value: on,
+                            activeColor: Colors.white,
+                            activeTrackColor: LumiColors.blue,
+                            onChanged: _setShakeEnabled,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ListenableBuilder(
+                      listenable: Listenable.merge(
+                          [ShakePrefs.enabled, ShakePrefs.sensitivity]),
+                      builder: (_, __) => IgnorePointer(
+                        ignoring: !ShakePrefs.enabled.value,
+                        child: Opacity(
+                          opacity: ShakePrefs.enabled.value ? 1 : 0.4,
+                          child: SegmentedButton<ShakeSensitivity>(
+                            segments: const [
+                              ButtonSegment(
+                                  value: ShakeSensitivity.low,
+                                  label: Text('Low')),
+                              ButtonSegment(
+                                  value: ShakeSensitivity.medium,
+                                  label: Text('Medium')),
+                              ButtonSegment(
+                                  value: ShakeSensitivity.high,
+                                  label: Text('High')),
+                            ],
+                            selected: {ShakePrefs.sensitivity.value},
+                            onSelectionChanged: ShakePrefs.enabled.value
+                                ? (s) => ShakePrefs.setSensitivity(s.first)
+                                : null,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
+              ),
+              const SizedBox(height: 18),
 
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text('RECENT PINGS',
-                style: LumiText.body(12,
-                    weight: FontWeight.w700, color: LumiColors.textFaint)),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            // Only the signed-in user's own document — streaming the whole
-            // collection here used to show every user's live coordinates to
-            // everyone (and Firestore rules now forbid it anyway).
-            child: _uid == null
-                ? Center(
-                    child: Text('Sign in to see your pings',
-                        style: LumiText.body(13, color: LumiColors.textSub)),
-                  )
-                : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                    stream: FirebaseFirestore.instance
-                        .collection('location')
-                        .doc(_uid)
-                        .snapshots(),
-                    builder: (context, snap) {
-                      if (!snap.hasData) {
-                        return const Center(
-                            child: CircularProgressIndicator(
-                                color: LumiColors.accent));
-                      }
-                      final data = snap.data!.data();
-                      if (data == null) {
-                        return Center(
-                          child: Text('No locations shared yet',
-                              style:
-                                  LumiText.body(13, color: LumiColors.textSub)),
-                        );
-                      }
-                      final lat = data['latitude'];
-                      final lng = data['longitude'];
-                      return ListView(
-                        padding: const EdgeInsets.only(bottom: 100),
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(13),
-                            decoration: BoxDecoration(
-                              color: LumiColors.surface2,
-                              borderRadius: BorderRadius.circular(14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text('RECENT PINGS',
+                    style: LumiText.body(12,
+                        weight: FontWeight.w700, color: LumiColors.textFaint)),
+              ),
+              const SizedBox(height: 8),
+              // Only the signed-in user's own document — streaming the whole
+              // collection here used to show every user's live coordinates to
+              // everyone (and Firestore rules now forbid it anyway).
+              //
+              // Plain widget, not Expanded/ListView: this only ever renders a
+              // single card, so a bounded-height scrolling list was never
+              // needed — the page-level SingleChildScrollView above already
+              // handles the case where content doesn't fit.
+              _uid == null
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: Text('Sign in to see your pings',
+                            style:
+                                LumiText.body(13, color: LumiColors.textSub)),
+                      ),
+                    )
+                  : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      stream: FirebaseFirestore.instance
+                          .collection('location')
+                          .doc(_uid)
+                          .snapshots(),
+                      builder: (context, snap) {
+                        if (!snap.hasData) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                                child: CircularProgressIndicator(
+                                    color: LumiColors.accent)),
+                          );
+                        }
+                        final data = snap.data!.data();
+                        if (data == null) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                              child: Text('No locations shared yet',
+                                  style: LumiText.body(13,
+                                      color: LumiColors.textSub)),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.location_on,
-                                    color: LumiColors.accent, size: 18),
-                                const SizedBox(width: 11),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('You',
-                                          style: LumiText.body(13,
-                                              weight: FontWeight.w600)),
-                                      Text('$lat, $lng',
-                                          style: LumiText.body(11,
-                                              color: LumiColors.textSub)),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(Icons.chevron_right,
-                                    color: LumiColors.textFaint, size: 18),
-                              ],
-                            ),
+                          );
+                        }
+                        final lat = data['latitude'];
+                        final lng = data['longitude'];
+                        return Container(
+                          padding: const EdgeInsets.all(13),
+                          decoration: BoxDecoration(
+                            color: LumiColors.surface2,
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                        ],
-                      );
-                    },
-                  ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.location_on,
+                                  color: LumiColors.accent, size: 18),
+                              const SizedBox(width: 11),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('You',
+                                        style: LumiText.body(13,
+                                            weight: FontWeight.w600)),
+                                    Text('$lat, $lng',
+                                        style: LumiText.body(11,
+                                            color: LumiColors.textSub)),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right,
+                                  color: LumiColors.textFaint, size: 18),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+              const SizedBox(height: 16),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
