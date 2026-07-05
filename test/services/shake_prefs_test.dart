@@ -31,4 +31,36 @@ void main() {
     await ShakePrefs.load();
     expect(ShakePrefs.enabled.value, isFalse);
   });
+
+  test('thresholdFor returns the three documented gravity values', () {
+    expect(thresholdFor(ShakeSensitivity.low), 3.5);
+    expect(thresholdFor(ShakeSensitivity.medium), 2.7);
+    expect(thresholdFor(ShakeSensitivity.high), 2.0);
+  });
+
+  test('sensitivity defaults to medium when nothing is stored', () async {
+    SharedPreferences.setMockInitialValues({});
+    await ShakePrefs.load();
+    expect(ShakePrefs.sensitivity.value, ShakeSensitivity.medium);
+  });
+
+  test('setSensitivity persists and survives a reload', () async {
+    SharedPreferences.setMockInitialValues({});
+    await ShakePrefs.load();
+
+    await ShakePrefs.setSensitivity(ShakeSensitivity.high);
+    expect(ShakePrefs.sensitivity.value, ShakeSensitivity.high);
+
+    // Simulate a fresh app start reading the same store.
+    ShakePrefs.sensitivity.value = ShakeSensitivity.medium; // scribble over memory
+    await ShakePrefs.load();
+    expect(ShakePrefs.sensitivity.value, ShakeSensitivity.high);
+  });
+
+  test('an unrecognized stored sensitivity string falls back to medium',
+      () async {
+    SharedPreferences.setMockInitialValues({'shake_sensitivity': 'bogus'});
+    await ShakePrefs.load();
+    expect(ShakePrefs.sensitivity.value, ShakeSensitivity.medium);
+  });
 }
