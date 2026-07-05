@@ -2,10 +2,12 @@
 // no countdown, just a "add guardians" prompt.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:safetyproject/database/db_helper.dart';
 import 'package:safetyproject/services/emergency_alert.dart';
+import 'package:safetyproject/services/primary_contact_prefs.dart';
 
 import '../test_helpers.dart';
 
@@ -18,6 +20,47 @@ void main() {
 
     await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
     expect(await EmergencyAlert.hasGuardians(), isTrue);
+  });
+
+  test('callFirstContact calls the primary contact when one is set',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+    final sara =
+        await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+    await DBHelper().add(PersonalEmergency('Jo', '02000000000'));
+    await PrimaryContactPrefs.set(sara.id);
+
+    final contacts = await DBHelper().getContacts();
+    // getContacts() orders id DESC, so Jo (added later) is list.first —
+    // this sanity check proves the primary override is what matters below.
+    expect(contacts.first.name, 'Jo');
+
+    expect(
+      EmergencyAlert.resolveCallTarget(contacts).contactNo,
+      '01000000000', // Sara's number, chosen over Jo despite not being first
+    );
+  });
+
+  test(
+      'callFirstContact resolves to list.first when the stored primary id '
+      'matches no current contact', () async {
+    SharedPreferences.setMockInitialValues({});
+    await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+    await PrimaryContactPrefs.set(999999); // no contact has this id
+
+    final contacts = await DBHelper().getContacts();
+    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo,
+        '01000000000');
+  });
+
+  test('resolveCallTarget resolves to list.first when no primary is set',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+    await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+
+    final contacts = await DBHelper().getContacts();
+    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo,
+        '01000000000');
   });
 
   test('sendTexts refuses to run without SMS permission', () async {

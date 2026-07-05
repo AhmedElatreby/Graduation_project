@@ -19,6 +19,7 @@ import 'package:telephony/telephony.dart';
 import '../contact/personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
 import 'pending_call.dart';
+import 'primary_contact_prefs.dart';
 
 class BackgroundSendResult {
   const BackgroundSendResult(
@@ -76,13 +77,29 @@ class EmergencyAlert {
     }
   }
 
-  /// Calls the first guardian. Throws on failure; returns the plugin's
-  /// success flag (false/null = the OS refused the launch without throwing).
+  /// The guardian who actually gets called: the one marked primary via
+  /// PrimaryContactPrefs, if any contact in [contacts] still has that id —
+  /// otherwise contacts.first (today's behavior, unchanged for anyone who
+  /// never sets a primary). [contacts] must be non-empty.
+  static PersonalEmergency resolveCallTarget(List<PersonalEmergency> contacts) {
+    final primaryId = PrimaryContactPrefs.id.value;
+    if (primaryId != null) {
+      for (final c in contacts) {
+        if (c.id == primaryId) return c;
+      }
+    }
+    return contacts.first;
+  }
+
+  /// Calls the primary guardian (or the first, if none is set). Throws on
+  /// failure; returns the plugin's success flag (false/null = the OS
+  /// refused the launch without throwing).
   static Future<bool?> callFirstContact(
       {List<PersonalEmergency>? contacts}) async {
     await _requireGranted(Permission.phone, 'Phone');
     final list = contacts ?? await DBHelper().getContacts();
-    return FlutterPhoneDirectCaller.callNumber(list.first.contactNo);
+    return FlutterPhoneDirectCaller.callNumber(
+        resolveCallTarget(list).contactNo);
   }
 
   /// Texts every guardian the location link. Throws on failure.
