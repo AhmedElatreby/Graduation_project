@@ -358,7 +358,12 @@ class _ContactSheetState extends State<_ContactSheet> {
         left: 24,
         right: 24,
         top: 22,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 28,
+        // viewInsets clears the keyboard when it's open; padding.bottom
+        // clears the device's own bottom gesture-nav inset (no keyboard) —
+        // without it the submit button sits flush behind the system bar.
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom +
+            28,
       ),
       child: Form(
         key: _formKey,
