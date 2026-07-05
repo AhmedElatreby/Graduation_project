@@ -70,11 +70,11 @@ class _LocationPageState extends State<LocationPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Text('Live tracking', style: LumiText.display(24)),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // map preview (decorative — tap to open full Map tab if you wire it)
               _MapPreview(isLive: _isLive),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
 
               // live toggle
               LumiCard(
@@ -108,7 +108,7 @@ class _LocationPageState extends State<LocationPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 11),
+              const SizedBox(height: 9),
 
               // siren
               LumiCard(
@@ -150,7 +150,7 @@ class _LocationPageState extends State<LocationPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 11),
+              const SizedBox(height: 9),
 
               // shake-to-SOS
               LumiCard(
@@ -218,7 +218,7 @@ class _LocationPageState extends State<LocationPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -404,7 +404,7 @@ class _MapPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 150,
+      height: 118,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: LumiColors.hairline),
