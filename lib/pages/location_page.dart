@@ -140,31 +140,64 @@ class _LocationPageState extends State<LocationPage> {
 
           // shake-to-SOS
           LumiCard(
-            child: Row(
+            child: Column(
               children: [
-                _TileIcon(
-                    icon: Icons.vibration,
-                    bg: LumiColors.blue.withOpacity(0.14),
-                    fg: LumiColors.blue),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Shake to SOS',
-                          style: LumiText.body(14.5, weight: FontWeight.w700)),
-                      Text('Shake your phone to trigger an alert',
-                          style: LumiText.body(12, color: LumiColors.textSub)),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    _TileIcon(
+                        icon: Icons.vibration,
+                        bg: LumiColors.blue.withOpacity(0.14),
+                        fg: LumiColors.blue),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Shake to SOS',
+                              style:
+                                  LumiText.body(14.5, weight: FontWeight.w700)),
+                          Text('Shake your phone to trigger an alert',
+                              style:
+                                  LumiText.body(12, color: LumiColors.textSub)),
+                        ],
+                      ),
+                    ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: ShakePrefs.enabled,
+                      builder: (_, on, __) => Switch(
+                        value: on,
+                        activeColor: Colors.white,
+                        activeTrackColor: LumiColors.blue,
+                        onChanged: _setShakeEnabled,
+                      ),
+                    ),
+                  ],
                 ),
-                ValueListenableBuilder<bool>(
-                  valueListenable: ShakePrefs.enabled,
-                  builder: (_, on, __) => Switch(
-                    value: on,
-                    activeColor: Colors.white,
-                    activeTrackColor: LumiColors.blue,
-                    onChanged: _setShakeEnabled,
+                const SizedBox(height: 12),
+                ListenableBuilder(
+                  listenable: Listenable.merge(
+                      [ShakePrefs.enabled, ShakePrefs.sensitivity]),
+                  builder: (_, __) => IgnorePointer(
+                    ignoring: !ShakePrefs.enabled.value,
+                    child: Opacity(
+                      opacity: ShakePrefs.enabled.value ? 1 : 0.4,
+                      child: SegmentedButton<ShakeSensitivity>(
+                        segments: const [
+                          ButtonSegment(
+                              value: ShakeSensitivity.low,
+                              label: Text('Low')),
+                          ButtonSegment(
+                              value: ShakeSensitivity.medium,
+                              label: Text('Medium')),
+                          ButtonSegment(
+                              value: ShakeSensitivity.high,
+                              label: Text('High')),
+                        ],
+                        selected: {ShakePrefs.sensitivity.value},
+                        onSelectionChanged: (s) =>
+                            ShakePrefs.setSensitivity(s.first),
+                      ),
+                    ),
                   ),
                 ),
               ],
