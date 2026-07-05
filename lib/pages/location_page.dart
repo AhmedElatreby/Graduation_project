@@ -196,6 +196,12 @@ class _LocationPageState extends State<LocationPage> {
                         child: Opacity(
                           opacity: ShakePrefs.enabled.value ? 1 : 0.4,
                           child: SegmentedButton<ShakeSensitivity>(
+                            // The selected fill color already shows which
+                            // segment is picked, so the default checkmark's
+                            // reserved space on every segment is redundant —
+                            // on a real device's narrower effective width it
+                            // was enough to wrap "Medium" onto two lines.
+                            showSelectedIcon: false,
                             segments: const [
                               ButtonSegment(
                                   value: ShakeSensitivity.low,
