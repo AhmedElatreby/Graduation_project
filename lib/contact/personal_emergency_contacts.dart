@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import './personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
+import '../services/primary_contact_prefs.dart';
 import '../theme/lumi_theme.dart';
 import '../widgets/lumi_widgets.dart';
 
@@ -106,37 +107,44 @@ class _PersonalEmergencyContactsState extends State<PersonalEmergencyContacts> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: FutureBuilder<List<PersonalEmergency>>(
-              future: _contactsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child:
-                          CircularProgressIndicator(color: LumiColors.accent));
-                }
-                final contacts = snapshot.data ?? [];
-                return ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 100),
-                  itemCount: contacts.length + 1,
-                  separatorBuilder: (_, __) => const SizedBox(height: 11),
-                  itemBuilder: (context, i) {
-                    if (i == contacts.length) {
-                      return _AddTile(onTap: () => _showSheet());
-                    }
-                    final c = contacts[i];
-                    final colors = _avatarColors[i % _avatarColors.length];
-                    return _ContactTile(
-                      contact: c,
-                      colors: colors,
-                      onSms: () => _sms(c.contactNo),
-                      onCall: () =>
-                          FlutterPhoneDirectCaller.callNumber(c.contactNo),
-                      onEdit: () => _showSheet(existing: c),
-                      onDelete: () => _confirmDelete(c),
-                    );
-                  },
-                );
-              },
+            child: ValueListenableBuilder<int?>(
+              valueListenable: PrimaryContactPrefs.id,
+              builder: (context, primaryId, _) =>
+                  FutureBuilder<List<PersonalEmergency>>(
+                future: _contactsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator(
+                            color: LumiColors.accent));
+                  }
+                  final contacts = snapshot.data ?? [];
+                  return ListView.separated(
+                    padding: const EdgeInsets.only(bottom: 100),
+                    itemCount: contacts.length + 1,
+                    separatorBuilder: (_, __) => const SizedBox(height: 11),
+                    itemBuilder: (context, i) {
+                      if (i == contacts.length) {
+                        return _AddTile(onTap: () => _showSheet());
+                      }
+                      final c = contacts[i];
+                      final colors = _avatarColors[i % _avatarColors.length];
+                      return _ContactTile(
+                        contact: c,
+                        colors: colors,
+                        isPrimary: c.id == primaryId,
+                        onSms: () => _sms(c.contactNo),
+                        onCall: () =>
+                            FlutterPhoneDirectCaller.callNumber(c.contactNo),
+                        onEdit: () => _showSheet(existing: c),
+                        onDelete: () => _confirmDelete(c),
+                        onTogglePrimary: () => PrimaryContactPrefs.set(
+                            c.id == primaryId ? null : c.id),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -176,14 +184,17 @@ class _ContactTile extends StatelessWidget {
   const _ContactTile({
     required this.contact,
     required this.colors,
+    required this.isPrimary,
     required this.onSms,
     required this.onCall,
     required this.onEdit,
     required this.onDelete,
+    required this.onTogglePrimary,
   });
   final PersonalEmergency contact;
   final List<Color> colors;
-  final VoidCallback onSms, onCall, onEdit, onDelete;
+  final bool isPrimary;
+  final VoidCallback onSms, onCall, onEdit, onDelete, onTogglePrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -192,16 +203,37 @@ class _ContactTile extends StatelessWidget {
     return LumiCard(
       child: Row(
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: colors),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            alignment: Alignment.center,
-            child:
-                Text(initial, style: LumiText.display(17, color: Colors.white)),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: colors),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Text(initial,
+                    style: LumiText.display(17, color: Colors.white)),
+              ),
+              if (isPrimary)
+                Positioned(
+                  bottom: -2,
+                  right: -2,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: const BoxDecoration(
+                      color: LumiColors.amber,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child:
+                        const Icon(Icons.star, size: 12, color: Colors.white),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: 13),
           Expanded(
@@ -246,6 +278,16 @@ class _ContactTile extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ListTile(
+              leading: Icon(isPrimary ? Icons.star : Icons.star_border,
+                  color: LumiColors.amber),
+              title: Text(isPrimary ? 'Remove as primary' : 'Set as primary',
+                  style: LumiText.body(15)),
+              onTap: () {
+                Navigator.pop(ctx);
+                onTogglePrimary();
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.edit_outlined, color: LumiColors.text),
               title: Text('Edit', style: LumiText.body(15)),
