@@ -27,6 +27,17 @@ separate, materially larger project, out of scope here. A background alert
 still only ever gets the one-shot position already captured for the SMS's
 static pin — same as today.
 
+In fact a background-triggered alert carries no live-view link at all, not
+even a one-shot one: the shake-guard service isolate never calls
+`Firebase.initializeApp`, so `GuardianShare.createShareLink`'s
+`FirebaseAuth.instance` access throws `core/no-app`, and `sendBackground`'s
+existing try/catch swallows that to a null link. This is deliberate — the
+swallow exists precisely so a share-link failure never degrades the alert
+itself, and the SMS still goes out with the static pin. Extending
+background alerts to carry even a one-shot share would require initializing
+Firebase inside the shake-guard isolate, which is a deliberate follow-up,
+not an oversight.
+
 Out of scope: guardian-initiated actions back to the sharer (no "I'm on my
 way" button), a history of past shares, multiple simultaneous active
 shares, editing/extending a share's expiry once created, background GPS

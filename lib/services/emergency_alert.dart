@@ -210,7 +210,13 @@ class EmergencyAlert {
     try {
       shareLink = await GuardianShare.createShareLink(coords: coords);
     } catch (_) {
-      shareLink = null; // a share-link failure must never block the alert
+      // a share-link failure must never block the alert. In this background
+      // isolate this currently ALWAYS degrades to null: the shake-guard
+      // service never calls Firebase.initializeApp, so the FirebaseAuth
+      // access above throws core/no-app every time. Background SMSes today
+      // carry the static pin only — see the design doc's "Live Location
+      // auto-enable, and its real limit" section.
+      shareLink = null;
     }
     final message = buildAlertMessage(coords, shareLink: shareLink);
 

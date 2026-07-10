@@ -14,6 +14,7 @@ import 'pages/splash_screen.dart';
 import 'services/primary_contact_prefs.dart';
 import 'services/shake_guard_service.dart';
 import 'services/shake_prefs.dart';
+import 'services/share_link_prefs.dart';
 import 'theme/lumi_theme.dart';
 
 Future<void> main() async {
@@ -32,6 +33,7 @@ Future<void> main() async {
       .then((value) => Get.put(AuthController()));
   await ShakePrefs.load();
   await PrimaryContactPrefs.load();
+  await ShareLinkPrefs.load();
   FlutterNativeSplash.removeAfter(initialization);
   runApp(const MyApp());
 }

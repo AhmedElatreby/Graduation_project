@@ -25,7 +25,8 @@ void main() {
     expect(ShareLinkPrefs.shareId.value, 'abc123');
     expect(ShareLinkPrefs.isActive, isTrue);
 
-    // Simulate a fresh read of the same store.
+    // Simulate a fresh process: both in-memory notifiers reset to null,
+    // as they would be on a cold app start before load() runs.
     ShareLinkPrefs.shareId.value = null;
     ShareLinkPrefs.expiresAt.value = null;
     await ShareLinkPrefs.load();
@@ -33,6 +34,11 @@ void main() {
     // Compare with millisecond precision (SharedPreferences truncates microseconds)
     expect(ShareLinkPrefs.expiresAt.value,
         DateTime.fromMillisecondsSinceEpoch(expiry.millisecondsSinceEpoch));
+    // Regression guard: a persisted share within its window must come back
+    // as active on the very first load() of a fresh process — this is what
+    // lets a restarted app's Live Location stream resume mirroring into a
+    // still-valid share (see lib/main.dart's startup call to load()).
+    expect(ShareLinkPrefs.isActive, isTrue);
   });
 
   test('isActive is false once expiresAt is in the past', () async {
@@ -54,7 +60,9 @@ void main() {
     await ShareLinkPrefs.start('second', secondExpiry);
     expect(ShareLinkPrefs.shareId.value, 'second');
     // Compare with millisecond precision (SharedPreferences truncates microseconds)
-    expect(ShareLinkPrefs.expiresAt.value,
-        DateTime.fromMillisecondsSinceEpoch(secondExpiry.millisecondsSinceEpoch));
+    expect(
+        ShareLinkPrefs.expiresAt.value,
+        DateTime.fromMillisecondsSinceEpoch(
+            secondExpiry.millisecondsSinceEpoch));
   });
 }
