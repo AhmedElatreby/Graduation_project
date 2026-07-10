@@ -194,4 +194,21 @@ void main() {
       reason: 'a share-link creation failure must never block the alert SMS',
     );
   });
+
+  test('send() is not aborted by a live-location startup failure', () async {
+    // Firebase.initializeApp never runs in this suite, so the
+    // FirebaseAuth.instance access inside LiveLocationService.start()
+    // throws a real "[core/no-app]" FirebaseException — a natural in-test
+    // live-location failure with no seam needed. That call sits BEFORE the
+    // SMS/call attempts in send(), so without its try/catch the error would
+    // abort the whole alert. The key assertion: send() returns normally
+    // (the unmocked telephony/caller channels' downstream errors land in
+    // the returned failures list, whose contents don't matter here) rather
+    // than throwing the Firebase error.
+    PermissionHandlerPlatform.instance = FakeGrantedPermissionHandlerPlatform();
+    await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+
+    final failures = await EmergencyAlert.send();
+    expect(failures, isA<List<String>>());
+  });
 }

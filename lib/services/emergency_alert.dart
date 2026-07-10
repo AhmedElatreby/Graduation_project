@@ -62,7 +62,11 @@ class EmergencyAlert {
     // moving instead of showing one static point. A background/killed-app
     // alert (sendBackground) has no widget tree to stream GPS from, so it
     // isn't attempted there — see this plan's Global Constraints.
-    await LiveLocationService.start();
+    try {
+      await LiveLocationService.start();
+    } catch (_) {
+      // Live-location startup must never block the alert itself.
+    }
 
     final failures = <String>[];
     try {
