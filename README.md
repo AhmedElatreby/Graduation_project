@@ -12,6 +12,10 @@ under pressure. When someone is in danger they can't process complex UI —
 every flow here is designed to work with one hand, one gesture, and no
 reading.
 
+| SOS | Live tracking | Guardians |
+|:---:|:---:|:---:|
+| ![SOS screen — hold to alert](docs/screenshots/sos.png) | ![Track screen — live location, siren, shake-to-SOS](docs/screenshots/track.png) | ![Guardians screen — primary contact star](docs/screenshots/guardians.png) |
+
 ## Features
 
 ### Alerting
