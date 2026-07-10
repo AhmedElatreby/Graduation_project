@@ -48,5 +48,9 @@
     "ui": {
       "enabled": false
     }
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*"]
   }
 }

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lumi — Live location</title>
+  <style>
+    html, body { margin: 0; height: 100%; font-family: -apple-system, Roboto, Arial, sans-serif; background: #06080E; color: #E8ECF4; }
+    #map { position: absolute; inset: 0; }
+    #banner { position: absolute; top: 0; left: 0; right: 0; padding: 14px 18px; background: rgba(6,8,14,0.85); z-index: 10; }
+    #banner h1 { margin: 0 0 4px; font-size: 16px; }
+    #banner p { margin: 0; font-size: 13px; color: #9AA5B8; }
+    #expired { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+    #expired.show { display: flex; }
+    #expired.show ~ #map { display: none; }
+  </style>
+</head>
+<body>
+  <div id="banner">
+    <h1 id="name">Loading…</h1>
+    <p id="updated"></p>
+  </div>
+  <div id="map"></div>
+  <div id="expired">
+    <div>
+      <h1>This share has expired</h1>
+      <p>Ask them to send a new alert if they still need help.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Same values already public in lib/firebase_options.dart's web config
+    // — Firebase client config is not a secret; access control is enforced
+    // entirely by firestore.rules, not by hiding this object.
+    const firebaseConfig = {
+      apiKey: "AIzaSyDfBEDDNcpZNakUiOFeAkVJmof8gxgpCFk",
+      projectId: "safety-project-71d83",
+      appId: "1:405608367816:web:5552f3e67ba106024a07fd",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const params = new URLSearchParams(window.location.search);
+    const shareId = params.get("id");
+
+    const nameEl = document.getElementById("name");
+    const updatedEl = document.getElementById("updated");
+    const expiredEl = document.getElementById("expired");
+
+    let map, marker;
+    function ensureMap(lat, lng) {
+      if (map) return;
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat, lng },
+        zoom: 16,
+      });
+      marker = new google.maps.Marker({ position: { lat, lng }, map });
+    }
+
+    function showExpired() {
+      expiredEl.classList.add("show");
+    }
+
+    if (!shareId) {
+      showExpired();
+    } else {
+      onSnapshot(
+        doc(db, "shared_locations", shareId),
+        (snap) => {
+          if (!snap.exists()) { showExpired(); return; }
+          const data = snap.data();
+          const expiresAt = data.expiresAt?.toDate?.();
+          if (expiresAt && expiresAt.getTime() < Date.now()) { showExpired(); return; }
+
+          nameEl.textContent = `${data.name ?? "Someone"}'s live location`;
+          updatedEl.textContent = "Live — updating automatically";
+          ensureMap(data.latitude, data.longitude);
+          marker.setPosition({ lat: data.latitude, lng: data.longitude });
+          map.panTo({ lat: data.latitude, lng: data.longitude });
+        },
+        () => showExpired() // a read denial (expired, per firestore.rules) lands here too
+      );
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBFWjw90iH5rkDve37AUtJ67BZVk1XQAaI"></script>
+</body>
+</html>
