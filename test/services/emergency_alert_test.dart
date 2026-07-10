@@ -56,11 +56,51 @@ void main() {
   test('resolveCallTarget resolves to list.first when no primary is set',
       () async {
     SharedPreferences.setMockInitialValues({});
+    // Explicitly clear the in-memory notifier: a prior test in this file may
+    // have left a primary id set on this static, and without this reset the
+    // test could pass by inheriting that leftover state rather than
+    // genuinely proving the null-primary case.
+    PrimaryContactPrefs.id.value = null;
     await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
 
     final contacts = await DBHelper().getContacts();
     expect(EmergencyAlert.resolveCallTarget(contacts).contactNo,
         '01000000000');
+  });
+
+  test(
+      'PrimaryContactPrefs.load() restores a persisted primary in a fresh '
+      "isolate's notifier before resolveCallTarget is consulted", () async {
+    // Simulates the exact cross-isolate seam that let the Critical bug
+    // through: the primary is persisted (e.g. set from the main isolate),
+    // but the shake-guard's background isolate starts with a fresh
+    // ValueNotifier that has never loaded anything — id.value is null even
+    // though SharedPreferences has a value on disk. sendBackground's fix
+    // (EmergencyAlert.sendBackground calling PrimaryContactPrefs.load()
+    // right before the call attempt) is what's supposed to fix this; this
+    // test proves that load() call actually does the job.
+    SharedPreferences.setMockInitialValues({});
+    final sara =
+        await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+    await DBHelper().add(PersonalEmergency('Jo', '02000000000'));
+    await PrimaryContactPrefs.set(sara.id);
+
+    // Simulate a fresh isolate that hasn't loaded the prefs yet.
+    PrimaryContactPrefs.id.value = null;
+    final contacts = await DBHelper().getContacts();
+    expect(contacts.first.name, 'Jo');
+    // Without a load(), the bug reproduces: falls back to contacts.first.
+    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo,
+        '02000000000');
+
+    // This is the exact call sendBackground now makes right before the call
+    // attempt (see emergency_alert.dart).
+    await PrimaryContactPrefs.load();
+
+    expect(
+      EmergencyAlert.resolveCallTarget(contacts).contactNo,
+      '01000000000', // Sara's number, restored from persisted storage
+    );
   });
 
   test('sendTexts refuses to run without SMS permission', () async {

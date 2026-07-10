@@ -201,6 +201,13 @@ class EmergencyAlert {
 
     var callBlocked = false;
     try {
+      // This runs in the shake-guard's own isolate, which never runs
+      // main.dart's startup code — PrimaryContactPrefs.id would otherwise
+      // stay null here forever, making the call always fall back to
+      // contacts.first. Reload fresh right before the call (not once at
+      // service startup) since this foreground service can run for a long
+      // time and the user could change the primary while it's running.
+      await PrimaryContactPrefs.load();
       final ok = await callFirstContact(contacts: contacts);
       if (ok != true) callBlocked = true;
     } catch (_) {
