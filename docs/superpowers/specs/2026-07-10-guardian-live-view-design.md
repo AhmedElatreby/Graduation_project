@@ -1,6 +1,6 @@
 # Guardian live-view share link — design
 
-**Date:** 2026-07-10 · **Status:** approved, one open item flagged below
+**Date:** 2026-07-10 · **Status:** approved
 
 ## What
 
@@ -12,20 +12,25 @@ map of the user's position, refreshing automatically for **2 hours**, after
 which the page shows "This share has expired." Guardians never need an
 account or the app installed.
 
-**Open item flagged for spec review:** firing any alert also auto-enables
-Live Location streaming (the existing Track-page toggle), the same way the
-check-in timer feature already will. Without this, a plain SOS/shake alert
-would only ever populate the shared page with the single position captured
-at the moment the alert fired — never actually moving — since Live
-Location is otherwise a fully separate, manually-toggled feature today. I
-proceeded with "yes, auto-enable" as the default (it's what makes the
-feature's stated purpose work for every alert type, not just check-in
-timers) after not getting a response to this specific question; flag it if
-you want the more conservative "leave it manual" behavior instead.
+**Live Location auto-enable, and its real limit:** firing an alert while
+the app is in the **foreground** (the SOS button, or a shake detected while
+the app is open) also auto-enables Live Location streaming, so the shared
+page keeps moving rather than showing one static point. This required
+extracting Live Location's streaming logic out of `LocationPage`'s widget
+state into its own small static service (`LiveLocationService`, see below)
+so `EmergencyAlert.send()` — a plain static call with no widget access —
+can start it. A **background-triggered** shake alert (app backgrounded or
+killed, caught by the shake-guard foreground service) cannot reach this at
+all: that isolate has no Flutter widget tree to stream GPS from, and
+building a background GPS-polling mechanism to work around that is a
+separate, materially larger project, out of scope here. A background alert
+still only ever gets the one-shot position already captured for the SMS's
+static pin — same as today.
 
 Out of scope: guardian-initiated actions back to the sharer (no "I'm on my
 way" button), a history of past shares, multiple simultaneous active
-shares, editing/extending a share's expiry once created.
+shares, editing/extending a share's expiry once created, background GPS
+streaming for a killed/backgrounded app.
 
 ## Why this shape
 
@@ -134,13 +139,36 @@ New `lib/services/guardian_share.dart`:
 
 New `lib/services/share_link_prefs.dart` (mirrors `ShakePrefs`/
 `CheckInPrefs`'s shape): persists the currently-active `shareId` and its
-`expiresAt` so the existing Live Location stream listener
-(`_listenLocation` in `lib/pages/location_page.dart`) can mirror each new
-GPS fix into `shared_locations/{shareId}` — via a merged `set()`, alongside
-its existing write to `location/{uid}` — for as long as a share is active
-and unexpired. `ShareLinkPrefs.isActive` (`shareId != null && expiresAt !=
-null && DateTime.now().isBefore(expiresAt!)`) gates that extra write; no
-change to the private `location/{uid}` write path itself.
+`expiresAt` so the location-streaming code (below) can mirror each new GPS
+fix into `shared_locations/{shareId}` for as long as a share is active and
+unexpired. `ShareLinkPrefs.isActive` (`shareId != null && expiresAt != null
+&& DateTime.now().isBefore(expiresAt!)`) gates that extra write.
+
+### `LiveLocationService` extraction
+
+Today, Live Location's `StreamSubscription`, start/stop logic, and its
+write to `location/{uid}` all live directly on `_LocationPageState` (`_sub`,
+`_listenLocation()`, `_stopListening()` in `lib/pages/location_page.dart`),
+callable only because the Track page's own switch has a `BuildContext` and
+widget-instance access. `EmergencyAlert.send()` (called from the SOS
+button) has neither — it's a plain static method — so it cannot reach that
+instance method to turn Live Location on.
+
+New `lib/services/live_location_service.dart` extracts exactly that logic
+into a static service: `LiveLocationService.isLive`
+(`ValueNotifier<bool>`), `LiveLocationService.start()`, `.stop()` — the
+subscription itself becomes a static field on this service instead of
+per-widget state, and its listener callback writes to `location/{uid}` (as
+today) and, when `ShareLinkPrefs.isActive`, also mirrors the same fix into
+`shared_locations/{shareId}`. `LocationPage`'s Live Location `Switch`
+becomes a thin wrapper: `onChanged: (v) => v ? LiveLocationService.start()
+: LiveLocationService.stop()`, and its "Sharing now"/"Off" label binds to
+`LiveLocationService.isLive` instead of local widget state. This is a
+behavior-preserving extraction — the Track page's Live Location toggle
+must look and work exactly as it does today after this change; the only
+new caller is `EmergencyAlert.send()`, which calls
+`LiveLocationService.start()` if it isn't already running, right before
+building the alert message.
 
 `ShareLinkPrefs` tracks only the single most-recently-created share — a
 direct consequence of "no multiple simultaneous shares" being out of
@@ -203,6 +231,11 @@ above, not by hiding this configuration.
 - `buildAlertMessage`'s new `shareLink` parameter gets the same kind of
   test as the existing `coords`/`note` parameters: present vs. absent,
   byte-for-byte unchanged when omitted.
+- No new automated test for the `LiveLocationService` extraction itself
+  beyond confirming `flutter analyze`/`flutter test` are clean and the
+  existing Track-page behavior is unchanged on-device — this is the same
+  "widget/page-level wiring verified on-device" category as the rest of
+  `location_page.dart`, not a regression in test rigor.
 - The Firestore rule itself is verified with the Firebase emulator suite
   (`firebase emulators:exec` + the `@firebase/rules-unit-testing`
   package) — not a Flutter/Dart test — asserting: an unauthenticated read
