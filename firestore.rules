@@ -10,6 +10,21 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    match /shared_locations/{shareId} {
+      // Anyone with the exact shareId can read it, but only while it
+      // hasn't expired — no auth required, since guardians have no
+      // account. A stray expired doc is harmless to leave forever.
+      allow read: if resource.data.expiresAt > request.time;
+
+      // Only the authenticated owner can create or update their own
+      // share doc. Nothing ever deletes a share; it just expires.
+      allow create: if request.auth != null
+          && request.auth.uid == request.resource.data.ownerUid;
+      allow update: if request.auth != null
+          && request.auth.uid == resource.data.ownerUid;
+      allow delete: if false;
+    }
+
     // Everything else is denied by default.
     match /{document=**} {
       allow read, write: if false;
