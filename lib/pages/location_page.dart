@@ -5,15 +5,14 @@
 //  ★ #6  Siren now uses the app-wide Siren singleton, so it keeps playing until
 //        the clip finishes even if you leave this screen.
 // ─────────────────────────────────────────────────────────────────────────────
-import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
 
+import '../services/live_location_service.dart';
 import '../services/shake_prefs.dart';
 import '../services/siren.dart';
 import '../theme/lumi_theme.dart';
@@ -26,11 +25,6 @@ class LocationPage extends StatefulWidget {
 }
 
 class _LocationPageState extends State<LocationPage> {
-  final loc.Location location = loc.Location();
-  StreamSubscription<loc.LocationData>? _sub;
-
-  bool get _isLive => _sub != null;
-
   // Location docs are keyed by the signed-in user's uid so each user only
   // ever touches their own document (was a single shared 'user1' doc that
   // every account overwrote and could read).
@@ -40,12 +34,10 @@ class _LocationPageState extends State<LocationPage> {
   void initState() {
     super.initState();
     _requestPermission();
-    location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
   }
 
   @override
   void dispose() {
-    _sub?.cancel();
     // NOTE: we intentionally do NOT stop the siren here — it should keep playing
     // even if you leave this tab.
     super.dispose();
@@ -73,37 +65,46 @@ class _LocationPageState extends State<LocationPage> {
               const SizedBox(height: 12),
 
               // map preview (decorative — tap to open full Map tab if you wire it)
-              _MapPreview(isLive: _isLive),
-              const SizedBox(height: 10),
-
-              // live toggle
-              LumiCard(
-                child: Row(
+              ValueListenableBuilder<bool>(
+                valueListenable: LiveLocationService.isLive,
+                builder: (_, isLive, __) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _TileIcon(
-                        icon: Icons.my_location,
-                        bg: LumiColors.accent.withOpacity(0.14),
-                        fg: LumiColors.accent),
-                    const SizedBox(width: 13),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    _MapPreview(isLive: isLive),
+                    const SizedBox(height: 10),
+
+                    // live toggle
+                    LumiCard(
+                      child: Row(
                         children: [
-                          Text('Live location',
-                              style:
-                                  LumiText.body(14.5, weight: FontWeight.w700)),
-                          Text(_isLive ? 'Sharing now' : 'Off',
-                              style:
-                                  LumiText.body(12, color: LumiColors.textSub)),
+                          _TileIcon(
+                              icon: Icons.my_location,
+                              bg: LumiColors.accent.withOpacity(0.14),
+                              fg: LumiColors.accent),
+                          const SizedBox(width: 13),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Live location',
+                                    style: LumiText.body(14.5,
+                                        weight: FontWeight.w700)),
+                                Text(isLive ? 'Sharing now' : 'Off',
+                                    style: LumiText.body(12,
+                                        color: LumiColors.textSub)),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: isLive,
+                            activeColor: Colors.white,
+                            activeTrackColor: LumiColors.accent,
+                            onChanged: (v) => v
+                                ? LiveLocationService.start()
+                                : LiveLocationService.stop(),
+                          ),
                         ],
                       ),
-                    ),
-                    Switch(
-                      value: _isLive,
-                      activeColor: Colors.white,
-                      activeTrackColor: LumiColors.accent,
-                      onChanged: (v) =>
-                          v ? _listenLocation() : _stopListening(),
                     ),
                   ],
                 ),
@@ -317,33 +318,6 @@ class _LocationPageState extends State<LocationPage> {
   }
 
   // ── logic (yours, trimmed) ──────────────────────────────────────────────────
-  Future<void> _listenLocation() async {
-    final uid = _uid;
-    if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign in to share your location')),
-      );
-      return;
-    }
-    setState(() {});
-    _sub = location.onLocationChanged.handleError((e) {
-      _sub?.cancel();
-      setState(() => _sub = null);
-    }).listen((d) async {
-      await FirebaseFirestore.instance.collection('location').doc(uid).set({
-        'latitude': d.latitude,
-        'longitude': d.longitude,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    });
-    if (mounted) setState(() {});
-  }
-
-  void _stopListening() {
-    _sub?.cancel();
-    setState(() => _sub = null);
-  }
-
   Future<void> _siren() async {
     await Siren.instance.play(); // keeps playing after you leave this screen
     if (!mounted) return;

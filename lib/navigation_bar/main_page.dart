@@ -17,6 +17,7 @@ import '../oauth/auth_controller.dart';
 import '../pages/location_page.dart';
 import '../pages/sos.dart';
 import '../services/emergency_alert.dart';
+import '../services/live_location_service.dart';
 import '../services/pending_call.dart';
 import '../services/shake_guard_service.dart';
 import '../services/shake_prefs.dart';
@@ -87,6 +88,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
     _shakeDetector = null;
     WidgetsBinding.instance.removeObserver(this);
     if (!kIsWeb && Platform.isAndroid) ShakeGuardService.stop(); // logout
+    LiveLocationService.stop(); // logout — all platforms, not Android-only
     super.dispose();
   }
 
