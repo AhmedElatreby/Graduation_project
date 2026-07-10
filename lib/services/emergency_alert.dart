@@ -19,6 +19,7 @@ import 'package:telephony/telephony.dart';
 import '../contact/personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
 import 'guardian_share.dart';
+import 'live_location_service.dart';
 import 'pending_call.dart';
 import 'primary_contact_prefs.dart';
 
@@ -56,6 +57,12 @@ class EmergencyAlert {
   static Future<List<String>> send() async {
     final contacts = await DBHelper().getContacts();
     if (contacts.isEmpty) return ['Add emergency contacts first.'];
+
+    // Foreground-only: this is what lets the guardian's shared page keep
+    // moving instead of showing one static point. A background/killed-app
+    // alert (sendBackground) has no widget tree to stream GPS from, so it
+    // isn't attempted there — see this plan's Global Constraints.
+    await LiveLocationService.start();
 
     final failures = <String>[];
     try {
