@@ -18,6 +18,7 @@ import 'package:telephony/telephony.dart';
 
 import '../contact/personal_emergency_contacts_model.dart';
 import '../database/db_helper.dart';
+import 'guardian_share.dart';
 import 'pending_call.dart';
 import 'primary_contact_prefs.dart';
 
@@ -37,10 +38,16 @@ class EmergencyAlert {
       (await DBHelper().getContacts()).isNotEmpty;
 
   /// The SMS body. Extracted so the foreground composer path and the
-  /// background silent path can never drift apart.
-  static String buildAlertMessage(String? coords) => coords == null
-      ? 'I need help! (My location is unavailable right now.)'
-      : 'I need help, please find me: https://maps.google.com/?q=$coords';
+  /// background silent path can never drift apart. [shareLink] (a
+  /// GuardianShare URL) is appended on its own line when present, leaving
+  /// the message byte-for-byte unchanged when it's null — every existing
+  /// call site that doesn't pass one sees no change.
+  static String buildAlertMessage(String? coords, {String? shareLink}) {
+    final base = coords == null
+        ? 'I need help! (My location is unavailable right now.)'
+        : 'I need help, please find me: https://maps.google.com/?q=$coords';
+    return shareLink == null ? base : '$base\nLive location: $shareLink';
+  }
 
   /// Sends the full alert: SMS to every guardian, then a call to the first.
   /// SMS and call are attempted independently so one failing doesn't block
@@ -107,7 +114,8 @@ class EmergencyAlert {
     await _requireGranted(Permission.sms, 'SMS');
     final list = contacts ?? await DBHelper().getContacts();
     final coords = await currentCoordinates();
-    final message = buildAlertMessage(coords);
+    final shareLink = await GuardianShare.createShareLink(coords: coords);
+    final message = buildAlertMessage(coords, shareLink: shareLink);
     final recipients = list.map((c) => c.contactNo).toList();
 
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -182,7 +190,13 @@ class EmergencyAlert {
     } catch (_) {
       coords = null; // background GPS may be denied/slow — degrade, don't die
     }
-    final message = buildAlertMessage(coords);
+    String? shareLink;
+    try {
+      shareLink = await GuardianShare.createShareLink(coords: coords);
+    } catch (_) {
+      shareLink = null; // a share-link failure must never block the alert
+    }
+    final message = buildAlertMessage(coords, shareLink: shareLink);
 
     final smsFailures = <String>[];
     try {

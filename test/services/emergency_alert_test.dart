@@ -1,5 +1,7 @@
 // EmergencyAlert.hasGuardians gates the shake countdown: no guardians means
 // no countdown, just a "add guardians" prompt.
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
 import 'package:safetyproject/database/db_helper.dart';
 import 'package:safetyproject/services/emergency_alert.dart';
+import 'package:safetyproject/services/guardian_share.dart';
 import 'package:safetyproject/services/primary_contact_prefs.dart';
 
 import '../test_helpers.dart';
@@ -121,6 +124,48 @@ void main() {
     expect(
       EmergencyAlert.buildAlertMessage(null),
       'I need help! (My location is unavailable right now.)',
+    );
+  });
+
+  test('buildAlertMessage appends the share link on its own line when '
+      'provided', () {
+    expect(
+      EmergencyAlert.buildAlertMessage('50.73,-1.85',
+          shareLink: 'https://safety-project-71d83.web.app/share.html?id=abc'),
+      'I need help, please find me: https://maps.google.com/?q=50.73,-1.85\n'
+      'Live location: https://safety-project-71d83.web.app/share.html?id=abc',
+    );
+    // No share link: byte-for-byte identical to today's message.
+    expect(
+      EmergencyAlert.buildAlertMessage('50.73,-1.85'),
+      'I need help, please find me: https://maps.google.com/?q=50.73,-1.85',
+    );
+  });
+
+  test('sendBackground includes a share link in the SMS when one can be '
+      'created', () async {
+    // sendBackground itself hits telephony/geolocator plugins with no
+    // mocked platform channel in this suite (see the existing
+    // "sendTexts refuses to run..." test's own comment on this) — this
+    // test targets buildAlertMessage + GuardianShare.createShareLink
+    // directly instead, the same seam-testing approach Task 2 of the
+    // primary-guardian-contact plan used for resolveCallTarget.
+    final firestore = FakeFirebaseFirestore();
+    final auth = MockFirebaseAuth(
+      signedIn: true,
+      mockUser: MockUser(uid: 'user-1', email: 'a@a.com'),
+    );
+
+    final link = await GuardianShare.createShareLink(
+      coords: '50.73,-1.85',
+      firestore: firestore,
+      auth: auth,
+    );
+
+    expect(
+      EmergencyAlert.buildAlertMessage('50.73,-1.85', shareLink: link),
+      'I need help, please find me: https://maps.google.com/?q=50.73,-1.85\n'
+      'Live location: $link',
     );
   });
 }
