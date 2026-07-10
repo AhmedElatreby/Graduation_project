@@ -114,7 +114,12 @@ class EmergencyAlert {
     await _requireGranted(Permission.sms, 'SMS');
     final list = contacts ?? await DBHelper().getContacts();
     final coords = await currentCoordinates();
-    final shareLink = await GuardianShare.createShareLink(coords: coords);
+    String? shareLink;
+    try {
+      shareLink = await GuardianShare.createShareLink(coords: coords);
+    } catch (_) {
+      shareLink = null; // a share-link failure must never block the alert
+    }
     final message = buildAlertMessage(coords, shareLink: shareLink);
     final recipients = list.map((c) => c.contactNo).toList();
 

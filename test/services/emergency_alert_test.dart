@@ -168,4 +168,30 @@ void main() {
       'Live location: $link',
     );
   });
+
+  test('sendTexts is not aborted by a share-link failure', () async {
+    // Firebase.initializeApp never runs in this suite, so the
+    // FirebaseAuth.instance access inside GuardianShare.createShareLink
+    // throws a real "[core/no-app]" FirebaseException — a natural in-test
+    // share-link failure with no seam needed. That call sits BEFORE any
+    // guardian is texted, so without the degrade-to-null try/catch the
+    // error would abort the whole SMS batch. This test proves execution
+    // gets PAST the share-link step: whatever surfaces (here, the unmocked
+    // telephony platform channel) must be a downstream error, never the
+    // Firebase one.
+    PermissionHandlerPlatform.instance = FakeGrantedPermissionHandlerPlatform();
+    await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+
+    Object? error;
+    try {
+      await EmergencyAlert.sendTexts();
+    } catch (e) {
+      error = e;
+    }
+    expect(
+      '$error',
+      isNot(contains('Firebase')),
+      reason: 'a share-link creation failure must never block the alert SMS',
+    );
+  });
 }
