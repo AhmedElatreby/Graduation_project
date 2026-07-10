@@ -10,9 +10,10 @@
     #banner { position: absolute; top: 0; left: 0; right: 0; padding: 14px 18px; background: rgba(6,8,14,0.85); z-index: 10; }
     #banner h1 { margin: 0 0 4px; font-size: 16px; }
     #banner p { margin: 0; font-size: 13px; color: #9AA5B8; }
-    #expired { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+    #expired { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; background: #06080E; z-index: 20; }
     #expired.show { display: flex; }
-    #expired.show ~ #map { display: none; }
+    #map-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+    #map-fallback a { color: #9AA5B8; }
   </style>
 </head>
 <body>
@@ -50,8 +51,12 @@
     const nameEl = document.getElementById("name");
     const updatedEl = document.getElementById("updated");
     const expiredEl = document.getElementById("expired");
+    const bannerEl = document.getElementById("banner");
 
-    let map, marker;
+    let map, marker, fallbackLink;
+    let lastData = null;
+    let lastUpdatedAt = null;
+
     function ensureMap(lat, lng) {
       if (map) return;
       map = new google.maps.Map(document.getElementById("map"), {
@@ -61,8 +66,48 @@
       marker = new google.maps.Marker({ position: { lat, lng }, map });
     }
 
+    // Shown when the Maps JS script never loaded (ad-blocker, bad key,
+    // flaky network) — a plain link so the guardian still gets the position.
+    function showMapFallback(lat, lng) {
+      if (!fallbackLink) {
+        const wrap = document.createElement("div");
+        wrap.id = "map-fallback";
+        fallbackLink = document.createElement("a");
+        fallbackLink.textContent = "Map failed to load — open in Google Maps";
+        fallbackLink.target = "_blank";
+        fallbackLink.rel = "noopener";
+        wrap.appendChild(fallbackLink);
+        document.getElementById("map").appendChild(wrap);
+      }
+      fallbackLink.href = `https://maps.google.com/?q=${lat},${lng}`;
+    }
+
+    function renderPosition(lat, lng) {
+      if (typeof google === "undefined" || !google.maps) {
+        showMapFallback(lat, lng);
+        return;
+      }
+      ensureMap(lat, lng);
+      marker.setPosition({ lat, lng });
+      map.panTo({ lat, lng });
+    }
+
     function showExpired() {
       expiredEl.classList.add("show");
+      bannerEl.style.display = "none";
+    }
+
+    function isPast(timestamp) {
+      const date = timestamp?.toDate?.();
+      return !!date && date.getTime() < Date.now();
+    }
+
+    function updatedLabel() {
+      if (!lastUpdatedAt) return "Live — updating automatically";
+      const secs = Math.floor((Date.now() - lastUpdatedAt.getTime()) / 1000);
+      if (secs < 30) return "Live — updating automatically";
+      if (secs < 60) return `Live — updated ${secs}s ago`;
+      return `Live — updated ${Math.floor(secs / 60)}m ago`;
     }
 
     if (!shareId) {
@@ -73,17 +118,24 @@
         (snap) => {
           if (!snap.exists()) { showExpired(); return; }
           const data = snap.data();
-          const expiresAt = data.expiresAt?.toDate?.();
-          if (expiresAt && expiresAt.getTime() < Date.now()) { showExpired(); return; }
+          if (isPast(data.expiresAt)) { showExpired(); return; }
+          lastData = data;
+          lastUpdatedAt = data.updatedAt?.toDate?.() ?? null;
 
           nameEl.textContent = `${data.name ?? "Someone"}'s live location`;
-          updatedEl.textContent = "Live — updating automatically";
-          ensureMap(data.latitude, data.longitude);
-          marker.setPosition({ lat: data.latitude, lng: data.longitude });
-          map.panTo({ lat: data.latitude, lng: data.longitude });
+          updatedEl.textContent = updatedLabel();
+          renderPosition(data.latitude, data.longitude);
         },
         () => showExpired() // a read denial (expired, per firestore.rules) lands here too
       );
+
+      // onSnapshot only fires on writes — without this timer a sender whose
+      // phone died would leave the page claiming "live" over a stale pin forever.
+      setInterval(() => {
+        if (!lastData) return;
+        if (isPast(lastData.expiresAt)) { showExpired(); return; }
+        updatedEl.textContent = updatedLabel();
+      }, 15000);
     }
   </script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBFWjw90iH5rkDve37AUtJ67BZVk1XQAaI"></script>
