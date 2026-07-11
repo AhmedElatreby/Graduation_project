@@ -27,6 +27,16 @@ jobs:
           flutter-version: 3.44.1
           cache: true
 
+      # lib/secrets.dart is gitignored (holds the Maps API key); analyze and
+      # debug builds only need it to exist
+      - name: Create placeholder secrets.dart
+        run: |
+          cat > lib/secrets.dart <<'EOF'
+          class Secrets {
+            static const API_KEY = 'ci-placeholder';
+          }
+          EOF
+
       - run: flutter pub get
 
       - run: flutter analyze
