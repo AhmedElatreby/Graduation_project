@@ -39,15 +39,21 @@ class EmergencyAlert {
       (await DBHelper().getContacts()).isNotEmpty;
 
   /// The SMS body. Extracted so the foreground composer path and the
-  /// background silent path can never drift apart. [shareLink] (a
-  /// GuardianShare URL) is appended on its own line when present, leaving
-  /// the message byte-for-byte unchanged when it's null — every existing
-  /// call site that doesn't pass one sees no change.
-  static String buildAlertMessage(String? coords, {String? shareLink}) {
+  /// background silent path can never drift apart. [note] (e.g. a check-in
+  /// timer's "walking home from the station") is appended on its own line
+  /// first, as human context; [shareLink] (a GuardianShare URL) follows on
+  /// its own line after that. Either or both may be omitted, leaving the
+  /// message byte-for-byte unchanged when both are null — every existing
+  /// call site that doesn't pass them sees no change.
+  static String buildAlertMessage(String? coords,
+      {String? shareLink, String? note}) {
     final base = coords == null
         ? 'I need help! (My location is unavailable right now.)'
         : 'I need help, please find me: https://maps.google.com/?q=$coords';
-    return shareLink == null ? base : '$base\nLive location: $shareLink';
+    final withNote = note == null ? base : '$base\n$note';
+    return shareLink == null
+        ? withNote
+        : '$withNote\nLive location: $shareLink';
   }
 
   /// Sends the full alert: SMS to every guardian, then a call to the first.
@@ -190,9 +196,10 @@ class EmergencyAlert {
   /// usually blocks the dialer launch from the background — then we set
   /// [PendingCall] and report callBlocked so the notification can say
   /// "tap to call". Pass [coordsFuture] to reuse a fix already being
-  /// acquired (the countdown doubles as GPS warm-up time).
+  /// acquired (the countdown doubles as GPS warm-up time). Pass [note] to
+  /// carry a check-in timer's note through to the SMS body.
   static Future<BackgroundSendResult> sendBackground(
-      {Future<String?>? coordsFuture}) async {
+      {Future<String?>? coordsFuture, String? note}) async {
     final contacts = await DBHelper().getContacts();
     if (contacts.isEmpty) {
       return const BackgroundSendResult(
@@ -218,7 +225,8 @@ class EmergencyAlert {
       // auto-enable, and its real limit" section.
       shareLink = null;
     }
-    final message = buildAlertMessage(coords, shareLink: shareLink);
+    final message =
+        buildAlertMessage(coords, shareLink: shareLink, note: note);
 
     final smsFailures = <String>[];
     try {

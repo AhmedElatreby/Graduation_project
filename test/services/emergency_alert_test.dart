@@ -142,6 +142,37 @@ void main() {
     );
   });
 
+  test('buildAlertMessage appends a note on its own line when provided', () {
+    expect(
+      EmergencyAlert.buildAlertMessage('50.73,-1.85',
+          note: 'walking home from the station'),
+      'I need help, please find me: https://maps.google.com/?q=50.73,-1.85\n'
+      'walking home from the station',
+    );
+    expect(
+      EmergencyAlert.buildAlertMessage(null, note: 'test note'),
+      'I need help! (My location is unavailable right now.)\ntest note',
+    );
+    // No note: byte-for-byte identical to today's message (SOS button and
+    // shake-to-SOS pass no note and must see no change).
+    expect(
+      EmergencyAlert.buildAlertMessage('50.73,-1.85'),
+      'I need help, please find me: https://maps.google.com/?q=50.73,-1.85',
+    );
+  });
+
+  test('buildAlertMessage puts the note before the share link when both are '
+      'provided', () {
+    expect(
+      EmergencyAlert.buildAlertMessage('50.73,-1.85',
+          shareLink: 'https://safety-project-71d83.web.app/share.html?id=abc',
+          note: 'walking home from the station'),
+      'I need help, please find me: https://maps.google.com/?q=50.73,-1.85\n'
+      'walking home from the station\n'
+      'Live location: https://safety-project-71d83.web.app/share.html?id=abc',
+    );
+  });
+
   test('sendBackground includes a share link in the SMS when one can be '
       'created', () async {
     // sendBackground itself hits telephony/geolocator plugins with no
