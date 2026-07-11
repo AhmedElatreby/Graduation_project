@@ -192,7 +192,10 @@ class _ShakeGuardTaskHandler extends TaskHandler {
         await CheckInPrefs.clear();
         _idleNotification();
       },
-      onSent: () {}, // _sendAlert wrote the result notification already
+      // _sendAlert wrote the result notification already; clearing here is
+      // what stops a completed run's stale endTime from re-firing a
+      // duplicate alert on the next service restart.
+      onSent: () => CheckInPrefs.clear(),
     );
     await ShakePrefs.load(); // this isolate has its own SharedPreferences access
     if (ShakePrefs.enabled.value) {
@@ -233,12 +236,23 @@ class _ShakeGuardTaskHandler extends TaskHandler {
       _detector?.stopListening();
       _startDetector(thresholdFor(level));
     }
-    if (data == 'checkin_start') _startCheckIn();
-    if (data == 'checkin_cancel') _checkIn?.cancel();
+    if (data == 'checkin_start') _startCheckIn(++_checkInEpoch);
+    if (data == 'checkin_cancel') {
+      _checkInEpoch++;
+      _checkIn?.cancel();
+    }
   }
 
-  Future<void> _startCheckIn() async {
+  // Bumped on every checkin_start/checkin_cancel IPC. _startCheckIn has an
+  // async gap at its prefs load; a cancel arriving in that gap would no-op
+  // (the core isn't running yet) and then the delayed start would arm the
+  // timer anyway, losing the cancel. Re-checking the epoch after the await
+  // makes such a superseded start bail out instead.
+  int _checkInEpoch = 0;
+
+  Future<void> _startCheckIn(int epoch) async {
     await CheckInPrefs.load(); // pick up the endTime/note just persisted
+    if (epoch != _checkInEpoch) return; // superseded by a newer start/cancel
     final end = CheckInPrefs.endTime.value;
     if (end != null) _checkIn?.start(end);
   }
