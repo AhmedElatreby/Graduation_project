@@ -10,6 +10,8 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shake/shake.dart';
 
+import 'checkin_prefs.dart';
+import 'checkin_timer_core.dart';
 import 'emergency_alert.dart';
 import 'shake_guard_core.dart';
 import 'shake_prefs.dart';
@@ -86,11 +88,22 @@ class ShakeGuardService {
   /// ShakePrefs.sensitivity changes for the in-app detector.
   static void notifySensitivity(ShakeSensitivity level) =>
       FlutterForegroundTask.sendDataToTask('sensitivity:${level.name}');
+
+  /// Tells the running service to (re)start its check-in countdown from
+  /// whatever CheckInPrefs currently holds on disk (no-op if the service
+  /// isn't running). The note's free text travels via CheckInPrefs, not
+  /// this message, the same way ShakePrefs already does for `onStart`.
+  static void notifyCheckInStart() =>
+      FlutterForegroundTask.sendDataToTask('checkin_start');
+
+  static void notifyCheckInCancel() =>
+      FlutterForegroundTask.sendDataToTask('checkin_cancel');
 }
 
 class _ShakeGuardTaskHandler extends TaskHandler {
   ShakeDetector? _detector;
   ShakeGuardCore? _core;
+  CheckInTimerCore? _checkIn;
   // Started on the countdown's first tick so the 5 seconds double as GPS
   // warm-up — a fresh fix is usually ready by the time the SMS is built.
   Future<String?>? _coordsPrefetch;
@@ -98,6 +111,10 @@ class _ShakeGuardTaskHandler extends TaskHandler {
   static const _cancelButtonId = 'cancel_sos';
   static const _cancelButton =
       NotificationButton(id: _cancelButtonId, text: "I'm safe — cancel");
+
+  static const _cancelCheckInButtonId = 'cancel_checkin';
+  static const _cancelCheckInButton = NotificationButton(
+      id: _cancelCheckInButtonId, text: "I'm safe — cancel");
 
   void _idleNotification() {
     FlutterForegroundTask.updateService(
@@ -107,11 +124,12 @@ class _ShakeGuardTaskHandler extends TaskHandler {
     );
   }
 
-  Future<void> _sendAlert() async {
+  Future<void> _sendAlert({String? note}) async {
     try {
       final coords = _coordsPrefetch;
       _coordsPrefetch = null;
-      final result = await EmergencyAlert.sendBackground(coordsFuture: coords);
+      final result = await EmergencyAlert.sendBackground(
+          coordsFuture: coords, note: note);
       final ok = result.smsFailures.isEmpty;
       FlutterForegroundTask.updateService(
         notificationTitle:
@@ -157,12 +175,45 @@ class _ShakeGuardTaskHandler extends TaskHandler {
         notificationButtons: const [],
       ),
     );
+    _checkIn = CheckInTimerCore(
+      send: () => _sendAlert(note: CheckInPrefs.note.value),
+      onTick: (remaining) => FlutterForegroundTask.updateService(
+        notificationTitle: 'Checking in',
+        notificationText:
+            'Alerting your guardians in ${_fmtDuration(remaining)} unless you check in.',
+        notificationButtons: const [_cancelCheckInButton],
+      ),
+      onGraceTick: (secondsRemaining) => FlutterForegroundTask.updateService(
+        notificationTitle: 'Check-in missed',
+        notificationText: 'Alerting your guardians in ${secondsRemaining}s…',
+        notificationButtons: const [_cancelCheckInButton],
+      ),
+      onCancelled: () async {
+        await CheckInPrefs.clear();
+        _idleNotification();
+      },
+      onSent: () {}, // _sendAlert wrote the result notification already
+    );
     await ShakePrefs.load(); // this isolate has its own SharedPreferences access
-    _startDetector(thresholdFor(ShakePrefs.sensitivity.value));
+    if (ShakePrefs.enabled.value) {
+      _startDetector(thresholdFor(ShakePrefs.sensitivity.value));
+    }
     // The core assumes "app foregrounded" because WE normally start it from
     // the running app. An OS restart of the service is the opposite case —
     // the app is gone; treat it as paused so background shakes are handled.
     if (starter != TaskStarter.developer) _core?.appPaused();
+
+    // A running check-in timer must resume exactly where CheckInPrefs says
+    // it is — including after an OS-initiated restart of this service.
+    await CheckInPrefs.load();
+    final end = CheckInPrefs.endTime.value;
+    if (end != null) _checkIn?.start(end);
+  }
+
+  static String _fmtDuration(Duration d) {
+    final m = d.inMinutes;
+    final s = d.inSeconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
   }
 
   void _startDetector(double threshold) {
@@ -182,11 +233,20 @@ class _ShakeGuardTaskHandler extends TaskHandler {
       _detector?.stopListening();
       _startDetector(thresholdFor(level));
     }
+    if (data == 'checkin_start') _startCheckIn();
+    if (data == 'checkin_cancel') _checkIn?.cancel();
+  }
+
+  Future<void> _startCheckIn() async {
+    await CheckInPrefs.load(); // pick up the endTime/note just persisted
+    final end = CheckInPrefs.endTime.value;
+    if (end != null) _checkIn?.start(end);
   }
 
   @override
   void onNotificationButtonPressed(String id) {
     if (id == _cancelButtonId) _core?.cancel();
+    if (id == _cancelCheckInButtonId) _checkIn?.cancel();
   }
 
   @override
@@ -196,5 +256,6 @@ class _ShakeGuardTaskHandler extends TaskHandler {
   Future<void> onDestroy(DateTime timestamp) async {
     _detector?.stopListening();
     _core?.dispose();
+    _checkIn?.dispose();
   }
 }
