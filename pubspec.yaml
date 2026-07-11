@@ -36,6 +36,7 @@ dependencies:
   shared_preferences: ^2.3.0
   flutter_foreground_task: ^8.17.0
   clock: ^1.1.1
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:

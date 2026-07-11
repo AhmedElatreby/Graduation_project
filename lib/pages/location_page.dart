@@ -79,7 +79,7 @@ class _LocationPageState extends State<LocationPage> {
                         children: [
                           _TileIcon(
                               icon: Icons.my_location,
-                              bg: LumiColors.accent.withOpacity(0.14),
+                              bg: LumiColors.accent.withValues(alpha: 0.14),
                               fg: LumiColors.accent),
                           const SizedBox(width: 13),
                           Expanded(
@@ -97,7 +97,7 @@ class _LocationPageState extends State<LocationPage> {
                           ),
                           Switch(
                             value: isLive,
-                            activeColor: Colors.white,
+                            activeThumbColor: Colors.white,
                             activeTrackColor: LumiColors.accent,
                             onChanged: (v) => v
                                 ? LiveLocationService.start()
@@ -117,7 +117,7 @@ class _LocationPageState extends State<LocationPage> {
                   children: [
                     _TileIcon(
                         icon: Icons.campaign_outlined,
-                        bg: LumiColors.amber.withOpacity(0.14),
+                        bg: LumiColors.amber.withValues(alpha: 0.14),
                         fg: LumiColors.amber),
                     const SizedBox(width: 13),
                     Expanded(
@@ -139,7 +139,7 @@ class _LocationPageState extends State<LocationPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: LumiColors.amber.withOpacity(0.16),
+                          color: LumiColors.amber.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text('Play',
@@ -161,7 +161,7 @@ class _LocationPageState extends State<LocationPage> {
                       children: [
                         _TileIcon(
                             icon: Icons.vibration,
-                            bg: LumiColors.blue.withOpacity(0.14),
+                            bg: LumiColors.blue.withValues(alpha: 0.14),
                             fg: LumiColors.blue),
                         const SizedBox(width: 13),
                         Expanded(
@@ -181,7 +181,7 @@ class _LocationPageState extends State<LocationPage> {
                           valueListenable: ShakePrefs.enabled,
                           builder: (_, on, __) => Switch(
                             value: on,
-                            activeColor: Colors.white,
+                            activeThumbColor: Colors.white,
                             activeTrackColor: LumiColors.blue,
                             onChanged: _setShakeEnabled,
                           ),
@@ -323,7 +323,7 @@ class _LocationPageState extends State<LocationPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text('Siren activated!'),
-      backgroundColor: LumiColors.amber.withOpacity(0.9),
+      backgroundColor: LumiColors.amber.withValues(alpha: 0.9),
     ));
   }
 
@@ -358,7 +358,7 @@ class _LocationPageState extends State<LocationPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text(
           'Lumi needs notification, SMS, phone and location access for background SOS'),
-      backgroundColor: LumiColors.accent.withOpacity(0.9),
+      backgroundColor: LumiColors.accent.withValues(alpha: 0.9),
     ));
   }
 }
@@ -404,7 +404,7 @@ class _MapPreview extends StatelessWidget {
             child: Transform.rotate(
               angle: -0.22,
               child:
-                  Container(height: 12, color: Colors.white.withOpacity(0.06)),
+                  Container(height: 12, color: Colors.white.withValues(alpha: 0.06)),
             ),
           ),
           Positioned(
@@ -414,7 +414,7 @@ class _MapPreview extends StatelessWidget {
             child: Transform.rotate(
               angle: 0.16,
               child:
-                  Container(width: 10, color: Colors.white.withOpacity(0.05)),
+                  Container(width: 10, color: Colors.white.withValues(alpha: 0.05)),
             ),
           ),
           const Center(child: _Marker()),
@@ -440,7 +440,7 @@ class _Marker extends StatelessWidget {
           shape: BoxShape.circle,
           color: LumiColors.accent,
           border: Border.all(color: Colors.white, width: 3),
-          boxShadow: [BoxShadow(color: LumiColors.accent, blurRadius: 16)],
+          boxShadow: const [BoxShadow(color: LumiColors.accent, blurRadius: 16)],
         ),
       );
 }

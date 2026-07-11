@@ -76,13 +76,13 @@ void main() {
     // The cancel action must be reachable as a tappable button.
     final cancel =
         tester.getSemantics(find.text("I'm safe — cancel")).getSemanticsData();
-    expect(cancel.hasFlag(ui.SemanticsFlag.isButton), isTrue);
+    expect(cancel.flagsCollection.isButton, isTrue);
     expect(cancel.hasAction(ui.SemanticsAction.tap), isTrue);
 
     // The ticking number must be a live region so VoiceOver/TalkBack
     // announces 5…4…3 without the user hunting for it.
     final tick = tester.getSemantics(find.text('5')).getSemanticsData();
-    expect(tick.hasFlag(ui.SemanticsFlag.isLiveRegion), isTrue);
+    expect(tick.flagsCollection.isLiveRegion, isTrue);
 
     semantics.dispose();
   });

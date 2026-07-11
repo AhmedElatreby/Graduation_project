@@ -80,7 +80,7 @@ class _LoadingDotsState extends State<_LoadingDots>
             height: 7,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: LumiColors.accent.withOpacity(on ? 1 : 0.25),
+              color: LumiColors.accent.withValues(alpha: on ? 1 : 0.25),
             ),
           );
         }),

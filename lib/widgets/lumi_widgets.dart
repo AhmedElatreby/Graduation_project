@@ -61,7 +61,7 @@ class LumiPrimaryButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: LumiColors.accent.withOpacity(0.4),
+              color: LumiColors.accent.withValues(alpha: 0.4),
               blurRadius: 26,
               offset: const Offset(0, 14),
             ),
@@ -136,9 +136,9 @@ class LumiStatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

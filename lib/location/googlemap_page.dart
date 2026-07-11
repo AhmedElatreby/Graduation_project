@@ -20,8 +20,10 @@ import '../secrets.dart';
 import '../theme/lumi_theme.dart';
 
 class GoogleMapPage extends StatefulWidget {
+  const GoogleMapPage({super.key});
+
   @override
-  _GoogleMapPageState createState() => _GoogleMapPageState();
+  State<GoogleMapPage> createState() => _GoogleMapPageState();
 }
 
 class _GoogleMapPageState extends State<GoogleMapPage> {
@@ -119,7 +121,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       });
       await _getAddress();
     }).catchError((e) {
-      print(e);
+      debugPrint('$e');
     });
   }
 
@@ -139,7 +141,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
         _startAddress = _currentAddress;
       });
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
   }
 
@@ -241,7 +243,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
 
       return true;
     } catch (e) {
-      print('_calculateDistance error: $e');
+      debugPrint('_calculateDistance error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -271,7 +273,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   ) async {
     polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      googleApiKey: Secrets.API_KEY,
+      googleApiKey: Secrets.apiKey,
       request: PolylineRequest(
         origin: PointLatLng(startLatitude, startLongitude),
         destination: PointLatLng(destinationLatitude, destinationLongitude),
@@ -307,7 +309,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       child: Material(
         color: const Color(0xF2141C2E),
         child: InkWell(
-          splashColor: LumiColors.accent.withOpacity(0.2),
+          splashColor: LumiColors.accent.withValues(alpha: 0.2),
           onTap: onTap,
           child: SizedBox(
             width: 48,
@@ -393,7 +395,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                       border: Border.all(color: LumiColors.hairline),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.35),
+                          color: Colors.black.withValues(alpha: 0.35),
                           blurRadius: 24,
                           offset: const Offset(0, 10),
                         ),
@@ -450,10 +452,10 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(vertical: 9),
                               decoration: BoxDecoration(
-                                color: LumiColors.green.withOpacity(0.12),
+                                color: LumiColors.green.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                    color: LumiColors.green.withOpacity(0.3)),
+                                    color: LumiColors.green.withValues(alpha: 0.3)),
                               ),
                               child: Text(
                                 'DISTANCE · $_placeDistance km',
@@ -520,23 +522,24 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                                         _destinationLatLng = null;
                                       });
 
-                                      _calculateDistance().then((isCalculated) {
-                                        if (isCalculated && mounted) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                  'Route calculated successfully'),
-                                            ),
-                                          );
-                                        }
-                                      });
+                                      final isCalculated =
+                                          await _calculateDistance();
+                                      if (!context.mounted) return;
+                                      if (isCalculated) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Route calculated successfully'),
+                                          ),
+                                        );
+                                      }
                                     }
                                   : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: LumiColors.accent,
                                 disabledBackgroundColor:
-                                    LumiColors.accent.withOpacity(0.3),
+                                    LumiColors.accent.withValues(alpha: 0.3),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),

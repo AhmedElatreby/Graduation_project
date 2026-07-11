@@ -46,7 +46,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
     const LocationPage(),
     SosPage(userName: _nameFromEmail(widget.email)),
     const PersonalEmergencyContacts(),
-    GoogleMapPage(), // your existing map (keeps its own Scaffold)
+    const GoogleMapPage(), // your existing map (keeps its own Scaffold)
   ];
 
   @override
@@ -167,7 +167,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('Add guardians first — no alert sent'),
-          backgroundColor: LumiColors.accent.withOpacity(0.9),
+          backgroundColor: LumiColors.accent.withValues(alpha: 0.9),
         ));
         return;
       }
@@ -181,13 +181,13 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
               : failures.join(' · ')),
           backgroundColor:
               (failures.isEmpty ? LumiColors.green : LumiColors.accent)
-                  .withOpacity(0.9),
+                  .withValues(alpha: 0.9),
         ));
       });
       if (!sent && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('Cancelled — no alert sent'),
-          backgroundColor: LumiColors.surface.withOpacity(0.95),
+          backgroundColor: LumiColors.surface.withValues(alpha: 0.95),
         ));
       }
     } finally {
@@ -255,8 +255,8 @@ class _LumiTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xF2080B14), // 0.92 opacity midnight
+      decoration: const BoxDecoration(
+        color: Color(0xF2080B14), // 0.92 opacity midnight
         border: Border(top: BorderSide(color: LumiColors.hairline)),
       ),
       child: SafeArea(
@@ -315,7 +315,7 @@ class _LumiTabBar extends StatelessWidget {
               boxShadow: on
                   ? [
                       BoxShadow(
-                          color: LumiColors.accent.withOpacity(0.5),
+                          color: LumiColors.accent.withValues(alpha: 0.5),
                           blurRadius: 14,
                           offset: const Offset(0, 5))
                     ]

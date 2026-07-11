@@ -76,7 +76,7 @@ class _LumiLogoState extends State<LumiLogo> with TickerProviderStateMixin {
               borderRadius: BorderRadius.circular(s * 0.3),
               boxShadow: [
                 BoxShadow(
-                  color: LumiColors.accent.withOpacity(0.45),
+                  color: LumiColors.accent.withValues(alpha: 0.45),
                   blurRadius: s * 0.3,
                   offset: Offset(0, s * 0.12),
                 ),
@@ -93,7 +93,7 @@ class _LumiLogoState extends State<LumiLogo> with TickerProviderStateMixin {
                       center: const Alignment(-0.5, -0.6),
                       radius: 0.9,
                       colors: [
-                        Colors.white.withOpacity(0.4),
+                        Colors.white.withValues(alpha: 0.4),
                         Colors.transparent
                       ],
                       stops: const [0.0, 0.55],
@@ -145,7 +145,7 @@ class LumiMark extends StatelessWidget {
         borderRadius: BorderRadius.circular(s * 0.3),
         boxShadow: [
           BoxShadow(
-            color: LumiColors.accent.withOpacity(0.4),
+            color: LumiColors.accent.withValues(alpha: 0.4),
             blurRadius: s * 0.25,
             offset: Offset(0, s * 0.1),
           ),

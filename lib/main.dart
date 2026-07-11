@@ -18,7 +18,8 @@ import 'services/share_link_prefs.dart';
 import 'theme/lumi_theme.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   // The SOS page's hold button and animated rings are fixed-size and were
   // never laid out for landscape — rotating overflows the screen. This app
   // has no landscape design, so lock to portrait like other safety apps.
@@ -34,16 +35,17 @@ Future<void> main() async {
   await ShakePrefs.load();
   await PrimaryContactPrefs.load();
   await ShareLinkPrefs.load();
-  FlutterNativeSplash.removeAfter(initialization);
   runApp(const MyApp());
+  await initialization();
+  FlutterNativeSplash.remove();
 }
 
-Future initialization(BuildContext? context) async {
+Future<void> initialization() async {
   await Future.delayed(const Duration(seconds: 2));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

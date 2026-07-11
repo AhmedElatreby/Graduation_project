@@ -194,7 +194,7 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
                                   value: _hold.value,
                                   strokeWidth: 6,
                                   backgroundColor:
-                                      Colors.white.withOpacity(0.12),
+                                      Colors.white.withValues(alpha: 0.12),
                                   valueColor: const AlwaysStoppedAnimation(
                                       Colors.white),
                                 ),
@@ -213,7 +213,7 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
                         gradient: LumiColors.accentGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: LumiColors.accent.withOpacity(0.5),
+                            color: LumiColors.accent.withValues(alpha: 0.5),
                             blurRadius: 56,
                             spreadRadius: 2,
                           ),
@@ -329,7 +329,7 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
   void _snack(String msg, Color c) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
-      backgroundColor: c.withOpacity(0.9),
+      backgroundColor: c.withValues(alpha: 0.9),
     ));
   }
 }
@@ -371,7 +371,7 @@ class _QuickAction extends StatelessWidget {
 /// tiny helper for the uppercase micro-label inside the SOS button
 class GoogleFontsHelper {
   static TextStyle upper() => LumiText.body(11.5,
-      weight: FontWeight.w700, color: Colors.white.withOpacity(0.85));
+      weight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.85));
 }
 
 Future<void> _requestPermission() async {

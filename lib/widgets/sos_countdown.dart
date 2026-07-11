@@ -92,7 +92,7 @@ class _SosCountdownState extends State<_SosCountdown> {
                       gradient: LumiColors.accentGradient,
                       boxShadow: [
                         BoxShadow(
-                          color: LumiColors.accent.withOpacity(0.5),
+                          color: LumiColors.accent.withValues(alpha: 0.5),
                           blurRadius: 60,
                           spreadRadius: 4,
                         ),

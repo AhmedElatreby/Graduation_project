@@ -33,15 +33,13 @@ jobs:
         run: |
           cat > lib/secrets.dart <<'EOF'
           class Secrets {
-            static const API_KEY = 'ci-placeholder';
+            static const apiKey = 'ci-placeholder';
           }
           EOF
 
       - run: flutter pub get
 
-      # info-level lints (51 as of 2026-07) don't fail the build; errors and
-      # warnings still do
-      - run: flutter analyze --no-fatal-infos
+      - run: flutter analyze --fatal-infos
 
       - run: flutter test
 
