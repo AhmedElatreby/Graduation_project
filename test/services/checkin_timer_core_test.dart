@@ -144,4 +144,64 @@ void main() {
       expect(p.graceTicks, isEmpty);
     });
   });
+
+  test(
+      'an immediately-elapsed start leaves no live periodic timer behind '
+      '(regression: the send branch used to cancel a stale _timer '
+      'reference, leaking the one start() had just created)', () {
+    fakeAsync((async) {
+      final p = _Probe(graceSeconds: 5);
+      p.core.start(clock.now().subtract(const Duration(seconds: 100)));
+      async.flushMicrotasks();
+
+      expect(p.sends, 1);
+      expect(p.sents, 1);
+      expect(async.periodicTimerCount, 0);
+    });
+  });
+
+  test(
+      'a restart while the previous run\'s send() is still in flight does '
+      'not let its onSent() fire into the new run '
+      '(regression: _running went false before awaiting send(), so a '
+      'restart could begin before the old send() resolved)', () {
+    fakeAsync((async) {
+      var sendCalls = 0;
+      final sents = <int>[];
+
+      final core = CheckInTimerCore(
+        send: () async {
+          sendCalls++;
+          // Simulates a slow network call: still unresolved by the time a
+          // restart happens below.
+          await Future.delayed(const Duration(seconds: 10));
+        },
+        onTick: (_) {},
+        onGraceTick: (_) {},
+        onCancelled: () {},
+        onSent: () => sents.add(sendCalls),
+        graceSeconds: 2,
+      );
+
+      // Run A: main 1s + grace 2s -> send() invoked at t=3, but it won't
+      // resolve until t=13.
+      core.start(clock.now().add(const Duration(seconds: 1)));
+      async.elapse(const Duration(seconds: 3));
+      expect(sendCalls, 1);
+      expect(sents, isEmpty);
+
+      // Run B starts before A's send() has resolved.
+      core.start(clock.now().add(const Duration(seconds: 2)));
+
+      // Elapse past t=13, when A's send() resolves: its onSent() must be
+      // suppressed because the generation has moved on to run B.
+      async.elapse(const Duration(seconds: 10));
+      expect(sents, isEmpty);
+
+      // Run B reaches its own deadline (main 2s + grace 2s -> send() at
+      // t=7) and its send() resolves normally 10s later, at t=17.
+      async.elapse(const Duration(seconds: 4));
+      expect(sents, [2]);
+    });
+  });
 }
