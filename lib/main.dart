@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'firebase_options.dart';
 import 'oauth/auth_controller.dart';
 import 'pages/splash_screen.dart';
+import 'services/checkin_prefs.dart';
 import 'services/primary_contact_prefs.dart';
 import 'services/shake_guard_service.dart';
 import 'services/shake_prefs.dart';
@@ -35,6 +36,9 @@ Future<void> main() async {
   await ShakePrefs.load();
   await PrimaryContactPrefs.load();
   await ShareLinkPrefs.load();
+  // Without this, a cold launch with a timer running sees endTime == null,
+  // computes "no check-in" and stops the legitimately-counting service.
+  await CheckInPrefs.load();
   runApp(const MyApp());
   await initialization();
   FlutterNativeSplash.remove();

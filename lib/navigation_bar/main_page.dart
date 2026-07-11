@@ -43,6 +43,13 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   ShakeDetector? _shakeDetector;
   bool _countdownShowing = false;
 
+  // Bumped on every _syncShakeDetector run. _startGuardIfPermitted has an
+  // async gap at its permission check; a newer sync deciding "stop" in that
+  // gap would otherwise be overtaken by the stale start completing after it,
+  // leaving the service running with no later listener fire to correct it.
+  // Same pattern as the service isolate's _checkInEpoch.
+  int _syncEpoch = 0;
+
   late final List<Widget> _pages = [
     const LocationPage(),
     SosPage(userName: _nameFromEmail(widget.email)),
@@ -147,11 +154,12 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
       _shakeDetector = null;
     }
     if (!android) return;
+    final epoch = ++_syncEpoch;
     // The service now backs two independent features — keep it alive if
     // either wants it, stop it only when neither does.
     final checkInRunning = CheckInPrefs.endTime.value != null;
     if (ShakePrefs.enabled.value || checkInRunning) {
-      _startGuardIfPermitted();
+      _startGuardIfPermitted(epoch);
       if (ShakePrefs.enabled.value) {
         ShakeGuardService.notifySensitivity(ShakePrefs.sensitivity.value);
       }
@@ -165,11 +173,19 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   /// (fresh install: no permissions yet). Flip the pref off instead — the
   /// Track-page switch then shows the true state, and flipping it back on
   /// runs the permission prompts.
-  Future<void> _startGuardIfPermitted() async {
-    if (await ShakeGuardService.hasRequiredPermissions()) {
+  Future<void> _startGuardIfPermitted(int epoch) async {
+    final permitted = await ShakeGuardService.hasRequiredPermissions();
+    // A newer sync ran while we awaited — its decision wins; bail out.
+    if (epoch != _syncEpoch) return;
+    if (permitted) {
       await ShakeGuardService.start();
     } else {
       await ShakePrefs.setEnabled(false);
+      // A check-in the service can't enforce must not pretend to protect —
+      // clear it so the Track card reverts to idle rather than showing a
+      // countdown that will never alert. (Rare in practice: the Track card's
+      // Start button requests these permissions up front.)
+      if (CheckInPrefs.endTime.value != null) await CheckInPrefs.clear();
     }
   }
 
