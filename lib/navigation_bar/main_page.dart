@@ -16,6 +16,7 @@ import '../location/googlemap_page.dart';
 import '../oauth/auth_controller.dart';
 import '../pages/location_page.dart';
 import '../pages/sos.dart';
+import '../services/checkin_prefs.dart';
 import '../services/emergency_alert.dart';
 import '../services/live_location_service.dart';
 import '../services/pending_call.dart';
@@ -60,6 +61,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
     }
     ShakePrefs.enabled.addListener(_syncShakeDetector);
     ShakePrefs.sensitivity.addListener(_syncShakeDetector);
+    CheckInPrefs.endTime.addListener(_syncShakeDetector);
     // Ask for everything background SOS needs up front (Android): if the
     // first send ever runs unpermissioned, the telephony plugin self-requests
     // and then crashes the app ("Reply already submitted") when the grant
@@ -84,6 +86,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   void dispose() {
     ShakePrefs.enabled.removeListener(_syncShakeDetector);
     ShakePrefs.sensitivity.removeListener(_syncShakeDetector);
+    CheckInPrefs.endTime.removeListener(_syncShakeDetector);
     _shakeDetector?.stopListening();
     _shakeDetector = null;
     WidgetsBinding.instance.removeObserver(this);
@@ -98,6 +101,11 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       ShakeGuardService.notifyLifecycle(resumed: true);
       _consumePendingCall();
+      // Reload service-side changes (notification cancel / sent alert) so
+      // the Track card and service-keepalive condition reflect reality on
+      // resume — CheckInPrefs.endTime's listener re-runs _syncShakeDetector
+      // automatically if the reloaded value differs.
+      CheckInPrefs.load();
       // Re-arm the in-app detector we tore down on pause (see below).
       _syncShakeDetector();
     } else if (state == AppLifecycleState.paused) {
@@ -134,14 +142,22 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
         minimumShakeCount: 2,
         shakeThresholdGravity: thresholdFor(ShakePrefs.sensitivity.value),
       );
-      if (android) {
-        _startGuardIfPermitted();
-        ShakeGuardService.notifySensitivity(ShakePrefs.sensitivity.value);
-      }
     } else {
       _shakeDetector?.stopListening();
       _shakeDetector = null;
-      if (android) ShakeGuardService.stop();
+    }
+    if (!android) return;
+    // The service now backs two independent features — keep it alive if
+    // either wants it, stop it only when neither does.
+    final checkInRunning = CheckInPrefs.endTime.value != null;
+    if (ShakePrefs.enabled.value || checkInRunning) {
+      _startGuardIfPermitted();
+      if (ShakePrefs.enabled.value) {
+        ShakeGuardService.notifySensitivity(ShakePrefs.sensitivity.value);
+      }
+      if (checkInRunning) ShakeGuardService.notifyCheckInStart();
+    } else {
+      ShakeGuardService.stop();
     }
   }
 
