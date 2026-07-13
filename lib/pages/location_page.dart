@@ -360,12 +360,7 @@ class _LocationPageState extends State<LocationPage> {
       await ShakePrefs.setEnabled(value);
       return;
     }
-    final statuses = await [
-      Permission.notification,
-      Permission.sms,
-      Permission.phone,
-      Permission.locationWhenInUse,
-    ].request();
+    final statuses = await ShakeGuardService.requestPermissions();
     if (statuses.values.every((s) => s.isGranted)) {
       await ShakePrefs.setEnabled(true);
       return;

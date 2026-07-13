@@ -61,6 +61,17 @@ class ShakeGuardService {
       ]))
           .every((s) => s.isGranted);
 
+  /// Requests the same set [hasRequiredPermissions] checks, in one dialog
+  /// run. Shared by the shake switch and the check-in card's Start button so
+  /// the two flows can't drift. Call sites own the response (snackbar,
+  /// openAppSettings) — this only performs the request.
+  static Future<Map<Permission, PermissionStatus>> requestPermissions() => [
+        Permission.notification,
+        Permission.sms,
+        Permission.phone,
+        Permission.locationWhenInUse,
+      ].request();
+
   static Future<void> start() async {
     if (await FlutterForegroundTask.isRunningService) return;
     await FlutterForegroundTask.startService(
