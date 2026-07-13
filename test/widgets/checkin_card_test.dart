@@ -200,5 +200,52 @@ void main() {
       CheckInPrefs.endTime.value = null;
       await tester.pump();
     });
+
+    testWidgets('Custom… picks a duration and Start uses it', (tester) async {
+      // A guardian already exists from the earlier Start test (shared DB).
+      await pumpCard(tester);
+
+      await tester.tap(find.text('Custom…'));
+      await tester.pump(); // sheet route starts animating
+      await tester.pump(const Duration(milliseconds: 400)); // finish animation
+
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Minutes (1–720)'), '45');
+      await tester.tap(find.text('Set'));
+      await tester.pump(const Duration(milliseconds: 400)); // sheet closes
+
+      expect(find.text('45 min'), findsOneWidget); // chip shows the pick
+
+      final before = DateTime.now();
+      await tester.tap(find.text('Start'));
+      await settleWithRealAsync(tester);
+
+      final end = CheckInPrefs.endTime.value;
+      expect(end, isNotNull);
+      final delta = end!.difference(before) - const Duration(minutes: 45);
+      expect(delta.inSeconds.abs() <= 5, isTrue,
+          reason: 'endTime should be ~45 min out, got $end');
+
+      await tester.runAsync(CheckInPrefs.clear);
+      await tester.pump();
+    });
+
+    testWidgets('Set rejects out-of-range minutes and keeps the sheet open',
+        (tester) async {
+      await pumpCard(tester);
+
+      await tester.tap(find.text('Custom…'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Minutes (1–720)'), '0');
+      await tester.tap(find.text('Set'));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Sheet still open (Set did nothing), no duration picked.
+      expect(find.text('Custom duration'), findsOneWidget);
+      expect(find.text('0 min'), findsNothing);
+    });
   });
 }
