@@ -151,5 +151,54 @@ void main() {
       await tester.runAsync(CheckInPrefs.clear);
       await tester.pump();
     });
+
+    testWidgets('countdown ticks down while running', (tester) async {
+      await tester
+          .runAsync(() => CheckInPrefs.start(const Duration(minutes: 10)));
+      await pumpCard(tester);
+
+      expect(find.textContaining('Checking in in 9:'), findsOneWidget);
+      // Two ticks of the card's 1s repaint timer — the shown remaining time
+      // must move (DateTime.now() is real even under fake-async pumping, so
+      // pump() here only fires the periodic timer; the ~0ms of real time
+      // that has passed is enough for a strictly smaller remaining string
+      // not to be guaranteed — instead cross a whole-second boundary with
+      // runAsync, which advances the real clock).
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 1100)));
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.textContaining('Checking in in 9:'), findsOneWidget);
+
+      await tester.runAsync(CheckInPrefs.clear);
+      await tester.pump();
+    });
+
+    testWidgets('cancel returns to idle and clears prefs', (tester) async {
+      await tester.runAsync(() =>
+          CheckInPrefs.start(const Duration(minutes: 10), note: 'note'));
+      await pumpCard(tester);
+      expect(find.text("I'm safe — cancel"), findsOneWidget);
+
+      await tester.tap(find.text("I'm safe — cancel"));
+      await settleWithRealAsync(tester);
+
+      expect(CheckInPrefs.endTime.value, isNull);
+      expect(CheckInPrefs.note.value, isNull);
+      expect(find.text('Start'), findsOneWidget); // idle again
+    });
+
+    testWidgets('a just-expired endTime renders the grace warning',
+        (tester) async {
+      CheckInPrefs.endTime.value =
+          DateTime.now().subtract(const Duration(seconds: 10));
+      await pumpCard(tester);
+
+      expect(find.text('Check-in missed'), findsOneWidget);
+      expect(find.textContaining('alerting your guardians in'), findsOneWidget);
+      expect(find.text("I'm safe — cancel"), findsOneWidget);
+
+      CheckInPrefs.endTime.value = null;
+      await tester.pump();
+    });
   });
 }
