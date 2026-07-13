@@ -2,8 +2,13 @@
 // pure function of CheckInPrefs.endTime and the grace constant. These unit
 // tests pin that function; the widget tests (added in later tasks) pin the
 // three visual states built on top of it.
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
+import 'package:safetyproject/database/db_helper.dart';
+import 'package:safetyproject/services/checkin_prefs.dart';
 import 'package:safetyproject/services/checkin_timer_core.dart';
 import 'package:safetyproject/widgets/checkin_card.dart';
 
@@ -75,6 +80,76 @@ void main() {
 
     test('never goes negative', () {
       expect(formatRemaining(const Duration(seconds: -3)), '0:00');
+    });
+  });
+
+  Future<void> pumpCard(WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(body: SingleChildScrollView(child: CheckInCard())),
+    ));
+    await tester.pump();
+  }
+
+  group('CheckInCard widget', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      CheckInPrefs.endTime.value = null;
+      CheckInPrefs.note.value = null;
+    });
+
+    testWidgets('idle state shows chips, note field and Start', (tester) async {
+      await pumpCard(tester);
+
+      expect(find.text('Check-in timer'), findsOneWidget);
+      expect(find.text("Alert your guardians if you don't check in"),
+          findsOneWidget);
+      for (final label in ['10 min', '20 min', '30 min', '60 min', 'Custom…']) {
+        expect(find.text(label), findsOneWidget);
+      }
+      expect(find.text('Start'), findsOneWidget);
+    });
+
+    // NOTE: must run before any test seeds a contact — DBHelper's backing
+    // store is shared across tests in this file (same pattern as
+    // emergency_alert_test.dart relies on).
+    testWidgets('Start with no guardians shows the prompt and starts nothing',
+        (tester) async {
+      await pumpCard(tester);
+
+      await tester.tap(find.text('Start'));
+      await settleWithRealAsync(tester);
+
+      expect(find.text('Add guardians first — no alert sent'), findsOneWidget);
+      expect(CheckInPrefs.endTime.value, isNull);
+    });
+
+    testWidgets('Start with a guardian persists endTime + note and shows the '
+        'running state', (tester) async {
+      await tester.runAsync(
+          () => DBHelper().add(PersonalEmergency('Sara', '01000000000')));
+      await pumpCard(tester);
+
+      await tester.tap(find.text('20 min'));
+      await tester.pump();
+      await tester.enterText(
+          find.byType(TextField), 'walking home from the station');
+      final before = DateTime.now();
+      await tester.tap(find.text('Start'));
+      await settleWithRealAsync(tester);
+
+      final end = CheckInPrefs.endTime.value;
+      expect(end, isNotNull);
+      final delta = end!.difference(before) - const Duration(minutes: 20);
+      expect(delta.inSeconds.abs() <= 5, isTrue,
+          reason: 'endTime should be ~20 min out, got $end');
+      expect(CheckInPrefs.note.value, 'walking home from the station');
+      expect(find.textContaining('Checking in in'), findsOneWidget);
+      expect(find.text('walking home from the station'), findsOneWidget);
+      expect(find.text("I'm safe — cancel"), findsOneWidget);
+
+      // Leave no running timer behind for the next test.
+      await tester.runAsync(CheckInPrefs.clear);
+      await tester.pump();
     });
   });
 }
