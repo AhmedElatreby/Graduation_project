@@ -5,7 +5,6 @@
 //  ★ #6  Siren now uses the app-wide Siren singleton, so it keeps playing until
 //        the clip finishes even if you leave this screen.
 // ─────────────────────────────────────────────────────────────────────────────
-import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,14 +12,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../services/checkin_prefs.dart';
-import '../services/checkin_timer_core.dart' show CheckInTimerCore;
-import '../services/emergency_alert.dart';
 import '../services/live_location_service.dart';
 import '../services/shake_guard_service.dart';
 import '../services/shake_prefs.dart';
 import '../services/siren.dart';
 import '../theme/lumi_theme.dart';
+import '../widgets/checkin_card.dart';
 import '../widgets/lumi_widgets.dart';
 
 class LocationPage extends StatefulWidget {
@@ -35,23 +32,14 @@ class _LocationPageState extends State<LocationPage> {
   // every account overwrote and could read).
   String? get _uid => FirebaseAuth.instance.currentUser?.uid;
 
-  Timer? _checkInDisplayTimer; // purely a 1x/sec UI refresh, see below
-
   @override
   void initState() {
     super.initState();
     _requestPermission();
-    _checkInDisplayTimer =
-        Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
 
-  @override
-  void dispose() {
-    // NOTE: we intentionally do NOT stop the siren here — it should keep playing
-    // even if you leave this tab.
-    _checkInDisplayTimer?.cancel();
-    super.dispose();
-  }
+  // NOTE: we intentionally do NOT stop the siren on dispose — it should keep
+  // playing even if you leave this tab, so there's nothing to clean up here.
 
   @override
   Widget build(BuildContext context) {
@@ -237,13 +225,8 @@ class _LocationPageState extends State<LocationPage> {
               ),
               const SizedBox(height: 9),
 
-              // check-in timer
-              LumiCard(
-                child: ListenableBuilder(
-                  listenable: CheckInPrefs.endTime,
-                  builder: (_, __) => _buildCheckInCard(),
-                ),
-              ),
+              // check-in timer ("walk me home")
+              const CheckInCard(),
               const SizedBox(height: 14),
 
               Padding(
@@ -374,255 +357,6 @@ class _LocationPageState extends State<LocationPage> {
           'Lumi needs notification, SMS, phone and location access for background SOS'),
       backgroundColor: LumiColors.accent.withValues(alpha: 0.9),
     ));
-  }
-
-  // ── check-in timer card ─────────────────────────────────────────────────
-
-  Widget _buildCheckInCard() {
-    final end = CheckInPrefs.endTime.value;
-    if (end == null) return _checkInIdle();
-
-    final remaining = end.difference(DateTime.now());
-    if (remaining > Duration.zero) return _checkInRunning(remaining);
-
-    final graceRemaining = end
-        .add(const Duration(seconds: CheckInTimerCore.defaultGraceSeconds))
-        .difference(DateTime.now());
-    if (graceRemaining > Duration.zero) {
-      return _checkInGrace((graceRemaining.inMilliseconds / 1000).ceil());
-    }
-    // The service hasn't yet cleared CheckInPrefs for a run that already
-    // sent — show grace-expired briefly rather than a stale running state.
-    return _checkInGrace(0);
-  }
-
-  Widget _checkInIdle() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            _TileIcon(
-                icon: Icons.timer_outlined,
-                bg: LumiColors.green.withValues(alpha: 0.14),
-                fg: LumiColors.green),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Check-in timer',
-                      style: LumiText.body(14.5, weight: FontWeight.w700)),
-                  Text("Alert your guardians if you don't check in",
-                      style: LumiText.body(12, color: LumiColors.textSub)),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final m in [10, 20, 30, 60])
-              _DurationChip(
-                label: '$m min',
-                onTap: () => _startCheckIn(Duration(minutes: m)),
-              ),
-            _DurationChip(label: 'Custom…', onTap: _showCustomDurationSheet),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Future<void> _showCustomDurationSheet() async {
-    final controller = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    final minutes = await showModalBottomSheet<int>(
-      context: context,
-      backgroundColor: LumiColors.bgTop,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 22,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom +
-              MediaQuery.of(ctx).padding.bottom +
-              28,
-        ),
-        child: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Custom check-in duration', style: LumiText.display(18)),
-              const SizedBox(height: 14),
-              LumiField(
-                hint: 'Minutes',
-                icon: Icons.timer_outlined,
-                controller: controller,
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  final n = int.tryParse(v?.trim() ?? '');
-                  if (n == null || n <= 0) {
-                    return 'Enter a whole number of minutes';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 18),
-              LumiPrimaryButton(
-                label: 'Start',
-                onPressed: () {
-                  if (formKey.currentState?.validate() != true) return;
-                  Navigator.pop(ctx, int.parse(controller.text.trim()));
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (minutes != null) await _startCheckIn(Duration(minutes: minutes));
-  }
-
-  Widget _checkInRunning(Duration remaining) {
-    final m = remaining.inMinutes;
-    final s = remaining.inSeconds % 60;
-    return _checkInActiveCard(
-      icon: Icons.timer_outlined,
-      color: LumiColors.green,
-      title: 'Checking in in $m:${s.toString().padLeft(2, '0')}',
-      subtitle: CheckInPrefs.note.value,
-    );
-  }
-
-  Widget _checkInGrace(int secondsRemaining) {
-    return _checkInActiveCard(
-      icon: Icons.warning_amber_rounded,
-      color: LumiColors.accent,
-      title: 'Check-in missed',
-      subtitle: 'Alerting your guardians in ${secondsRemaining}s',
-    );
-  }
-
-  Widget _checkInActiveCard({
-    required IconData icon,
-    required Color color,
-    required String title,
-    String? subtitle,
-  }) {
-    return Row(
-      children: [
-        _TileIcon(icon: icon, bg: color.withValues(alpha: 0.14), fg: color),
-        const SizedBox(width: 13),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: LumiText.body(14.5, weight: FontWeight.w700)),
-              if (subtitle != null)
-                Text(subtitle,
-                    style: LumiText.body(12, color: LumiColors.textSub)),
-            ],
-          ),
-        ),
-        GestureDetector(
-          onTap: _cancelCheckIn,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text("I'm safe",
-                style:
-                    LumiText.body(13, weight: FontWeight.w700, color: color)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _startCheckIn(Duration duration) async {
-    if (!await EmergencyAlert.hasGuardians()) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add emergency contacts first.')),
-      );
-      return;
-    }
-    // The background service enforces the check-in from a foreground
-    // service that can't notify, text, or call without these — same set
-    // _setShakeEnabled gates on, requested here so a denial is caught
-    // before a timer gets persisted that nothing can act on.
-    if (!kIsWeb && Platform.isAndroid) {
-      final statuses = await [
-        Permission.notification,
-        Permission.sms,
-        Permission.phone,
-        Permission.locationWhenInUse,
-      ].request();
-      if (!statuses.values.every((s) => s.isGranted)) {
-        if (statuses.values.any((s) => s.isPermanentlyDenied)) {
-          openAppSettings();
-        }
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text(
-              'Lumi needs notification, SMS, phone and location access for background SOS'),
-          backgroundColor: LumiColors.accent.withValues(alpha: 0.9),
-        ));
-        return;
-      }
-    }
-    await CheckInPrefs.start(duration);
-    // Sharing is a bonus, not a precondition — a location-permission failure
-    // here must not stop the timer that was already persisted above.
-    try {
-      await LiveLocationService.start();
-    } catch (_) {/* Live Location's own switch/snackbar covers this normally */}
-    if (!kIsWeb && Platform.isAndroid) ShakeGuardService.notifyCheckInStart();
-  }
-
-  Future<void> _cancelCheckIn() async {
-    // Always clear locally first: this isolate's card must update instantly
-    // even off-Android (no background service to notify) or if the service
-    // isn't currently running. The IPC below additionally stops the
-    // service-side CheckInTimerCore when it is — the double clear is
-    // idempotent.
-    await CheckInPrefs.clear();
-    if (!kIsWeb && Platform.isAndroid) {
-      ShakeGuardService.notifyCheckInCancel();
-    }
-  }
-}
-
-class _DurationChip extends StatelessWidget {
-  const _DurationChip({required this.label, required this.onTap});
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: LumiColors.hairline),
-        ),
-        child: Text(label, style: LumiText.body(13, weight: FontWeight.w600)),
-      ),
-    );
   }
 }
 
