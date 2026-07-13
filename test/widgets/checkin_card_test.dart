@@ -201,6 +201,34 @@ void main() {
       await tester.pump();
     });
 
+    testWidgets(
+        'grace-phase ticker reloads from disk so a service-side clear '
+        '(notification cancel or a completed send) flips the card back to '
+        'idle (regression: F2)', (tester) async {
+      CheckInPrefs.endTime.value =
+          DateTime.now().subtract(const Duration(seconds: 5));
+      await pumpCard(tester);
+      expect(find.text('Check-in missed'), findsOneWidget);
+
+      // Simulate the service isolate's clear landing on disk — this
+      // isolate's CheckInPrefs copy doesn't know about it until something
+      // calls load().
+      SharedPreferences.setMockInitialValues({});
+
+      // Advance past the ticker's next 1s tick with bounded pumps only (no
+      // pumpAndSettle while the card's ticker runs).
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 1100)));
+      await tester.pump(const Duration(seconds: 1));
+      // Let the fire-and-forget CheckInPrefs.load() future resolve and its
+      // endTime listener rebuild the card.
+      await tester
+          .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+
+      expect(find.text('Start'), findsOneWidget);
+    });
+
     testWidgets('Custom… picks a duration and Start uses it', (tester) async {
       // A guardian already exists from the earlier Start test (shared DB).
       await pumpCard(tester);

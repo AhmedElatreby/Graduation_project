@@ -8,7 +8,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shake/shake.dart';
 
 import '../contact/personal_emergency_contacts.dart';
@@ -79,12 +78,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
 
   Future<void> _armShakeToSos() async {
     if (!kIsWeb && Platform.isAndroid && ShakePrefs.enabled.value) {
-      await [
-        Permission.notification,
-        Permission.sms,
-        Permission.phone,
-        Permission.locationWhenInUse,
-      ].request();
+      await ShakeGuardService.requestPermissions();
     }
     if (mounted) _syncShakeDetector();
   }

@@ -87,7 +87,19 @@ class _CheckInCardState extends State<CheckInCard> {
     final running = CheckInPrefs.endTime.value != null;
     if (running && _ticker == null) {
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) setState(() {});
+        if (!mounted) return;
+        setState(() {});
+        final endTime = CheckInPrefs.endTime.value;
+        if (endTime != null &&
+            checkInPhase(endTime, DateTime.now()) == CheckInPhase.grace) {
+          // A service-side cancel (notification button) or a completed send
+          // clears CheckInPrefs in the service isolate only — this isolate's
+          // copy won't see it without an explicit reload. No start can be in
+          // flight during grace, so this can't clobber a pending write.
+          // Fire-and-forget: a failed reload must not throw into this timer
+          // callback, so any error is swallowed here.
+          unawaited(CheckInPrefs.load().catchError((_) {}));
+        }
       });
     } else if (!running) {
       _ticker?.cancel();
@@ -318,6 +330,7 @@ class _CheckInCardState extends State<CheckInCard> {
       builder: (_) => const _CustomDurationSheet(),
     );
     if (picked == null) return;
+    if (!mounted) return;
     setState(() {
       _customMinutes = picked.inMinutes;
       _selected = picked;

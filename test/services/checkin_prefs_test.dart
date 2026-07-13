@@ -2,6 +2,7 @@
 // reload, note is optional and cleared independently of a missing endTime.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 import 'package:safetyproject/services/checkin_prefs.dart';
 
@@ -66,5 +67,27 @@ void main() {
 
     await CheckInPrefs.load();
     expect(CheckInPrefs.note.value, isNull);
+  });
+
+  test('load() sees a write made by another isolate to the same store '
+      '(regression: F1 — legacy SharedPreferences caches per-isolate; only '
+      'reload() re-hits the platform)', () async {
+    SharedPreferences.setMockInitialValues({});
+    await CheckInPrefs.load(); // caches this isolate's SharedPreferences
+    expect(CheckInPrefs.endTime.value, isNull);
+
+    // Simulate another isolate's write: mutate the backing store directly,
+    // *not* via setMockInitialValues (which would reset the SharedPreferences
+    // singleton's completer and mask the bug by forcing an unrelated refetch
+    // path). A real cross-isolate write on-device doesn't reset our
+    // in-process cache either — only reload() does.
+    final millis =
+        DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch;
+    await SharedPreferencesStorePlatform.instance
+        .setValue('Int', 'flutter.checkin_end_time_millis', millis);
+
+    await CheckInPrefs.load();
+    expect(CheckInPrefs.endTime.value,
+        DateTime.fromMillisecondsSinceEpoch(millis));
   });
 }

@@ -25,6 +25,14 @@ class CheckInPrefs {
   /// own copy of these ValueNotifiers).
   static Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
+    // The legacy API caches every value in-memory on first getInstance() per
+    // isolate; getX() never re-hits the platform after that. This is read in
+    // (at least) two isolates — the UI isolate and the background guard
+    // service isolate — so without an explicit reload() here, whichever
+    // isolate didn't just write the value would see a stale snapshot: e.g.
+    // the service's _startCheckIn() would read endTime == null right after
+    // the UI persisted a fresh one, and the timer would never arm.
+    await prefs.reload();
     final millis = prefs.getInt(_endTimeKey);
     endTime.value =
         millis == null ? null : DateTime.fromMillisecondsSinceEpoch(millis);

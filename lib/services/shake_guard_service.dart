@@ -46,31 +46,30 @@ class ShakeGuardService {
     );
   }
 
-  /// The runtime permissions background SOS needs. The Track-page toggle
-  /// requests them; this check keeps a default-ON pref from starting a
-  /// service that can't notify or send. Location is required because the
-  /// manifest declares the location service type — starting without it
-  /// throws on Android 14+, and the SOS SMS would say "location
-  /// unavailable" anyway.
+  /// The runtime permissions background SOS needs, shared by
+  /// [hasRequiredPermissions] and [requestPermissions] so the two can't
+  /// drift apart. Location is required because the manifest declares the
+  /// location service type — starting without it throws on Android 14+, and
+  /// the SOS SMS would say "location unavailable" anyway.
+  static const List<Permission> _requiredPermissions = [
+    Permission.notification,
+    Permission.sms,
+    Permission.phone,
+    Permission.locationWhenInUse,
+  ];
+
+  /// The Track-page toggle requests these; this check keeps a default-ON
+  /// pref from starting a service that can't notify or send.
   static Future<bool> hasRequiredPermissions() async =>
-      (await Future.wait([
-        Permission.notification.status,
-        Permission.sms.status,
-        Permission.phone.status,
-        Permission.locationWhenInUse.status,
-      ]))
+      (await Future.wait(_requiredPermissions.map((p) => p.status)))
           .every((s) => s.isGranted);
 
   /// Requests the same set [hasRequiredPermissions] checks, in one dialog
   /// run. Shared by the shake switch and the check-in card's Start button so
   /// the two flows can't drift. Call sites own the response (snackbar,
   /// openAppSettings) — this only performs the request.
-  static Future<Map<Permission, PermissionStatus>> requestPermissions() => [
-        Permission.notification,
-        Permission.sms,
-        Permission.phone,
-        Permission.locationWhenInUse,
-      ].request();
+  static Future<Map<Permission, PermissionStatus>> requestPermissions() =>
+      _requiredPermissions.request();
 
   static Future<void> start() async {
     if (await FlutterForegroundTask.isRunningService) return;
@@ -218,8 +217,16 @@ class _ShakeGuardTaskHandler extends TaskHandler {
     if (starter != TaskStarter.developer) _core?.appPaused();
 
     // A running check-in timer must resume exactly where CheckInPrefs says
-    // it is — including after an OS-initiated restart of this service.
-    await CheckInPrefs.load();
+    // it is — including after an OS-initiated restart of this service. This
+    // isolate's shake detector is already armed above; a failure here (e.g.
+    // reload()'s platform round-trip) must not throw past onStart and take
+    // shake detection down with it — worst case the check-in just doesn't
+    // resume this start.
+    try {
+      await CheckInPrefs.load();
+    } catch (_) {
+      return;
+    }
     final end = CheckInPrefs.endTime.value;
     if (end != null) _checkIn?.start(end);
   }
@@ -262,7 +269,16 @@ class _ShakeGuardTaskHandler extends TaskHandler {
   int _checkInEpoch = 0;
 
   Future<void> _startCheckIn(int epoch) async {
-    await CheckInPrefs.load(); // pick up the endTime/note just persisted
+    // Called fire-and-forget from onReceiveData — an exception here would
+    // become an unhandled async error rather than something a caller could
+    // catch, so a failed reload must not throw past this method. Worst case
+    // this start doesn't arm; it's not a silent alert failure since nothing
+    // was ever counting down.
+    try {
+      await CheckInPrefs.load(); // pick up the endTime/note just persisted
+    } catch (_) {
+      return;
+    }
     if (epoch != _checkInEpoch) return; // superseded by a newer start/cancel
     final end = CheckInPrefs.endTime.value;
     if (end != null) _checkIn?.start(end);
