@@ -35,7 +35,7 @@
 - Consumes: `permission_handler`'s `[Permission...].request()` extension (already imported in `shake_guard_service.dart`).
 - Produces: `static Future<Map<Permission, PermissionStatus>> ShakeGuardService.requestPermissions()` — requests notification, SMS, phone, location-when-in-use together and returns the statuses map. Call sites keep their own snackbar/`openAppSettings` handling. Task 3 calls this from the card's Start flow.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/services/shake_guard_service_test.dart`:
 
@@ -75,12 +75,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/services/shake_guard_service_test.dart`
 Expected: FAIL — compile error `The method 'requestPermissions' isn't defined for the type 'ShakeGuardService'`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 In `lib/services/shake_guard_service.dart`, directly below `hasRequiredPermissions()` (after line 62):
 
@@ -97,12 +97,12 @@ In `lib/services/shake_guard_service.dart`, directly below `hasRequiredPermissio
       ].request();
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `flutter test test/services/shake_guard_service_test.dart`
 Expected: PASS (1 test).
 
-- [ ] **Step 5: Refactor `_setShakeEnabled` to use it**
+- [x] **Step 5: Refactor `_setShakeEnabled` to use it**
 
 In `lib/pages/location_page.dart`, add the import (alphabetical, with the other service imports):
 
@@ -129,12 +129,12 @@ with:
 
 The rest of `_setShakeEnabled` (granted check, `openAppSettings`, snackbar) is unchanged. `location_page.dart` still needs its `permission_handler` import for `Permission.location` in `_requestPermission` and `openAppSettings` — do not remove it.
 
-- [ ] **Step 6: Run the full suite and analyzer**
+- [x] **Step 6: Run the full suite and analyzer**
 
 Run: `flutter analyze --fatal-infos && flutter test`
 Expected: `No issues found!`, all tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add lib/services/shake_guard_service.dart lib/pages/location_page.dart test/services/shake_guard_service_test.dart
@@ -157,7 +157,7 @@ git commit -m "feat: ShakeGuardService.requestPermissions shared by shake switch
   - `int checkInGraceSecondsLeft(DateTime endTime, DateTime now)` — clamped at 0
   - `String formatRemaining(Duration d)` — `m:ss`, `h:mm:ss` above an hour, clamped at `0:00`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `test/widgets/checkin_card_test.dart`:
 
@@ -244,12 +244,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `flutter test test/widgets/checkin_card_test.dart`
 Expected: FAIL — compile error, `lib/widgets/checkin_card.dart` doesn't exist.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `lib/widgets/checkin_card.dart`:
 
@@ -296,12 +296,12 @@ String formatRemaining(Duration d) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `flutter test test/widgets/checkin_card_test.dart`
 Expected: PASS (all groups).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/widgets/checkin_card.dart test/widgets/checkin_card_test.dart
@@ -326,7 +326,7 @@ git commit -m "feat: check-in card phase/format helpers"
   - `LumiCard`, `LumiColors`, `LumiText` from the theme/widgets files
 - Produces: `class CheckInCard extends StatefulWidget { const CheckInCard({super.key}); }` — dropped into `location_page.dart` in Task 6. Cancel flow lands in Task 4; this task stubs `_cancel` as the real method since it's 3 lines.
 
-- [ ] **Step 1: Write the failing widget tests**
+- [x] **Step 1: Write the failing widget tests**
 
 Append to `test/widgets/checkin_card_test.dart` (new imports at top of file):
 
@@ -413,12 +413,12 @@ and the group (inside `main()`, after the unit groups):
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `flutter test test/widgets/checkin_card_test.dart`
 Expected: FAIL — compile error `CheckInCard` isn't defined.
 
-- [ ] **Step 3: Implement the widget**
+- [x] **Step 3: Implement the widget**
 
 In `lib/widgets/checkin_card.dart`, replace the import section with:
 
@@ -790,17 +790,17 @@ class _CustomDurationSheetState extends State<_CustomDurationSheet> {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `flutter test test/widgets/checkin_card_test.dart`
 Expected: PASS (unit groups + 3 widget tests).
 
-- [ ] **Step 5: Run the full suite and analyzer**
+- [x] **Step 5: Run the full suite and analyzer**
 
 Run: `flutter analyze --fatal-infos && flutter test`
 Expected: clean, all pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/widgets/checkin_card.dart test/widgets/checkin_card_test.dart
@@ -819,7 +819,7 @@ git commit -m "feat: CheckInCard idle state and Start flow"
 - Consumes: Task 3's `CheckInCard`, `CheckInPrefs.start/clear`, `settleWithRealAsync`.
 - Produces: verified running/grace/cancel behavior that Task 6's page integration relies on.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append inside the `CheckInCard widget` group:
 
@@ -874,17 +874,17 @@ Append inside the `CheckInCard widget` group:
     });
 ```
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `flutter test test/widgets/checkin_card_test.dart`
 Expected: PASS if Task 3's implementation is complete; any FAIL here is a real gap — fix `checkin_card.dart` (not the test) until green. Likely gaps to check first: the ticker not repainting (listener not attached), or the grace state reading `CheckInPrefs.note` it shouldn't.
 
-- [ ] **Step 3: Run the full suite and analyzer**
+- [x] **Step 3: Run the full suite and analyzer**
 
 Run: `flutter analyze --fatal-infos && flutter test`
 Expected: clean, all pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add test/widgets/checkin_card_test.dart lib/widgets/checkin_card.dart
@@ -903,7 +903,7 @@ git commit -m "test: check-in card running/grace/cancel coverage"
 - Consumes: Task 3's `_CustomDurationSheet` via the `Custom…` chip.
 - Produces: verified custom-duration selection feeding `CheckInPrefs.start`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append inside the `CheckInCard widget` group:
 
@@ -956,17 +956,17 @@ Append inside the `CheckInCard widget` group:
     });
 ```
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `flutter test test/widgets/checkin_card_test.dart`
 Expected: PASS if Task 3's sheet is complete; fix `checkin_card.dart` gaps otherwise (likely: `isScrollControlled` keyboard inset, or the chip label not updating).
 
-- [ ] **Step 3: Run the full suite and analyzer**
+- [x] **Step 3: Run the full suite and analyzer**
 
 Run: `flutter analyze --fatal-infos && flutter test`
 Expected: clean, all pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add test/widgets/checkin_card_test.dart lib/widgets/checkin_card.dart
@@ -985,7 +985,7 @@ git commit -m "test: custom-duration sheet coverage"
 - Consumes: `CheckInCard` from Task 3.
 - Produces: the user-visible feature; nothing downstream.
 
-- [ ] **Step 1: Insert the card**
+- [x] **Step 1: Insert the card**
 
 In `lib/pages/location_page.dart`, add the import:
 
@@ -1004,12 +1004,12 @@ Then, after the shake-to-SOS `LumiCard`'s closing `),` (line 227) and before the
 
 Resulting order: shake card → `SizedBox(9)` → `CheckInCard` → `SizedBox(14)` → RECENT PINGS header.
 
-- [ ] **Step 2: Run the full suite and analyzer**
+- [x] **Step 2: Run the full suite and analyzer**
 
 Run: `flutter analyze --fatal-infos && flutter test`
 Expected: clean, all pass (including the existing `location_page`-hosting tests, if any break on the new card's presence, fix finders in those tests — the card itself is already covered).
 
-- [ ] **Step 3: Commit and push**
+- [x] **Step 3: Commit and push**
 
 ```bash
 git add lib/pages/location_page.dart lib/main.dart lib/navigation_bar/main_page.dart
