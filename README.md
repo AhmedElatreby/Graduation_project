@@ -28,6 +28,13 @@ reading.
   this runs in a **foreground service**, so it keeps working with the app
   backgrounded, the screen off, or the phone in Doze — a persistent
   notification carries the countdown and an "I'm safe — cancel" action.
+- **Check-in timer ("walk me home")** — from the Track page, set a timer
+  before a risky trip (10/20/30/60 min presets or a custom duration, plus an
+  optional note like "walking through the park"). If you don't check in
+  before it expires, a 60-second grace notification offers "I'm safe —
+  cancel"; if that passes too, guardians automatically get the full alert —
+  including your note — even with the app backgrounded, via the same
+  foreground service as shake-to-SOS.
 - **Quick actions** — one-tap Send SMS / Call / Siren from the SOS screen.
 - **Loud siren** — deliberately has no stop button: once triggered it plays
   to completion, so an attacker taking the phone can't silence it.
@@ -115,4 +122,5 @@ Design specs and implementation plans for each feature live in
 [`docs/superpowers/specs/`](docs/superpowers/specs) and
 [`docs/superpowers/plans/`](docs/superpowers/plans) — including
 shake-to-SOS (foreground and background), shake sensitivity, the primary
-guardian contact, and the guardian live-view share link.
+guardian contact, the guardian live-view share link, and the check-in
+timer with its Track-page card.
