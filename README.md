@@ -35,6 +35,10 @@ reading.
   cancel"; if that passes too, guardians automatically get the full alert —
   including your note — even with the app backgrounded, via the same
   foreground service as shake-to-SOS.
+- **Fake incoming call** — stage a realistic call (configurable caller,
+  Now/10s/30s/1 min delay) from the SOS screen to excuse yourself from an
+  uncomfortable situation. Rings with the device's real ringtone; purely
+  cosmetic — completely separate from the alert pipeline.
 - **Quick actions** — one-tap Send SMS / Call / Siren from the SOS screen.
 - **Loud siren** — deliberately has no stop button: once triggered it plays
   to completion, so an attacker taking the phone can't silence it.
