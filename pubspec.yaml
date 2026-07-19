@@ -27,6 +27,7 @@ dependencies:
   flutter_polyline_points: ^2.0.0
   audioplayers: ^6.0.0
   flutter_phone_direct_caller: ^2.1.1
+  flutter_ringtone_player: ^4.0.0
   sqflite: ^2.3.0
   path_provider: ^2.1.0
   permission_handler: ^11.0.0
