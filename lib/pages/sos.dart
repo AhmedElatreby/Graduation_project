@@ -463,8 +463,11 @@ class _FakeCallSheetState extends State<_FakeCallSheet> {
 
   Future<void> _ringMe() async {
     await FakeCallPrefs.setCaller(_name.text, _number.text);
+    if (!mounted) return;
+    // Close the sheet BEFORE scheduling: a zero delay rings synchronously,
+    // and popping after the push would pop the call screen, not the sheet.
+    Navigator.pop(context);
     FakeCallController.instance.schedule(_delays[_selected]!);
-    if (mounted) Navigator.pop(context);
   }
 
   @override
