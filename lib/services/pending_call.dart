@@ -30,6 +30,12 @@ class PendingCall {
   /// reads as null) is cleared and reported false.
   static Future<bool> consume() async {
     final prefs = await SharedPreferences.getInstance();
+    // The flag is WRITTEN by the background guard-service isolate and READ
+    // here in the UI isolate; the legacy SharedPreferences API caches
+    // per-isolate, so without reload() this isolate would never see a flag
+    // set after its own first getInstance() (same bug class CheckInPrefs
+    // hit — see its load()).
+    await prefs.reload();
     int? setAt;
     try {
       setAt = prefs.getInt(_key);

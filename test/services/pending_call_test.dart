@@ -5,6 +5,7 @@
 // call a guardian long after the alert it belonged to.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 import 'package:safetyproject/services/pending_call.dart';
 
@@ -45,5 +46,20 @@ void main() {
   test('a legacy bool flag from an old install is dropped safely', () async {
     SharedPreferences.setMockInitialValues({'pending_guardian_call': true});
     expect(await PendingCall.consume(), isFalse);
+  });
+
+  test('consume sees a flag set by another isolate to the same store '
+      '(regression: legacy SharedPreferences caches per-isolate; only '
+      'reload() re-hits the platform)', () async {
+    SharedPreferences.setMockInitialValues({});
+    expect(await PendingCall.consume(), isFalse); // caches this isolate
+
+    // Simulate the guard-service isolate's write: mutate the backing store
+    // directly, *not* via setMockInitialValues (which resets the singleton's
+    // completer and would mask the bug by forcing an unrelated refetch).
+    await SharedPreferencesStorePlatform.instance.setValue('Int',
+        'flutter.pending_guardian_call', DateTime.now().millisecondsSinceEpoch);
+
+    expect(await PendingCall.consume(), isTrue);
   });
 }
