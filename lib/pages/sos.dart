@@ -17,9 +17,12 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../database/db_helper.dart';
 import '../services/emergency_alert.dart';
+import '../services/fake_call_controller.dart';
+import '../services/fake_call_prefs.dart';
 import '../services/siren.dart';
 import '../theme/lumi_theme.dart';
 import '../widgets/lumi_widgets.dart';
+import 'fake_call_page.dart';
 
 class SosPage extends StatefulWidget {
   const SosPage({super.key, this.userName = 'there'});
@@ -50,6 +53,15 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
     super.initState();
     _requestPermission();
     _loadCount();
+    FakeCallController.instance.onRing = _showIncomingCall;
+  }
+
+  void _showIncomingCall() {
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+          fullscreenDialog: true, builder: (_) => const IncomingCallPage()),
+    );
   }
 
   Future<void> _loadCount() async {
@@ -243,7 +255,7 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
                 style: LumiText.body(12.5, color: LumiColors.textSub)),
             const SizedBox(height: 16),
 
-            // quick actions — #7: clear SMS + Call, plus Siren
+            // quick actions — 2×2: SMS + Call / Siren + Fake Call
             Row(
               children: [
                 _QuickAction(
@@ -257,13 +269,53 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
                     label: 'Call',
                     color: LumiColors.green,
                     onTap: () => _handleAction(_callEmergencyContact)),
-                const SizedBox(width: 10),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
                 _QuickAction(
                     icon: Icons.campaign_outlined,
                     label: 'Siren',
                     color: LumiColors.amber,
                     onTap: _siren),
+                const SizedBox(width: 10),
+                _QuickAction(
+                    icon: Icons.phone_callback_outlined,
+                    label: 'Fake Call',
+                    color: LumiColors.blue,
+                    onTap: _openFakeCallSheet),
               ],
+            ),
+            ValueListenableBuilder<FakeCallPhase>(
+              valueListenable: FakeCallController.instance.phase,
+              builder: (_, phase, __) {
+                if (phase != FakeCallPhase.scheduled) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: GestureDetector(
+                    onTap: FakeCallController.instance.cancel,
+                    child: ValueListenableBuilder<Duration>(
+                      valueListenable: FakeCallController.instance.remaining,
+                      builder: (_, left, __) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: LumiColors.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: LumiColors.hairline),
+                        ),
+                        child: Text(
+                          '📞 in 0:${left.inSeconds.toString().padLeft(2, '0')} · tap to cancel',
+                          style: LumiText.body(12, color: LumiColors.textSub),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
           ],
@@ -326,6 +378,18 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
     _snack('Siren activated!', LumiColors.amber);
   }
 
+  void _openFakeCallSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: LumiColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (_) => const _FakeCallSheet(),
+    );
+  }
+
   void _snack(String msg, Color c) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
@@ -363,6 +427,109 @@ class _QuickAction extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Sheet content owns its TextEditingControllers (never dispose controllers
+/// as builder locals — established project rule).
+class _FakeCallSheet extends StatefulWidget {
+  const _FakeCallSheet();
+
+  @override
+  State<_FakeCallSheet> createState() => _FakeCallSheetState();
+}
+
+class _FakeCallSheetState extends State<_FakeCallSheet> {
+  static const _delays = {
+    'Now': Duration.zero,
+    '10s': Duration(seconds: 10),
+    '30s': Duration(seconds: 30),
+    '1 min': Duration(minutes: 1),
+  };
+  String _selected = '10s';
+  late final _name =
+      TextEditingController(text: FakeCallPrefs.callerName.value);
+  late final _number =
+      TextEditingController(text: FakeCallPrefs.callerNumber.value);
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _number.dispose();
+    super.dispose();
+  }
+
+  Future<void> _ringMe() async {
+    await FakeCallPrefs.setCaller(_name.text, _number.text);
+    FakeCallController.instance.schedule(_delays[_selected]!);
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          18, 18, 18, 18 + MediaQuery.of(context).viewInsets.bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Fake incoming call', style: LumiText.display(18)),
+          const SizedBox(height: 4),
+          Text('Stage a call to step away',
+              style: LumiText.body(12.5, color: LumiColors.textSub)),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final label in _delays.keys)
+                ChoiceChip(
+                  label: Text(label),
+                  selected: _selected == label,
+                  onSelected: (_) => setState(() => _selected = label),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _name,
+            style: LumiText.body(15, color: LumiColors.text),
+            decoration: const InputDecoration(
+              labelText: 'Caller name',
+              prefixIcon: Icon(Icons.person_outline, size: 20),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _number,
+            keyboardType: TextInputType.phone,
+            style: LumiText.body(15, color: LumiColors.text),
+            decoration: const InputDecoration(
+              labelText: 'Caller number',
+              prefixIcon: Icon(Icons.dialpad, size: 20),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _ringMe,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: LumiColors.accent,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: Text('Ring me',
+                  style: LumiText.body(14.5,
+                      weight: FontWeight.w700, color: Colors.white)),
+            ),
+          ),
+        ],
       ),
     );
   }
