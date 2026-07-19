@@ -1019,7 +1019,7 @@ git push origin master
 
 Watch CI: `gh run watch <run-id> --repo AhmedElatreby/Graduation_project --exit-status` — must go green.
 
-- [ ] **Step 4: On-device verification (manual, per parent spec's Testing section)**
+- [x] **Step 4: On-device verification (manual, per parent spec's Testing section)**
 
 On the Android emulator (NOT the physical Samsung without explicit say-so — established safety rule):
 1. Start a 1-minute timer with a note → notification appears and counts down.
