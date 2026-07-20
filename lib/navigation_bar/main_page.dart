@@ -8,6 +8,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shake/shake.dart';
 
 import '../contact/personal_emergency_contacts.dart';
@@ -21,6 +22,9 @@ import '../services/live_location_service.dart';
 import '../services/pending_call.dart';
 import '../services/shake_guard_service.dart';
 import '../services/shake_prefs.dart';
+import '../services/silent_sos_channel.dart';
+import '../services/silent_sos_controller.dart';
+import '../services/silent_sos_prefs.dart';
 import '../theme/lumi_theme.dart';
 import '../widgets/lumi_logo.dart';
 import '../widgets/sos_countdown.dart';
@@ -49,6 +53,16 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   // Same pattern as the service isolate's _checkInEpoch.
   int _syncEpoch = 0;
 
+  // ── silent SOS trigger ──────────────────────────────────────────────────
+  // Lives here (not in SosPage) so the volume-button pattern works on every
+  // tab, same reasoning as shake-to-SOS above. Android-only; the channel is
+  // simply never enabled on other platforms.
+  late final SilentSosController _silentSos = SilentSosController(
+    onArmed: _onSilentSosArmed,
+    onCancelled: _onSilentSosCancelled,
+    onSend: () => _onSilentSosSend(),
+  );
+
   late final List<Widget> _pages = [
     const LocationPage(),
     SosPage(userName: _nameFromEmail(widget.email)),
@@ -68,12 +82,17 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
     ShakePrefs.enabled.addListener(_syncShakeDetector);
     ShakePrefs.sensitivity.addListener(_syncShakeDetector);
     CheckInPrefs.endTime.addListener(_syncShakeDetector);
+    SilentSosPrefs.enabled.addListener(_syncSilentSos);
+    if (!kIsWeb && Platform.isAndroid) {
+      SilentSosChannel.listen(_silentSos.onVolumeDownPress);
+    }
     // Ask for everything background SOS needs up front (Android): if the
     // first send ever runs unpermissioned, the telephony plugin self-requests
     // and then crashes the app ("Reply already submitted") when the grant
     // lands. Sync runs after the prompts so a granted set starts the service
     // immediately instead of flipping the toggle off.
     WidgetsBinding.instance.addPostFrameCallback((_) => _armShakeToSos());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncSilentSos());
   }
 
   Future<void> _armShakeToSos() async {
@@ -88,6 +107,11 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
     ShakePrefs.enabled.removeListener(_syncShakeDetector);
     ShakePrefs.sensitivity.removeListener(_syncShakeDetector);
     CheckInPrefs.endTime.removeListener(_syncShakeDetector);
+    SilentSosPrefs.enabled.removeListener(_syncSilentSos);
+    _silentSos.dispose();
+    if (!kIsWeb && Platform.isAndroid) {
+      SilentSosChannel.setEnabled(false); // logout
+    }
     _shakeDetector?.stopListening();
     _shakeDetector = null;
     WidgetsBinding.instance.removeObserver(this);
@@ -180,6 +204,43 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
       // countdown that will never alert. (Rare in practice: the Track card's
       // Start button requests these permissions up front.)
       if (CheckInPrefs.endTime.value != null) await CheckInPrefs.clear();
+    }
+  }
+
+  /// Tells native whether to intercept volume-down. Android-only — the
+  /// channel has no native counterpart on other platforms.
+  void _syncSilentSos() {
+    if (!kIsWeb && Platform.isAndroid) {
+      SilentSosChannel.setEnabled(SilentSosPrefs.enabled.value);
+    }
+  }
+
+  // Haptic-only feedback throughout — the entire point of this trigger is
+  // that nothing appears on screen. See the design spec's feedback table.
+  void _onSilentSosArmed() {
+    HapticFeedback.vibrate();
+    Future.delayed(const Duration(milliseconds: 150), HapticFeedback.vibrate);
+    Future.delayed(const Duration(milliseconds: 300), HapticFeedback.vibrate);
+  }
+
+  void _onSilentSosCancelled() => HapticFeedback.vibrate();
+
+  Future<void> _onSilentSosSend() async {
+    try {
+      if (!await EmergencyAlert.hasGuardians()) {
+        HapticFeedback.heavyImpact(); // one long buzz: nothing to send
+        return;
+      }
+      final failures = await EmergencyAlert.send();
+      if (failures.isEmpty) {
+        HapticFeedback.vibrate();
+        await Future.delayed(const Duration(milliseconds: 200));
+        HapticFeedback.vibrate();
+      } else {
+        HapticFeedback.heavyImpact();
+      }
+    } catch (_) {
+      HapticFeedback.heavyImpact();
     }
   }
 

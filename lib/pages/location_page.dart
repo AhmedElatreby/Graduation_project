@@ -15,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../services/live_location_service.dart';
 import '../services/shake_guard_service.dart';
 import '../services/shake_prefs.dart';
+import '../services/silent_sos_prefs.dart';
 import '../services/siren.dart';
 import '../theme/lumi_theme.dart';
 import '../widgets/checkin_card.dart';
@@ -224,6 +225,45 @@ class _LocationPageState extends State<LocationPage> {
                 ),
               ),
               const SizedBox(height: 9),
+
+              if (!kIsWeb && Platform.isAndroid) ...[
+                LumiCard(
+                  child: Row(
+                    children: [
+                      _TileIcon(
+                          icon: Icons.volume_down,
+                          bg: LumiColors.blue.withValues(alpha: 0.14),
+                          fg: LumiColors.blue),
+                      const SizedBox(width: 13),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Silent SOS trigger',
+                                style: LumiText.body(14.5,
+                                    weight: FontWeight.w700)),
+                            Text(
+                                'Press volume-down 3× to silently alert '
+                                'your guardians — press 3× again to cancel',
+                                style: LumiText.body(12,
+                                    color: LumiColors.textSub)),
+                          ],
+                        ),
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: SilentSosPrefs.enabled,
+                        builder: (_, on, __) => Switch(
+                          value: on,
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: LumiColors.blue,
+                          onChanged: SilentSosPrefs.setEnabled,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 9),
+              ],
 
               // check-in timer ("walk me home")
               const CheckInCard(),
