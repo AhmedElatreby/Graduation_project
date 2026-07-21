@@ -17,6 +17,7 @@ import 'services/primary_contact_prefs.dart';
 import 'services/shake_guard_service.dart';
 import 'services/shake_prefs.dart';
 import 'services/share_link_prefs.dart';
+import 'services/silent_sos_prefs.dart';
 import 'theme/lumi_theme.dart';
 
 Future<void> main() async {
@@ -41,6 +42,7 @@ Future<void> main() async {
   // computes "no check-in" and stops the legitimately-counting service.
   await CheckInPrefs.load();
   await FakeCallPrefs.load();
+  await SilentSosPrefs.load();
   runApp(const MyApp());
   await initialization();
   FlutterNativeSplash.remove();

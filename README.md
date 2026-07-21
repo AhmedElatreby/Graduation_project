@@ -28,6 +28,12 @@ reading.
   this runs in a **foreground service**, so it keeps working with the app
   backgrounded, the screen off, or the phone in Doze — a persistent
   notification carries the countdown and an "I'm safe — cancel" action.
+- **Silent SOS trigger** — press volume-down three times quickly (Android,
+  opt-in from the Track page) to arm a fully silent alert: no on-screen UI
+  at any point, only haptic pulses confirm each step. An 8-second grace
+  period follows arming; the same 3× pattern during that window cancels.
+  Suppresses the system volume popup while enabled so the whole gesture
+  stays invisible on screen.
 - **Check-in timer ("walk me home")** — from the Track page, set a timer
   before a risky trip (10/20/30/60 min presets or a custom duration, plus an
   optional note like "walking through the park"). If you don't check in

@@ -728,7 +728,7 @@ with the matching import `import 'services/silent_sos_prefs.dart';` beside the o
 Run: `flutter analyze --fatal-infos && flutter test`
 Expected: clean; full suite green.
 
-- [ ] **Step 2: On-emulator verification**
+- [x] **Step 2: On-emulator verification**
 
 On the Android emulator (`flutter emulators --launch Pixel9_API37_16k`, `flutter run -d emulator-5554`, `adb` at `~/Library/Android/sdk/platform-tools/adb`) — never the physical Samsung without explicit say-so, and seed a single safe placeholder guardian before triggering any send (per the project's physical-device safety rule, which applies to the emulator's SMS/call side effects too):
 
@@ -741,7 +741,7 @@ On the Android emulator (`flutter emulators --launch Pixel9_API37_16k`, `flutter
 
 Record the outcome of each numbered check.
 
-- [ ] **Step 3: README bullet**
+- [x] **Step 3: README bullet**
 
 In `README.md` under `### Alerting`, after the "Shake to SOS" bullet, add:
 
