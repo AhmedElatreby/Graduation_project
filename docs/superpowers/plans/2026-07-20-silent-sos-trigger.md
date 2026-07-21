@@ -754,7 +754,7 @@ In `README.md` under `### Alerting`, after the "Shake to SOS" bullet, add:
   stays invisible on screen.
 ```
 
-- [ ] **Step 4: Full suite green, commit, push, watch CI**
+- [x] **Step 4: Full suite green, commit, push, watch CI**
 
 Run: `flutter analyze --fatal-infos && flutter test`
 Expected: clean.
