@@ -256,7 +256,7 @@ class _LocationPageState extends State<LocationPage> {
                           value: on,
                           activeThumbColor: Colors.white,
                           activeTrackColor: LumiColors.blue,
-                          onChanged: SilentSosPrefs.setEnabled,
+                          onChanged: _setSilentSosEnabled,
                         ),
                       ),
                     ],
@@ -395,6 +395,33 @@ class _LocationPageState extends State<LocationPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text(
           'Lumi needs notification, SMS, phone and location access for background SOS'),
+      backgroundColor: LumiColors.accent.withValues(alpha: 0.9),
+    ));
+  }
+
+  /// The silent trigger has no notification/UI of its own, so a missing
+  /// permission would otherwise fail completely invisibly — request SMS and
+  /// Phone (exactly what EmergencyAlert.send() needs) before enabling, same
+  /// shape as _setShakeEnabled above but without the background-service-only
+  /// permissions (no notification, no location — send() degrades those
+  /// gracefully on its own).
+  Future<void> _setSilentSosEnabled(bool value) async {
+    if (!value || kIsWeb || !Platform.isAndroid) {
+      await SilentSosPrefs.setEnabled(value);
+      return;
+    }
+    final statuses = await [Permission.sms, Permission.phone].request();
+    if (statuses.values.every((s) => s.isGranted)) {
+      await SilentSosPrefs.setEnabled(true);
+      return;
+    }
+    if (statuses.values.any((s) => s.isPermanentlyDenied)) {
+      openAppSettings();
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: const Text(
+          'Lumi needs SMS and phone access for the silent SOS trigger'),
       backgroundColor: LumiColors.accent.withValues(alpha: 0.9),
     ));
   }

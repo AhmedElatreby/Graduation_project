@@ -37,10 +37,14 @@ class MainActivity : FlutterActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (silentSosEnabled && event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            if (event.action == KeyEvent.ACTION_DOWN) {
+            // repeatCount > 0 means this is an OS-generated auto-repeat from
+            // holding the key down, not a genuine distinct press — forwarding
+            // those would let an ordinary "hold to lower volume" gesture
+            // satisfy the 3-presses-in-1.5s pattern and arm a real alert.
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
                 silentSosChannel?.invokeMethod("onVolumeDownPress", null)
             }
-            return true // consume DOWN and UP: no volume change, no popup
+            return true // still consume DOWN and UP: no volume change, no popup
         }
         return super.dispatchKeyEvent(event)
     }
