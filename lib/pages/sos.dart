@@ -358,7 +358,7 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
   // Alert mechanics live in EmergencyAlert so the shake-to-SOS flow shares
   // the exact same code path as this button.
   Future<void> _triggerFullAlert() async {
-    final failures = await EmergencyAlert.send();
+    final failures = await EmergencyAlert.send(trigger: 'SOS button');
     if (failures.isNotEmpty && mounted) {
       _snack(failures.join(' · '), LumiColors.accent);
     }

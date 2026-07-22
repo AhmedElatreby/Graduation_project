@@ -17,6 +17,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
 
 import '../contact/personal_emergency_contacts_model.dart';
+import '../database/alert_history_db.dart';
 import '../database/db_helper.dart';
 import 'guardian_share.dart';
 import 'live_location_service.dart';
@@ -60,9 +61,17 @@ class EmergencyAlert {
   /// SMS and call are attempted independently so one failing doesn't block
   /// the other. Returns human-readable failure messages (empty = success).
   /// Returns ['Add emergency contacts first.'] if there are no guardians.
-  static Future<List<String>> send() async {
+  /// [trigger] identifies which UI trigger fired this (e.g. "SOS button",
+  /// "Shake to SOS") — logged to AlertHistoryDb, nothing else.
+  static Future<List<String>> send({required String trigger}) async {
     final contacts = await DBHelper().getContacts();
-    if (contacts.isEmpty) return ['Add emergency contacts first.'];
+    if (contacts.isEmpty) {
+      await _logHistory(
+          trigger: trigger,
+          outcome: 'Failed',
+          detail: 'Add emergency contacts first.');
+      return ['Add emergency contacts first.'];
+    }
 
     // Foreground-only: this is what lets the guardian's shared page keep
     // moving instead of showing one static point. A background/killed-app
@@ -85,7 +94,26 @@ class EmergencyAlert {
     } catch (e) {
       failures.add('Call failed: $e');
     }
+    await _logHistory(
+        trigger: trigger,
+        outcome: failures.isEmpty ? 'Sent' : 'Failed',
+        detail: failures.isEmpty ? null : failures.first);
     return failures;
+  }
+
+  /// Logs one history entry. Wrapped so a logging failure can never affect
+  /// the alert itself — same degrade-silently pattern as every other
+  /// bonus step on this path (live location, share link).
+  static Future<void> _logHistory(
+      {required String trigger,
+      required String outcome,
+      String? detail}) async {
+    try {
+      await AlertHistoryDb()
+          .insert(trigger: trigger, outcome: outcome, detail: detail);
+    } catch (_) {
+      // degrade silently
+    }
   }
 
   /// Fail fast if [permission] is missing (Android). The telephony and
@@ -197,11 +225,19 @@ class EmergencyAlert {
   /// [PendingCall] and report callBlocked so the notification can say
   /// "tap to call". Pass [coordsFuture] to reuse a fix already being
   /// acquired (the countdown doubles as GPS warm-up time). Pass [note] to
-  /// carry a check-in timer's note through to the SMS body.
+  /// carry a check-in timer's note through to the SMS body. [trigger]
+  /// identifies which background trigger fired this (e.g. "Shake to SOS",
+  /// "Check-in timer") — logged to AlertHistoryDb, nothing else.
   static Future<BackgroundSendResult> sendBackground(
-      {Future<String?>? coordsFuture, String? note}) async {
+      {required String trigger,
+      Future<String?>? coordsFuture,
+      String? note}) async {
     final contacts = await DBHelper().getContacts();
     if (contacts.isEmpty) {
+      await _logHistory(
+          trigger: trigger,
+          outcome: 'Failed',
+          detail: 'Add emergency contacts first.');
       return const BackgroundSendResult(
           smsFailures: ['Add emergency contacts first.'], callBlocked: false);
     }
@@ -225,8 +261,7 @@ class EmergencyAlert {
       // auto-enable, and its real limit" section.
       shareLink = null;
     }
-    final message =
-        buildAlertMessage(coords, shareLink: shareLink, note: note);
+    final message = buildAlertMessage(coords, shareLink: shareLink, note: note);
 
     final smsFailures = <String>[];
     try {
@@ -258,6 +293,10 @@ class EmergencyAlert {
       callBlocked = true;
     }
     if (callBlocked) await PendingCall.set();
+    await _logHistory(
+        trigger: trigger,
+        outcome: smsFailures.isEmpty ? 'Sent' : 'Failed',
+        detail: smsFailures.isEmpty ? null : smsFailures.first);
     return BackgroundSendResult(
         smsFailures: smsFailures, callBlocked: callBlocked);
   }

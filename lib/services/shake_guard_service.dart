@@ -123,8 +123,8 @@ class _ShakeGuardTaskHandler extends TaskHandler {
       NotificationButton(id: _cancelButtonId, text: "I'm safe — cancel");
 
   static const _cancelCheckInButtonId = 'cancel_checkin';
-  static const _cancelCheckInButton = NotificationButton(
-      id: _cancelCheckInButtonId, text: "I'm safe — cancel");
+  static const _cancelCheckInButton =
+      NotificationButton(id: _cancelCheckInButtonId, text: "I'm safe — cancel");
 
   void _idleNotification() {
     FlutterForegroundTask.updateService(
@@ -134,12 +134,12 @@ class _ShakeGuardTaskHandler extends TaskHandler {
     );
   }
 
-  Future<void> _sendAlert({String? note}) async {
+  Future<void> _sendAlert({required String trigger, String? note}) async {
     try {
       final coords = _coordsPrefetch;
       _coordsPrefetch = null;
       final result = await EmergencyAlert.sendBackground(
-          coordsFuture: coords, note: note);
+          trigger: trigger, coordsFuture: coords, note: note);
       final ok = result.smsFailures.isEmpty;
       FlutterForegroundTask.updateService(
         notificationTitle:
@@ -164,7 +164,7 @@ class _ShakeGuardTaskHandler extends TaskHandler {
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     _core = ShakeGuardCore(
       hasGuardians: EmergencyAlert.hasGuardians,
-      send: _sendAlert,
+      send: () => _sendAlert(trigger: 'Shake to SOS'),
       onTick: (remaining) {
         _coordsPrefetch ??= EmergencyAlert.currentCoordinates();
         FlutterForegroundTask.updateService(
@@ -186,7 +186,8 @@ class _ShakeGuardTaskHandler extends TaskHandler {
       ),
     );
     _checkIn = CheckInTimerCore(
-      send: () => _sendAlert(note: CheckInPrefs.note.value),
+      send: () =>
+          _sendAlert(trigger: 'Check-in timer', note: CheckInPrefs.note.value),
       onTick: (remaining) => FlutterForegroundTask.updateService(
         notificationTitle: 'Checking in',
         notificationText:
@@ -207,7 +208,8 @@ class _ShakeGuardTaskHandler extends TaskHandler {
       // duplicate alert on the next service restart.
       onSent: () => CheckInPrefs.clear(),
     );
-    await ShakePrefs.load(); // this isolate has its own SharedPreferences access
+    await ShakePrefs
+        .load(); // this isolate has its own SharedPreferences access
     if (ShakePrefs.enabled.value) {
       _startDetector(thresholdFor(ShakePrefs.sensitivity.value));
     }

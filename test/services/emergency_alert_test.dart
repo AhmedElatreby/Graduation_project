@@ -7,6 +7,7 @@ import 'package:permission_handler_platform_interface/permission_handler_platfor
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:safetyproject/contact/personal_emergency_contacts_model.dart';
+import 'package:safetyproject/database/alert_history_db.dart';
 import 'package:safetyproject/database/db_helper.dart';
 import 'package:safetyproject/services/emergency_alert.dart';
 import 'package:safetyproject/services/guardian_share.dart';
@@ -25,11 +26,9 @@ void main() {
     expect(await EmergencyAlert.hasGuardians(), isTrue);
   });
 
-  test('callFirstContact calls the primary contact when one is set',
-      () async {
+  test('callFirstContact calls the primary contact when one is set', () async {
     SharedPreferences.setMockInitialValues({});
-    final sara =
-        await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+    final sara = await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
     await DBHelper().add(PersonalEmergency('Jo', '02000000000'));
     await PrimaryContactPrefs.set(sara.id);
 
@@ -52,8 +51,7 @@ void main() {
     await PrimaryContactPrefs.set(999999); // no contact has this id
 
     final contacts = await DBHelper().getContacts();
-    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo,
-        '01000000000');
+    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo, '01000000000');
   });
 
   test('resolveCallTarget resolves to list.first when no primary is set',
@@ -67,8 +65,7 @@ void main() {
     await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
 
     final contacts = await DBHelper().getContacts();
-    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo,
-        '01000000000');
+    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo, '01000000000');
   });
 
   test(
@@ -83,8 +80,7 @@ void main() {
     // right before the call attempt) is what's supposed to fix this; this
     // test proves that load() call actually does the job.
     SharedPreferences.setMockInitialValues({});
-    final sara =
-        await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+    final sara = await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
     await DBHelper().add(PersonalEmergency('Jo', '02000000000'));
     await PrimaryContactPrefs.set(sara.id);
 
@@ -93,8 +89,7 @@ void main() {
     final contacts = await DBHelper().getContacts();
     expect(contacts.first.name, 'Jo');
     // Without a load(), the bug reproduces: falls back to contacts.first.
-    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo,
-        '02000000000');
+    expect(EmergencyAlert.resolveCallTarget(contacts).contactNo, '02000000000');
 
     // This is the exact call sendBackground now makes right before the call
     // attempt (see emergency_alert.dart).
@@ -127,7 +122,8 @@ void main() {
     );
   });
 
-  test('buildAlertMessage appends the share link on its own line when '
+  test(
+      'buildAlertMessage appends the share link on its own line when '
       'provided', () {
     expect(
       EmergencyAlert.buildAlertMessage('50.73,-1.85',
@@ -161,7 +157,8 @@ void main() {
     );
   });
 
-  test('buildAlertMessage puts the note before the share link when both are '
+  test(
+      'buildAlertMessage puts the note before the share link when both are '
       'provided', () {
     expect(
       EmergencyAlert.buildAlertMessage('50.73,-1.85',
@@ -173,7 +170,8 @@ void main() {
     );
   });
 
-  test('sendBackground includes a share link in the SMS when one can be '
+  test(
+      'sendBackground includes a share link in the SMS when one can be '
       'created', () async {
     // sendBackground itself hits telephony/geolocator plugins with no
     // mocked platform channel in this suite (see the existing
@@ -239,7 +237,47 @@ void main() {
     PermissionHandlerPlatform.instance = FakeGrantedPermissionHandlerPlatform();
     await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
 
-    final failures = await EmergencyAlert.send();
+    final failures = await EmergencyAlert.send(trigger: 'test');
     expect(failures, isA<List<String>>());
+  });
+
+  test(
+      'send() logs a Failed entry with "Add emergency contacts first." '
+      'when there are no guardians', () async {
+    await AlertHistoryDb().clear();
+    // Earlier tests in this file add contacts to the same file-backed
+    // DBHelper database (see test_helpers.dart's FakePathProviderPlatform,
+    // whose temp dir is shared for the whole file run) and never clean up
+    // after themselves — clear it here so this test genuinely exercises the
+    // no-guardians path instead of inheriting leftover contacts.
+    for (final c in await DBHelper().getContacts()) {
+      await DBHelper().delete(c.id);
+    }
+    final failures = await EmergencyAlert.send(trigger: 'Silent SOS trigger');
+    expect(failures, ['Add emergency contacts first.']);
+
+    final entries = await AlertHistoryDb().getEntries();
+    expect(entries.first.trigger, 'Silent SOS trigger');
+    expect(entries.first.outcome, 'Failed');
+    expect(entries.first.detail, 'Add emergency contacts first.');
+  });
+
+  test(
+      'send() logs an entry with the right trigger label when guardians '
+      'exist', () async {
+    // The unmocked telephony/caller platform channels in this suite make
+    // the actual SMS/call outcome nondeterministic (see the existing
+    // "not aborted by a live-location startup failure" test's own comment
+    // on this) — this test only proves an entry gets logged with the
+    // caller's trigger label, not which outcome resulted.
+    await AlertHistoryDb().clear();
+    PermissionHandlerPlatform.instance = FakeGrantedPermissionHandlerPlatform();
+    await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+
+    await EmergencyAlert.send(trigger: 'SOS button');
+
+    final entries = await AlertHistoryDb().getEntries();
+    expect(entries, isNotEmpty);
+    expect(entries.first.trigger, 'SOS button');
   });
 }

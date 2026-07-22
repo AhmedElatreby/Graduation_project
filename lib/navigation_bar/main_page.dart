@@ -231,7 +231,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
         HapticFeedback.heavyImpact(); // one long buzz: nothing to send
         return;
       }
-      final failures = await EmergencyAlert.send();
+      final failures = await EmergencyAlert.send(trigger: 'Silent SOS trigger');
       if (failures.isEmpty) {
         HapticFeedback.vibrate();
         await Future.delayed(const Duration(milliseconds: 200));
@@ -260,7 +260,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
       }
       if (!mounted) return;
       final sent = await showSosCountdown(context, onSend: () async {
-        final failures = await EmergencyAlert.send();
+        final failures = await EmergencyAlert.send(trigger: 'Shake to SOS');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(failures.isEmpty
