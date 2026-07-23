@@ -14,6 +14,7 @@ import 'package:shake/shake.dart';
 import '../contact/personal_emergency_contacts.dart';
 import '../location/googlemap_page.dart';
 import '../oauth/auth_controller.dart';
+import '../pages/alert_history_page.dart';
 import '../pages/location_page.dart';
 import '../pages/sos.dart';
 import '../services/checkin_prefs.dart';
@@ -68,6 +69,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
     SosPage(userName: _nameFromEmail(widget.email)),
     const PersonalEmergencyContacts(),
     const GoogleMapPage(), // your existing map (keeps its own Scaffold)
+    const AlertHistoryPage(),
   ];
 
   @override
@@ -357,6 +359,7 @@ class _LumiTabBar extends StatelessWidget {
               _sosTab(1),
               _tab(2, Icons.people_outline, Icons.people, 'Contacts'),
               _tab(3, Icons.map_outlined, Icons.map, 'Map'),
+              _tab(4, Icons.history_outlined, Icons.history, 'History'),
             ],
           ),
         ),
