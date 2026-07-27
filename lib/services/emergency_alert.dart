@@ -101,15 +101,24 @@ class EmergencyAlert {
     return failures;
   }
 
+  /// Builds the history store used by [_logHistory]. Overridable only so
+  /// tests can inject a failing/hanging store and prove a broken log can't
+  /// reach the alert path — an invariant this file has broken three times
+  /// before (live location, share link, primary contact), so it's pinned by
+  /// a real test rather than inspection.
+  @visibleForTesting
+  static AlertHistoryDb Function() historyDbFactory = AlertHistoryDb.new;
+
   /// Logs one history entry. Wrapped so a logging failure can never affect
   /// the alert itself — same degrade-silently pattern as every other
-  /// bonus step on this path (live location, share link).
+  /// bonus step on this path (live location, share link). The timeout
+  /// matters as much as the catch: try/catch guards a throw, not a hang.
   static Future<void> _logHistory(
       {required String trigger,
       required String outcome,
       String? detail}) async {
     try {
-      await AlertHistoryDb()
+      await historyDbFactory()
           .insert(trigger: trigger, outcome: outcome, detail: detail)
           .timeout(const Duration(seconds: 2));
     } catch (_) {

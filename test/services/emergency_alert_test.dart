@@ -1,5 +1,7 @@
 // EmergencyAlert.hasGuardians gates the shake countdown: no guardians means
 // no countdown, just a "add guardians" prompt.
+import 'dart:async';
+
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -293,4 +295,68 @@ void main() {
     expect(entries, isNotEmpty);
     expect(entries.first.trigger, 'SOS button');
   });
+
+  group('history logging can never reach the alert path', () {
+    // This codebase has broken the "nothing added here may throw past the
+    // alert" invariant three times (live location, share link, primary
+    // contact). History logging is the newest bonus step on that path, so
+    // it gets a real injected-failure test rather than inspection alone.
+    tearDown(() => EmergencyAlert.historyDbFactory = AlertHistoryDb.new);
+
+    test('send() still returns normally when the history DB throws', () async {
+      PermissionHandlerPlatform.instance =
+          FakeGrantedPermissionHandlerPlatform();
+      await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+      EmergencyAlert.historyDbFactory = _ThrowingAlertHistoryDb.new;
+
+      // The assertion is that this completes at all: an escaping StateError
+      // would mean a broken log had aborted a real emergency alert.
+      final failures = await EmergencyAlert.send(trigger: 'SOS button');
+      expect(failures, isA<List<String>>());
+    });
+
+    test('send() still returns when the history DB hangs (2s timeout)',
+        () async {
+      PermissionHandlerPlatform.instance =
+          FakeGrantedPermissionHandlerPlatform();
+      await DBHelper().add(PersonalEmergency('Sara', '01000000000'));
+      EmergencyAlert.historyDbFactory = _HangingAlertHistoryDb.new;
+
+      // try/catch guards a throw, not a hang — without the .timeout() this
+      // never completes and the SOS page's spinner stays stuck forever.
+      final failures = await EmergencyAlert.send(trigger: 'SOS button')
+          .timeout(const Duration(seconds: 10));
+      expect(failures, isA<List<String>>());
+    });
+
+    test('logNoGuardiansAttempt swallows a throwing history DB too', () async {
+      EmergencyAlert.historyDbFactory = _ThrowingAlertHistoryDb.new;
+      await expectLater(
+          EmergencyAlert.logNoGuardiansAttempt('SOS button'), completes);
+    });
+  });
+}
+
+/// Every write fails — stands in for a corrupt/unavailable history DB.
+class _ThrowingAlertHistoryDb implements AlertHistoryDb {
+  @override
+  Future<void> insert(
+          {required String trigger, required String outcome, String? detail}) =>
+      Future<void>.error(StateError('history db is down'));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('not used by this test');
+}
+
+/// Writes never complete — stands in for a wedged sqflite worker thread.
+class _HangingAlertHistoryDb implements AlertHistoryDb {
+  @override
+  Future<void> insert(
+          {required String trigger, required String outcome, String? detail}) =>
+      Completer<void>().future;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('not used by this test');
 }
