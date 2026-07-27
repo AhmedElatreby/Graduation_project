@@ -34,6 +34,10 @@ reading.
   period follows arming; the same 3× pattern during that window cancels.
   Suppresses the system volume popup while enabled so the whole gesture
   stays invisible on screen.
+- **Alert history** — every real alert dispatch (SOS button, shake, check-in
+  timer, silent trigger) is logged locally with a timestamp and outcome,
+  viewable on the History tab. Local-only, capped at the 50 most recent
+  entries, with a one-tap Clear action.
 - **Check-in timer ("walk me home")** — from the Track page, set a timer
   before a risky trip (10/20/30/60 min presets or a custom duration, plus an
   optional note like "walking through the park"). If you don't check in

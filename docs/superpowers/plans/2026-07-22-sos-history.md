@@ -34,7 +34,7 @@
   - `class AlertHistoryEntry { final int id; final DateTime timestamp; final String trigger; final String outcome; final String? detail; }`
   - `class AlertHistoryDb { Future<void> insert({required String trigger, required String outcome, String? detail}); Future<List<AlertHistoryEntry>> getEntries(); Future<void> clear(); }`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```dart
 // test/database/alert_history_db_test.dart
@@ -95,12 +95,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `flutter test test/database/alert_history_db_test.dart`
 Expected: FAIL — package resolve error (`lib/database/alert_history_db.dart` doesn't exist yet).
 
-- [ ] **Step 3: Implement `AlertHistoryDb`**
+- [x] **Step 3: Implement `AlertHistoryDb`**
 
 ```dart
 // lib/database/alert_history_db.dart
@@ -206,17 +206,17 @@ class AlertHistoryDb {
 
 Note: the `dart:io` import is unused in this file as written — remove it if `flutter analyze` flags it (it was carried over from `DBHelper`'s pattern but this file has no direct `io.Directory` usage since `getApplicationDocumentsDirectory()` already returns one).
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `flutter test test/database/alert_history_db_test.dart`
 Expected: `All tests passed!` (3 tests)
 
-- [ ] **Step 5: Verify with static analysis**
+- [x] **Step 5: Verify with static analysis**
 
 Run: `dart format lib/database/alert_history_db.dart test/database/alert_history_db_test.dart && flutter analyze --fatal-infos`
 Expected: clean. If the unused `dart:io` import is flagged, delete that import line.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/database/alert_history_db.dart test/database/alert_history_db_test.dart
@@ -238,7 +238,7 @@ git commit -m "feat: AlertHistoryDb — local, bounded log of alert dispatches"
 - Consumes: `AlertHistoryDb` (Task 1).
 - Produces: `EmergencyAlert.send({required String trigger})` and `EmergencyAlert.sendBackground({required String trigger, Future<String?>? coordsFuture, String? note})` — both now require a `trigger` label. Every existing and future caller must supply one; this task updates every current caller.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `test/services/emergency_alert_test.dart`, right after the existing `'send() is not aborted by a live-location startup failure'` test:
 
@@ -284,12 +284,12 @@ Also fix the two now-broken existing calls in this file (they call `EmergencyAle
 
 - `'send() is not aborted by a live-location startup failure'` test: change `await EmergencyAlert.send();` to `await EmergencyAlert.send(trigger: 'test');`.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `flutter test test/services/emergency_alert_test.dart`
 Expected: FAIL — compile errors (`send()` doesn't accept `trigger:` yet; `AlertHistoryDb` symbol not found in this context is fine since Task 1 already created it, but `send(trigger: ...)` won't match the current signature).
 
-- [ ] **Step 3: Implement the instrumentation**
+- [x] **Step 3: Implement the instrumentation**
 
 In `lib/services/emergency_alert.dart`, add the import (alphabetical position after `'../database/db_helper.dart'`):
 
@@ -447,7 +447,7 @@ Replace the full `sendBackground()` method:
   }
 ```
 
-- [ ] **Step 4: Update every call site**
+- [x] **Step 4: Update every call site**
 
 In `lib/pages/sos.dart`, in `_triggerFullAlert()`:
 
@@ -493,17 +493,17 @@ And its two callers in `onStart`:
       send: () => _sendAlert(trigger: 'Check-in timer', note: CheckInPrefs.note.value),
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `flutter test test/services/emergency_alert_test.dart`
 Expected: `All tests passed!`
 
-- [ ] **Step 6: Verify with static analysis and the full suite**
+- [x] **Step 6: Verify with static analysis and the full suite**
 
 Run: `dart format lib/services/emergency_alert.dart lib/pages/sos.dart lib/navigation_bar/main_page.dart lib/services/shake_guard_service.dart test/services/emergency_alert_test.dart && flutter analyze --fatal-infos && flutter test`
 Expected: analyzer clean; full suite green. If any other existing test calls `EmergencyAlert.send()`/`sendBackground()` without a `trigger` argument, it will fail to compile — search for it (`grep -rn "EmergencyAlert.send\|EmergencyAlert.sendBackground" test/`) and add a `trigger: 'test'` argument there too.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add lib/services/emergency_alert.dart lib/pages/sos.dart lib/navigation_bar/main_page.dart lib/services/shake_guard_service.dart test/services/emergency_alert_test.dart
@@ -522,7 +522,7 @@ git commit -m "feat: log every alert dispatch to AlertHistoryDb, tagged by trigg
 - Consumes: `AlertHistoryDb`/`AlertHistoryEntry` (Task 1), `LumiColors`/`LumiText` (`lib/theme/lumi_theme.dart`), `LumiCard`/`LumiStatusPill` (`lib/widgets/lumi_widgets.dart`).
 - Produces (used by Task 4): `AlertHistoryPage` — a content-only widget (no `Scaffold`), same shape as `SosPage`/`LocationPage`/`PersonalEmergencyContacts`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```dart
 // test/pages/alert_history_page_test.dart
@@ -617,12 +617,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `flutter test test/pages/alert_history_page_test.dart`
 Expected: FAIL — package resolve error (`lib/pages/alert_history_page.dart` doesn't exist yet).
 
-- [ ] **Step 3: Implement `AlertHistoryPage`**
+- [x] **Step 3: Implement `AlertHistoryPage`**
 
 ```dart
 // lib/pages/alert_history_page.dart
@@ -819,17 +819,17 @@ class _EntryTile extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `flutter test test/pages/alert_history_page_test.dart`
 Expected: `All tests passed!` (4 tests). If the pull-to-refresh test is flaky about pump timing, add an extra `await tester.pump(const Duration(milliseconds: 500));` before the final assertion rather than changing the widget's logic.
 
-- [ ] **Step 5: Verify with static analysis**
+- [x] **Step 5: Verify with static analysis**
 
 Run: `dart format lib/pages/alert_history_page.dart test/pages/alert_history_page_test.dart && flutter analyze --fatal-infos`
 Expected: clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/pages/alert_history_page.dart test/pages/alert_history_page_test.dart
@@ -850,7 +850,7 @@ git commit -m "feat: AlertHistoryPage — the History tab's list, empty state, a
 
 No widget test for this task: `NavBarPage` is never constructed directly in this project's test suite (matches the same precedent noted in the fake-call and silent-SOS-trigger plans' final wiring tasks). Verified via the on-emulator checklist below.
 
-- [ ] **Step 1: Add the import and the 5th tab**
+- [x] **Step 1: Add the import and the 5th tab**
 
 In `lib/navigation_bar/main_page.dart`, add to the import block, alphabetical position after `'../pages/location_page.dart'`:
 
@@ -882,12 +882,12 @@ In `_LumiTabBar.build()`, add a 5th tab after the Map tab:
             ],
 ```
 
-- [ ] **Step 2: Run the full suite and analyzer**
+- [x] **Step 2: Run the full suite and analyzer**
 
 Run: `dart format lib/navigation_bar/main_page.dart && flutter analyze --fatal-infos && flutter test`
 Expected: analyzer clean; full suite green.
 
-- [ ] **Step 3: Commit and push**
+- [x] **Step 3: Commit and push**
 
 ```bash
 git add lib/navigation_bar/main_page.dart
@@ -897,7 +897,7 @@ git push origin master
 
 Watch CI: `gh run watch $(gh run list --repo AhmedElatreby/Graduation_project --limit 1 --json databaseId --jq '.[0].databaseId') --repo AhmedElatreby/Graduation_project --exit-status` — must go green.
 
-- [ ] **Step 4: On-emulator verification**
+- [x] **Step 4: On-emulator verification**
 
 On the Android emulator (`flutter emulators --launch Pixel9_API37_16k`, `flutter run -d emulator-5554`, `adb` at `~/Library/Android/sdk/platform-tools/adb`) — never the physical Samsung without explicit say-so. Confirm `dumpsys window | grep mCurrentFocus` shows Lumi foregrounded before any alert-triggering step, and seed exactly one safe placeholder guardian (obviously-fake number, confirmed via `adb shell run-as com.elatreby.safety cat app_flutter/EmergencyContacts.db` + `sqlite3` — never trust the in-app count) before any test that completes a real send:
 
@@ -910,7 +910,7 @@ On the Android emulator (`flutter emulators --launch Pixel9_API37_16k`, `flutter
 
 Record the outcome of each numbered check.
 
-- [ ] **Step 5: README bullet**
+- [x] **Step 5: README bullet**
 
 In `README.md`, add a new bullet to the `### Alerting` section, after the "Silent SOS trigger" bullet:
 
@@ -921,7 +921,7 @@ In `README.md`, add a new bullet to the `### Alerting` section, after the "Silen
   entries, with a one-tap Clear action.
 ```
 
-- [ ] **Step 6: Full suite green, commit, push, watch CI**
+- [x] **Step 6: Full suite green, commit, push, watch CI**
 
 Run: `flutter analyze --fatal-infos && flutter test`
 Expected: clean.
