@@ -263,6 +263,19 @@ void main() {
   });
 
   test(
+      'logNoGuardiansAttempt writes the same entry send() would have, for '
+      'callers that pre-check guardians and never enter send()', () async {
+    await AlertHistoryDb().clear();
+    await EmergencyAlert.logNoGuardiansAttempt('SOS button');
+
+    final entries = await AlertHistoryDb().getEntries();
+    expect(entries.length, 1);
+    expect(entries.first.trigger, 'SOS button');
+    expect(entries.first.outcome, 'Failed');
+    expect(entries.first.detail, 'Add emergency contacts first.');
+  });
+
+  test(
       'send() logs an entry with the right trigger label when guardians '
       'exist', () async {
     // The unmocked telephony/caller platform channels in this suite make

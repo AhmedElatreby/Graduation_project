@@ -39,7 +39,7 @@ class _AlertHistoryPageState extends State<AlertHistoryPage> {
     setState(() {
       _entriesFuture = future;
     });
-    await future;
+    await future.catchError((_) => <AlertHistoryEntry>[]);
   }
 
   Future<void> _confirmClear() async {
@@ -64,7 +64,9 @@ class _AlertHistoryPageState extends State<AlertHistoryPage> {
       ),
     );
     if (ok == true) {
-      await _db.clear();
+      try {
+        await _db.clear();
+      } catch (_) {/* refresh below still re-reads the true state */}
       await _refresh();
     }
   }
@@ -178,6 +180,8 @@ class _EntryTile extends StatelessWidget {
                 if (entry.detail != null) ...[
                   const SizedBox(height: 2),
                   Text(entry.detail!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: LumiText.body(11.5, color: LumiColors.textSub)),
                 ],
               ],

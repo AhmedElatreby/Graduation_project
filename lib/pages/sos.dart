@@ -102,7 +102,7 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
     if (full) {
       _hold.value = 0;
       HapticFeedback.heavyImpact();
-      _handleAction(_triggerFullAlert);
+      _handleAction(_triggerFullAlert, logTriggerIfNoGuardians: 'SOS button');
     } else {
       _hold.reverse();
       _snack('Keep holding until the ring fills, then release.',
@@ -337,13 +337,19 @@ class _SosPageState extends State<SosPage> with TickerProviderStateMixin {
   }
 
   // ── actions ────────────────────────────────────────────────────────────────
-  Future<void> _handleAction(Future<void> Function() action) async {
+  Future<void> _handleAction(Future<void> Function() action,
+      {String? logTriggerIfNoGuardians}) async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
       final contacts = await _dbHelper.getContacts();
       if (!mounted) return;
       if (contacts.isEmpty) {
+        // Only the full-alert path logs: the SMS/Call quick actions aren't
+        // alert dispatches, so they'd be noise in the History tab.
+        if (logTriggerIfNoGuardians != null) {
+          await EmergencyAlert.logNoGuardiansAttempt(logTriggerIfNoGuardians);
+        }
         _snack('Add emergency contacts first.', LumiColors.accent);
         return;
       }

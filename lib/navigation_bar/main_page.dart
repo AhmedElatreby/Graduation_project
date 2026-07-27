@@ -230,6 +230,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
   Future<void> _onSilentSosSend() async {
     try {
       if (!await EmergencyAlert.hasGuardians()) {
+        await EmergencyAlert.logNoGuardiansAttempt('Silent SOS trigger');
         HapticFeedback.heavyImpact(); // one long buzz: nothing to send
         return;
       }
@@ -253,6 +254,7 @@ class _NavBarPageState extends State<NavBarPage> with WidgetsBindingObserver {
       setState(() => _index = 1); // jump to the SOS tab behind the overlay
       // No guardians → nothing to send; prompt instead of a pointless countdown.
       if (!await EmergencyAlert.hasGuardians()) {
+        await EmergencyAlert.logNoGuardiansAttempt('Shake to SOS');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('Add guardians first — no alert sent'),

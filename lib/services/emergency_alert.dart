@@ -110,11 +110,21 @@ class EmergencyAlert {
       String? detail}) async {
     try {
       await AlertHistoryDb()
-          .insert(trigger: trigger, outcome: outcome, detail: detail);
+          .insert(trigger: trigger, outcome: outcome, detail: detail)
+          .timeout(const Duration(seconds: 2));
     } catch (_) {
       // degrade silently
     }
   }
+
+  /// Logs a "reached nobody" attempt from a caller that pre-checks guardians
+  /// itself and so never enters [send]. Same entry [send] would have written,
+  /// so the History tab shows the attempt regardless of which trigger caught
+  /// the empty-guardian case first.
+  static Future<void> logNoGuardiansAttempt(String trigger) => _logHistory(
+      trigger: trigger,
+      outcome: 'Failed',
+      detail: 'Add emergency contacts first.');
 
   /// Fail fast if [permission] is missing (Android). The telephony and
   /// direct-caller plugins self-request missing permissions — and the
