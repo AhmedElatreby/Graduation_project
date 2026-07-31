@@ -99,4 +99,39 @@ void main() {
     expect(find.byType(IncomingCallPage), findsOneWidget);
     FakeCallController.instance.end();
   });
+
+  testWidgets(
+      "Ring me stays above a real device's system nav bar, not just the "
+      'keyboard', (tester) async {
+    // MediaQuery.padding.bottom is the system nav bar (present with no
+    // keyboard open, doesn't move) — distinct from viewInsets.bottom (the
+    // keyboard, present only while typing). A sheet that only pads for the
+    // keyboard looks fine on an edge-to-edge emulator but renders its last
+    // row behind a real 3-button Samsung nav bar. Keep the default test
+    // surface (every other test in this file relies on it rendering
+    // SosPage without overflow) and vary only padding.bottom, which is the
+    // one thing this fix touches — screen width is irrelevant to it.
+    const navBarHeight = 48.0;
+    final screenHeight = tester.view.physicalSize.height /
+        tester.view.devicePixelRatio; // logical px, default test surface
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: MediaQueryData(
+          size: Size(
+              tester.view.physicalSize.width / tester.view.devicePixelRatio,
+              screenHeight),
+          padding: const EdgeInsets.only(bottom: navBarHeight),
+        ),
+        child: const MaterialApp(home: SosPage()),
+      ),
+    );
+    await settleWithRealAsync(tester);
+
+    await tester.tap(find.text('Fake Call'));
+    await _settle(tester);
+
+    final ringMeBottom = tester.getBottomLeft(find.text('Ring me')).dy;
+    expect(ringMeBottom, lessThanOrEqualTo(screenHeight - navBarHeight));
+  });
 }

@@ -37,8 +37,8 @@ CheckInPhase checkInPhase(DateTime? endTime, DateTime now) {
 /// Whole seconds left in the grace window, rounded up to match
 /// CheckInTimerCore's onGraceTick ceil-ing, clamped at 0.
 int checkInGraceSecondsLeft(DateTime endTime, DateTime now) {
-  final deadline =
-      endTime.add(const Duration(seconds: CheckInTimerCore.defaultGraceSeconds));
+  final deadline = endTime
+      .add(const Duration(seconds: CheckInTimerCore.defaultGraceSeconds));
   final leftMs = deadline.difference(now).inMilliseconds;
   return leftMs <= 0 ? 0 : (leftMs / 1000).ceil();
 }
@@ -360,9 +360,17 @@ class _CustomDurationSheetState extends State<_CustomDurationSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      // Keep the field above the keyboard.
+      // Clear both the keyboard (viewInsets, present only while typing) and
+      // the system nav bar (padding, present whenever it's a 3-button
+      // layout) — padding alone looks right on an edge-to-edge emulator but
+      // renders the last row behind a real Samsung's nav bar.
       padding: EdgeInsets.fromLTRB(
-          18, 18, 18, 18 + MediaQuery.of(context).viewInsets.bottom),
+          18,
+          18,
+          18,
+          18 +
+              MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

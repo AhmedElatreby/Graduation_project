@@ -479,8 +479,17 @@ class _FakeCallSheetState extends State<_FakeCallSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
+      // Clear both the keyboard (viewInsets, present only while typing) and
+      // the system nav bar (padding, present whenever it's a 3-button
+      // layout) — padding alone looks right on an edge-to-edge emulator but
+      // renders the last row behind a real Samsung's nav bar.
       padding: EdgeInsets.fromLTRB(
-          18, 18, 18, 18 + MediaQuery.of(context).viewInsets.bottom),
+          18,
+          18,
+          18,
+          18 +
+              MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

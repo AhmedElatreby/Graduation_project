@@ -29,7 +29,8 @@ void main() {
           CheckInPhase.running);
     });
 
-    test('past endTime is grace, even past the grace window (the service '
+    test(
+        'past endTime is grace, even past the grace window (the service '
         'resolves it; the card just keeps showing the warning)', () {
       expect(checkInPhase(now.subtract(const Duration(seconds: 1)), now),
           CheckInPhase.grace);
@@ -60,7 +61,8 @@ void main() {
       );
     });
 
-    test('rounds partial seconds up, matching CheckInTimerCore.onGraceTick '
+    test(
+        'rounds partial seconds up, matching CheckInTimerCore.onGraceTick '
         'ceil-ing so card and notification never disagree by a second', () {
       expect(
         checkInGraceSecondsLeft(
@@ -72,7 +74,8 @@ void main() {
 
   group('formatRemaining', () {
     test('minutes and seconds', () {
-      expect(formatRemaining(const Duration(minutes: 12, seconds: 34)), '12:34');
+      expect(
+          formatRemaining(const Duration(minutes: 12, seconds: 34)), '12:34');
       expect(formatRemaining(const Duration(seconds: 59)), '0:59');
       expect(formatRemaining(const Duration(minutes: 60)), '1:00:00');
       expect(formatRemaining(const Duration(hours: 1, seconds: 5)), '1:00:05');
@@ -123,7 +126,8 @@ void main() {
       expect(CheckInPrefs.endTime.value, isNull);
     });
 
-    testWidgets('Start with a guardian persists endTime + note and shows the '
+    testWidgets(
+        'Start with a guardian persists endTime + note and shows the '
         'running state', (tester) async {
       await tester.runAsync(
           () => DBHelper().add(PersonalEmergency('Sara', '01000000000')));
@@ -174,8 +178,8 @@ void main() {
     });
 
     testWidgets('cancel returns to idle and clears prefs', (tester) async {
-      await tester.runAsync(() =>
-          CheckInPrefs.start(const Duration(minutes: 10), note: 'note'));
+      await tester.runAsync(
+          () => CheckInPrefs.start(const Duration(minutes: 10), note: 'note'));
       await pumpCard(tester);
       expect(find.text("I'm safe — cancel"), findsOneWidget);
 
@@ -222,8 +226,8 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       // Let the fire-and-forget CheckInPrefs.load() future resolve and its
       // endTime listener rebuild the card.
-      await tester
-          .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)));
       await tester.pump();
 
       expect(find.text('Start'), findsOneWidget);
@@ -274,6 +278,39 @@ void main() {
       // Sheet still open (Set did nothing), no duration picked.
       expect(find.text('Custom duration'), findsOneWidget);
       expect(find.text('0 min'), findsNothing);
+    });
+
+    testWidgets(
+        "the Set button stays above a real device's system nav bar, not "
+        'just the keyboard', (tester) async {
+      // MediaQuery.padding.bottom is the system nav bar (present with no
+      // keyboard open, doesn't move) — distinct from viewInsets.bottom (the
+      // keyboard, present only while typing). A sheet that only pads for
+      // the keyboard looks fine on an edge-to-edge emulator but renders its
+      // last row behind a real 3-button Samsung nav bar.
+      const navBarHeight = 48.0;
+      final screenHeight = tester.view.physicalSize.height /
+          tester.view.devicePixelRatio; // logical px, default test surface
+
+      await tester.pumpWidget(MediaQuery(
+        data: MediaQueryData(
+          size: Size(
+              tester.view.physicalSize.width / tester.view.devicePixelRatio,
+              screenHeight),
+          padding: const EdgeInsets.only(bottom: navBarHeight),
+        ),
+        child: const MaterialApp(
+          home: Scaffold(body: SingleChildScrollView(child: CheckInCard())),
+        ),
+      ));
+      await tester.pump();
+
+      await tester.tap(find.text('Custom…'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final setButtonBottom = tester.getBottomLeft(find.text('Set')).dy;
+      expect(setButtonBottom, lessThanOrEqualTo(screenHeight - navBarHeight));
     });
   });
 }
