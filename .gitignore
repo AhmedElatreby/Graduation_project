@@ -49,3 +49,6 @@ app.*.map.json
 
 # Secrets — keep API keys off GitHub
 lib/secrets.dart
+
+# Firebase CLI local deploy cache
+.firebase/
